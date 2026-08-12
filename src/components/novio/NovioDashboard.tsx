@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { NovioForm } from "@/components/novio/NovioForm";
+import { CitaDetailView } from "@/components/citas/CitaDetailView";
 import {
   Plus,
   Sparkles,
@@ -13,9 +14,8 @@ import {
   CalendarHeart,
   AlertTriangle,
   CheckCircle2,
+  CalendarClock,
 } from "lucide-react";
-
-import { CitaDetailView } from "@/components/citas/CitaDetailView";
 
 interface NovioDashboardProps {
   onViewDetail?: (cita: ICitaResponse) => void;
@@ -113,6 +113,11 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     }
   };
 
+  // Citas con propuesta de cambio pendiente de la novia
+  const citasConPropuesta = citas.filter(
+    (c) => c.propuestaCambio?.estado === "pendiente"
+  );
+
   return (
     <div className="min-h-screen bg-ivory text-ink">
       {/* Toast Notification */}
@@ -154,6 +159,12 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               setCurrentView("list");
               setSelectedCita(null);
             }}
+            onCitaUpdated={(updated) => {
+              setCitas((prev) =>
+                prev.map((c) => (c.id === updated.id ? updated : c))
+              );
+              setSelectedCita(updated);
+            }}
           />
         )}
 
@@ -180,9 +191,40 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
 
         {/* Vista Principal: Lista de Citas */}
         {currentView === "list" && (
-          <div>
+          <div className="space-y-6">
+            {/* Banner de propuestas de cambio pendientes enviadas por la novia */}
+            {!loading && citasConPropuesta.length > 0 && (
+              <div className="bg-gradient-to-r from-rose-soft/80 to-paper border border-rose/40 rounded-2xl p-5 shadow-sm animate-fade-up">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose flex items-center justify-center text-white">
+                      <CalendarClock size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-serif font-semibold text-base text-ink">
+                        💌 Tu novia ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
+                        {citasConPropuesta.length === 1 ? "cita" : "citas"}
+                      </h4>
+                      <p className="text-xs text-ink-soft">
+                        Revisa la sugerencia para aceptar o conservar la fecha original.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedCita(citasConPropuesta[0]);
+                      setCurrentView("detail");
+                    }}
+                    className="bg-ink hover:bg-gold-deep text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all"
+                  >
+                    Revisar propuesta
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Encabezado de la Sección */}
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-4">
               <div>
                 <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-gold-deep font-semibold mb-1">
                   Tus citas agendadas

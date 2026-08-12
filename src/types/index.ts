@@ -12,10 +12,32 @@ export type TematicaCita =
   | "Formal"
   | string;
 
+export type TipoAcompanantes =
+  | "solo_pareja"
+  | "mayoria_conocidos"
+  | "mayoria_desconocidos";
+
+export type ImportanciaCita = "especial" | "alta" | "media" | "casual";
+
+export type AmbienteCita = "interior" | "exterior" | "mixto";
+
 export interface ILugar {
   direccion: string;
   lat: number;
   lng: number;
+}
+
+export interface IAsistencia {
+  cantidadPersonas: number;
+  tipoAcompanantes: TipoAcompanantes;
+  hayFamilia: boolean;
+}
+
+export interface IPropuestaCambio {
+  nuevoHorario: string;
+  motivo?: string;
+  fechaSolicitud?: string;
+  estado: "pendiente" | "aceptada" | "rechazada";
 }
 
 export interface IUsuario {
@@ -47,6 +69,16 @@ export interface ICita {
   tematica: TematicaCita;
   vestimentaRecomendada: string;
   estado: EstadoCita;
+  asistencia?: IAsistencia;
+  importancia?: ImportanciaCita;
+  ambiente?: AmbienteCita;
+  esFlexible?: boolean;
+  propuestaCambio?: {
+    nuevoHorario: Date;
+    motivo?: string;
+    fechaSolicitud: Date;
+    estado: "pendiente" | "aceptada" | "rechazada";
+  };
   creadoPor: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
@@ -65,6 +97,11 @@ export interface ICitaResponse {
   tematica: string;
   vestimentaRecomendada: string;
   estado: EstadoCita;
+  asistencia?: IAsistencia;
+  importancia?: ImportanciaCita;
+  ambiente?: AmbienteCita;
+  esFlexible?: boolean;
+  propuestaCambio?: IPropuestaCambio;
   creadoPor?: {
     id: string;
     nombre: string;

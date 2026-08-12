@@ -24,6 +24,49 @@ const LugarSchema = new Schema(
   { _id: false }
 );
 
+const AsistenciaSchema = new Schema(
+  {
+    cantidadPersonas: {
+      type: Number,
+      default: 2,
+      min: [2, "Mínimo 2 personas"],
+    },
+    tipoAcompanantes: {
+      type: String,
+      enum: ["solo_pareja", "mayoria_conocidos", "mayoria_desconocidos"],
+      default: "solo_pareja",
+    },
+    hayFamilia: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
+
+const PropuestaCambioSchema = new Schema(
+  {
+    nuevoHorario: {
+      type: Date,
+      required: true,
+    },
+    motivo: {
+      type: String,
+      trim: true,
+    },
+    fechaSolicitud: {
+      type: Date,
+      default: Date.now,
+    },
+    estado: {
+      type: String,
+      enum: ["pendiente", "aceptada", "rechazada"],
+      default: "pendiente",
+    },
+  },
+  { _id: false }
+);
+
 const CitaSchema = new Schema<ICitaDocument>(
   {
     nombre: {
@@ -64,6 +107,32 @@ const CitaSchema = new Schema<ICitaDocument>(
       },
       default: "confirmada",
       index: true,
+    },
+    asistencia: {
+      type: AsistenciaSchema,
+      default: () => ({
+        cantidadPersonas: 2,
+        tipoAcompanantes: "solo_pareja",
+        hayFamilia: false,
+      }),
+    },
+    importancia: {
+      type: String,
+      enum: ["especial", "alta", "media", "casual"],
+      default: "alta",
+    },
+    ambiente: {
+      type: String,
+      enum: ["interior", "exterior", "mixto"],
+      default: "interior",
+    },
+    esFlexible: {
+      type: Boolean,
+      default: true,
+    },
+    propuestaCambio: {
+      type: PropuestaCambioSchema,
+      default: undefined,
     },
     creadoPor: {
       type: Schema.Types.ObjectId,

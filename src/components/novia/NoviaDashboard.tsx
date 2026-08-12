@@ -147,6 +147,12 @@ export function NoviaDashboard() {
           <CitaDetailView
             cita={selectedCita}
             onBack={() => setSelectedCita(null)}
+            onCitaUpdated={(updated) => {
+              setCitas((prev) =>
+                prev.map((c) => (c.id === updated.id ? updated : c))
+              );
+              setSelectedCita(updated);
+            }}
           />
         ) : (
           /* Vista de Lista de Invitaciones */

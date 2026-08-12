@@ -19,7 +19,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
-
     const db = await connectDB();
 
     if (db && mongoose.Types.ObjectId.isValid(id)) {
@@ -41,6 +40,22 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
               tematica: rawCita.tematica,
               vestimentaRecomendada: rawCita.vestimentaRecomendada,
               estado: rawCita.estado,
+              asistencia: rawCita.asistencia || {
+                cantidadPersonas: 2,
+                tipoAcompanantes: "solo_pareja",
+                hayFamilia: false,
+              },
+              importancia: rawCita.importancia || "alta",
+              ambiente: rawCita.ambiente || "interior",
+              esFlexible: rawCita.esFlexible ?? true,
+              propuestaCambio: rawCita.propuestaCambio
+                ? {
+                    nuevoHorario: rawCita.propuestaCambio.nuevoHorario?.toISOString(),
+                    motivo: rawCita.propuestaCambio.motivo,
+                    fechaSolicitud: rawCita.propuestaCambio.fechaSolicitud?.toISOString(),
+                    estado: rawCita.propuestaCambio.estado,
+                  }
+                : undefined,
               creadoPor:
                 rawCita.creadoPor &&
                 typeof rawCita.creadoPor === "object" &&
@@ -137,6 +152,22 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
               tematica: citaActualizada.tematica,
               vestimentaRecomendada: citaActualizada.vestimentaRecomendada,
               estado: citaActualizada.estado,
+              asistencia: citaActualizada.asistencia || {
+                cantidadPersonas: 2,
+                tipoAcompanantes: "solo_pareja",
+                hayFamilia: false,
+              },
+              importancia: citaActualizada.importancia || "alta",
+              ambiente: citaActualizada.ambiente || "interior",
+              esFlexible: citaActualizada.esFlexible ?? true,
+              propuestaCambio: citaActualizada.propuestaCambio
+                ? {
+                    nuevoHorario: citaActualizada.propuestaCambio.nuevoHorario?.toISOString(),
+                    motivo: citaActualizada.propuestaCambio.motivo,
+                    fechaSolicitud: citaActualizada.propuestaCambio.fechaSolicitud?.toISOString(),
+                    estado: citaActualizada.propuestaCambio.estado,
+                  }
+                : undefined,
               creadoPor:
                 citaActualizada.creadoPor &&
                 typeof citaActualizada.creadoPor === "object" &&
@@ -171,6 +202,14 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       ...parseResult.data,
       horario: parseResult.data.horario || current.horario,
       lugar: parseResult.data.lugar || current.lugar,
+      asistencia: parseResult.data.asistencia || current.asistencia || {
+        cantidadPersonas: 2,
+        tipoAcompanantes: "solo_pareja" as const,
+        hayFamilia: false,
+      },
+      importancia: parseResult.data.importancia || current.importancia || "alta",
+      ambiente: parseResult.data.ambiente || current.ambiente || "interior",
+      esFlexible: parseResult.data.esFlexible ?? current.esFlexible ?? true,
       updatedAt: new Date().toISOString(),
     };
 
@@ -197,7 +236,6 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
-
     const db = await connectDB();
 
     if (db && mongoose.Types.ObjectId.isValid(id)) {

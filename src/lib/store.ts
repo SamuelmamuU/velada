@@ -42,6 +42,14 @@ if (!globalStore.__velada_mem_db) {
         vestimentaRecomendada:
           "Elegante casual — algo cómodo que te haga sentir bonita, la terraza tiene piso de piedra.",
         estado: "confirmada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "especial",
+        ambiente: "exterior",
+        esFlexible: true,
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -63,6 +71,14 @@ if (!globalStore.__velada_mem_db) {
         tematica: "Cultural",
         vestimentaRecomendada: "Casual relajado y zapatos cómodos para caminar.",
         estado: "pendiente",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "media",
+        ambiente: "interior",
+        esFlexible: true,
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -85,6 +101,14 @@ if (!globalStore.__velada_mem_db) {
         vestimentaRecomendada:
           "Ropa abrigadora ligera para la noche y calzado para exterior.",
         estado: "confirmada",
+        asistencia: {
+          cantidadPersonas: 4,
+          tipoAcompanantes: "mayoria_conocidos",
+          hayFamilia: false,
+        },
+        importancia: "alta",
+        ambiente: "exterior",
+        esFlexible: false,
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",

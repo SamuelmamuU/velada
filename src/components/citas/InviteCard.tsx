@@ -4,7 +4,17 @@ import React from "react";
 import { ICitaResponse } from "@/types";
 import { format, isPast } from "date-fns";
 import { es } from "date-fns/locale";
-import { MapPin, Clock, Edit2, Trash2, ChevronRight, Sparkles } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Edit2,
+  Trash2,
+  ChevronRight,
+  Sparkles,
+  Users,
+  Home,
+  AlertCircle,
+} from "lucide-react";
 
 interface InviteCardProps {
   cita: ICitaResponse;
@@ -25,7 +35,6 @@ export function InviteCard({
   onEdit,
   onDelete,
 }: InviteCardProps) {
-  // Degrades dinámicos de solapas
   const flaps = [
     "linear-gradient(120deg, var(--rose), var(--gold))",
     "linear-gradient(120deg, var(--gold), var(--rose))",
@@ -34,7 +43,6 @@ export function InviteCard({
   ];
   const flapGradient = flaps[index % flaps.length];
 
-  // Formato de fecha
   let formattedDate = "";
   let isDatePast = false;
   try {
@@ -49,6 +57,23 @@ export function InviteCard({
 
   const isCancelled = cita.estado === "cancelada";
   const isPending = cita.estado === "pendiente";
+
+  // Badges de nuevas propiedades
+  const ambienteText =
+    cita.ambiente === "exterior"
+      ? "🌳 Exterior"
+      : cita.ambiente === "mixto"
+      ? "🌤️ Mixto"
+      : "🏠 Interior";
+
+  const personasCount = cita.asistencia?.cantidadPersonas || 2;
+  const companiaText =
+    personasCount === 2
+      ? "👥 Solo nosotros"
+      : `👥 ${personasCount} personas${cita.asistencia?.hayFamilia ? " · Familia" : ""}`;
+
+  const tienePropuestaPendiente =
+    cita.propuestaCambio && cita.propuestaCambio.estado === "pendiente";
 
   return (
     <div
@@ -68,30 +93,45 @@ export function InviteCard({
             <span>NUEVA</span>
           </div>
         )}
+
+        {tienePropuestaPendiente && (
+          <div className="absolute top-2 left-2 bg-rose text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+            <AlertCircle size={11} />
+            <span>CAMBIO SUGERIDO</span>
+          </div>
+        )}
       </div>
 
       {/* Cuerpo de la invitación */}
       <div className="p-5 flex-1 flex flex-col justify-between gap-3">
         <div className="space-y-2">
-          {/* Badge de Estado */}
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={`inline-block font-mono text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                isCancelled
-                  ? "bg-rose-soft text-rose"
+          {/* Badges superiores: Estado + Importancia */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`inline-block font-mono text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                  isCancelled
+                    ? "bg-rose-soft text-rose"
+                    : isPending
+                    ? "bg-[#F6EAD2] text-gold-deep"
+                    : "bg-[#E4EFE2] text-[#3E7A3D]"
+                }`}
+              >
+                {isCancelled
+                  ? "CANCELADA"
                   : isPending
-                  ? "bg-[#F6EAD2] text-gold-deep"
-                  : "bg-[#E4EFE2] text-[#3E7A3D]"
-              }`}
-            >
-              {isCancelled
-                ? "CANCELADA"
-                : isPending
-                ? "PENDIENTE"
-                : isDatePast
-                ? "REALIZADA"
-                : "CONFIRMADA"}
-            </span>
+                  ? "PENDIENTE"
+                  : isDatePast
+                  ? "REALIZADA"
+                  : "CONFIRMADA"}
+              </span>
+
+              {cita.importancia === "especial" && (
+                <span className="bg-gold/20 text-gold-deep font-mono text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  ✨ Especial
+                </span>
+              )}
+            </div>
 
             {isNovio && (
               <div
@@ -135,20 +175,24 @@ export function InviteCard({
           </p>
         </div>
 
-        {/* Metadatos (Horario y Lugar) */}
+        {/* Metadatos (Horario, Lugar, Compañía y Ambiente) */}
         <div className="pt-2 border-t border-line/60 space-y-1.5 text-[12.5px] text-ink-soft">
           <div className="flex items-center gap-2">
             <Clock size={14} className="text-gold-deep flex-shrink-0" />
-            <span className="truncate">{formattedDate}</span>
+            <span className="truncate font-medium text-ink">{formattedDate}</span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin size={14} className="text-rose flex-shrink-0" />
             <span className="truncate">{cita.lugar.direccion}</span>
           </div>
+          <div className="flex items-center gap-3 pt-1 text-[11px] text-ink-soft font-mono flex-wrap">
+            <span className="bg-paper px-2 py-0.5 rounded-md">{companiaText}</span>
+            <span className="bg-paper px-2 py-0.5 rounded-md">{ambienteText}</span>
+          </div>
         </div>
 
         {/* Temática e indicador de ver detalle */}
-        <div className="pt-1 flex items-center justify-between">
+        <div className="pt-1 flex items-center justify-between border-t border-line/40">
           <span className="inline-block font-sans text-[11px] font-semibold text-rose bg-rose-soft px-2.5 py-0.5 rounded-full">
             Temática: {cita.tematica}
           </span>

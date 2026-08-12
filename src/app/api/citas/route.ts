@@ -36,6 +36,22 @@ export async function GET(req: NextRequest) {
           tematica: cita.tematica,
           vestimentaRecomendada: cita.vestimentaRecomendada,
           estado: cita.estado,
+          asistencia: cita.asistencia || {
+            cantidadPersonas: 2,
+            tipoAcompanantes: "solo_pareja",
+            hayFamilia: false,
+          },
+          importancia: cita.importancia || "alta",
+          ambiente: cita.ambiente || "interior",
+          esFlexible: cita.esFlexible ?? true,
+          propuestaCambio: cita.propuestaCambio
+            ? {
+                nuevoHorario: cita.propuestaCambio.nuevoHorario?.toISOString(),
+                motivo: cita.propuestaCambio.motivo,
+                fechaSolicitud: cita.propuestaCambio.fechaSolicitud?.toISOString(),
+                estado: cita.propuestaCambio.estado,
+              }
+            : undefined,
           creadoPor:
             cita.creadoPor && typeof cita.creadoPor === "object" && cita.creadoPor.nombre
               ? {
@@ -110,6 +126,14 @@ export async function POST(req: NextRequest) {
           tematica: validatedData.tematica,
           vestimentaRecomendada: validatedData.vestimentaRecomendada,
           estado: validatedData.estado || "confirmada",
+          asistencia: validatedData.asistencia || {
+            cantidadPersonas: 2,
+            tipoAcompanantes: "solo_pareja",
+            hayFamilia: false,
+          },
+          importancia: validatedData.importancia || "alta",
+          ambiente: validatedData.ambiente || "interior",
+          esFlexible: validatedData.esFlexible ?? true,
           creadoPor: new mongoose.Types.ObjectId(auth.user.id),
         });
 
@@ -126,6 +150,10 @@ export async function POST(req: NextRequest) {
               tematica: nuevaCita.tematica,
               vestimentaRecomendada: nuevaCita.vestimentaRecomendada,
               estado: nuevaCita.estado,
+              asistencia: nuevaCita.asistencia,
+              importancia: nuevaCita.importancia,
+              ambiente: nuevaCita.ambiente,
+              esFlexible: nuevaCita.esFlexible,
               creadoPor: {
                 id: auth.user.id,
                 nombre: auth.user.nombre,
@@ -151,6 +179,14 @@ export async function POST(req: NextRequest) {
       tematica: validatedData.tematica,
       vestimentaRecomendada: validatedData.vestimentaRecomendada,
       estado: validatedData.estado || "confirmada",
+      asistencia: validatedData.asistencia || {
+        cantidadPersonas: 2,
+        tipoAcompanantes: "solo_pareja" as const,
+        hayFamilia: false,
+      },
+      importancia: validatedData.importancia || "alta",
+      ambiente: validatedData.ambiente || "interior",
+      esFlexible: validatedData.esFlexible ?? true,
       creadoPor: {
         id: auth.user.id,
         nombre: auth.user.nombre,

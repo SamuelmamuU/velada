@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signToken, verifyToken } from "@/lib/jwt";
 import { requireAuth, requireRole } from "@/lib/auth";
-import { CrearCitaSchema, EditarCitaSchema } from "@/lib/validations/cita";
+import {
+  CrearCitaSchema,
+  EditarCitaSchema,
+  PropuestaCambioSchema,
+} from "@/lib/validations/cita";
 import { generateGoogleCalendarUrl, generateIcsContent } from "@/lib/calendar";
 
 export async function GET(req: NextRequest) {
@@ -127,7 +131,7 @@ export async function GET(req: NextRequest) {
     authAnon.errorResponse?.status === 401
   );
 
-  // ================= 3. VALIDACIONES Y CASOS LÍMITE (ZOD) =================
+  // ================= 3. VALIDACIONES Y NUEVOS CAMPOS (ZOD) =================
   const citaValida = {
     nombre: "Cena bajo las luces",
     descripcion: "Mesa reservada y vino tinto en la terraza.",
@@ -140,13 +144,21 @@ export async function GET(req: NextRequest) {
     tematica: "Romántico",
     vestimentaRecomendada: "Elegante casual",
     estado: "confirmada",
+    asistencia: {
+      cantidadPersonas: 4,
+      tipoAcompanantes: "mayoria_conocidos",
+      hayFamilia: true,
+    },
+    importancia: "especial",
+    ambiente: "exterior",
+    esFlexible: true,
   };
 
   const validParse = CrearCitaSchema.safeParse(citaValida);
   addTest(
     "Validaciones Zod",
     "VAL-01",
-    "Aprobación de payload de Cita con todos los campos válidos",
+    "Aprobación de payload con asistencia, familia, importancia, ambiente y flexibilidad",
     validParse.success
   );
 
@@ -183,7 +195,29 @@ export async function GET(req: NextRequest) {
     !parseFecha.success
   );
 
-  // ================= 4. GENERACIÓN DE CALENDARIO (.ICS Y GOOGLE CAL) =================
+  // ================= 4. PROPUESTA DE CAMBIO DE HORARIO (NOVIA -> NOVIO) =================
+  const propuestaValida = {
+    nuevoHorario: new Date(Date.now() + 172800000).toISOString(),
+    motivo: "Salgo más tarde del trabajo, ¿podemos moverlo a esta hora?",
+  };
+  const parsePropuesta = PropuestaCambioSchema.safeParse(propuestaValida);
+  addTest(
+    "Propuestas de Horario",
+    "PROP-01",
+    "Validación de propuesta de reprogramación enviada por la novia",
+    parsePropuesta.success
+  );
+
+  const propuestaInvalida = { nuevoHorario: "hora_invalida" };
+  const parsePropuestaInv = PropuestaCambioSchema.safeParse(propuestaInvalida);
+  addTest(
+    "Propuestas de Horario",
+    "PROP-02",
+    "Rechazo de propuesta con fecha u horario corrupto",
+    !parsePropuestaInv.success
+  );
+
+  // ================= 5. GENERACIÓN DE CALENDARIO (.ICS Y GOOGLE CAL) =================
   const mockCitaResponse = {
     id: "64f1a2b3c4d5e6f7a8b9c001",
     nombre: "Cena bajo las luces",
@@ -197,6 +231,14 @@ export async function GET(req: NextRequest) {
     tematica: "Romántico",
     vestimentaRecomendada: "Elegante casual",
     estado: "confirmada" as const,
+    asistencia: {
+      cantidadPersonas: 2,
+      tipoAcompanantes: "solo_pareja" as const,
+      hayFamilia: false,
+    },
+    importancia: "especial" as const,
+    ambiente: "exterior" as const,
+    esFlexible: true,
   };
 
   const gcalUrl = generateGoogleCalendarUrl(mockCitaResponse);
@@ -222,12 +264,13 @@ export async function GET(req: NextRequest) {
       icsContent.includes("END:VCALENDAR")
   );
 
-  // ================= 5. FLUJO EXTREMO A EXTREMO =================
+  // ================= 6. FLUJO EXTREMO A EXTREMO =================
   addTest(
     "Flujo E2E",
     "E2E-01",
-    "Flujo Novio crea cita -> Validación Zod -> Novia consulta -> Exporta calendario",
+    "Flujo Novio crea cita con acompañantes y ambiente -> Novia propone cambio -> Novio acepta -> Calendario generado",
     validParse.success &&
+      parsePropuesta.success &&
       !authNoviaGet.errorResponse &&
       icsContent.length > 50 &&
       gcalUrl.length > 50

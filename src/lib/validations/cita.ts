@@ -15,6 +15,21 @@ export const LugarSchema = z.object({
     .max(180, "Longitud inválida"),
 });
 
+export const AsistenciaSchema = z
+  .object({
+    cantidadPersonas: z
+      .number()
+      .min(2, "Mínimo 2 personas")
+      .optional()
+      .default(2),
+    tipoAcompanantes: z
+      .enum(["solo_pareja", "mayoria_conocidos", "mayoria_desconocidos"])
+      .optional()
+      .default("solo_pareja"),
+    hayFamilia: z.boolean().optional().default(false),
+  })
+  .optional();
+
 export const CrearCitaSchema = z.object({
   nombre: z
     .string({ required_error: "El nombre de la cita es obligatorio" })
@@ -47,6 +62,25 @@ export const CrearCitaSchema = z.object({
     })
     .optional()
     .default("confirmada"),
+  asistencia: AsistenciaSchema,
+  importancia: z
+    .enum(["especial", "alta", "media", "casual"])
+    .optional()
+    .default("alta"),
+  ambiente: z
+    .enum(["interior", "exterior", "mixto"])
+    .optional()
+    .default("interior"),
+  esFlexible: z.boolean().optional().default(true),
 });
 
 export const EditarCitaSchema = CrearCitaSchema.partial();
+
+export const PropuestaCambioSchema = z.object({
+  nuevoHorario: z
+    .string({ required_error: "El nuevo horario propuesto es obligatorio" })
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Formato de fecha u horario inválido",
+    }),
+  motivo: z.string().optional(),
+});

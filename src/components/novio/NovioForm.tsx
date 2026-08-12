@@ -1,10 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { ICitaResponse, ILugar } from "@/types";
+import React, { useState } from "react";
+import {
+  ICitaResponse,
+  ILugar,
+  TipoAcompanantes,
+  ImportanciaCita,
+  AmbienteCita,
+} from "@/types";
 import { MapPicker } from "@/components/maps/MapPicker";
 import { format } from "date-fns";
-import { Loader2, AlertCircle, Sparkles, X } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  X,
+  Users,
+  Home,
+  Clock,
+  Flame,
+} from "lucide-react";
 
 interface NovioFormProps {
   initialCita?: ICitaResponse | null;
@@ -21,13 +36,12 @@ export function NovioForm({
 }: NovioFormProps) {
   const isEditing = !!initialCita;
 
-  // Estado del formulario
+  // Campos básicos
   const [nombre, setNombre] = useState(initialCita?.nombre || "");
   const [descripcion, setDescripcion] = useState(
     initialCita?.descripcion || ""
   );
 
-  // Fecha y hora inicial
   let defaultDate = "";
   let defaultTime = "20:00";
   if (initialCita?.horario) {
@@ -39,7 +53,6 @@ export function NovioForm({
       defaultDate = "";
     }
   } else {
-    // Por defecto en 3 días
     const nextDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
     defaultDate = format(nextDate, "yyyy-MM-dd");
   }
@@ -54,6 +67,27 @@ export function NovioForm({
   );
   const [estado, setEstado] = useState(initialCita?.estado || "confirmada");
 
+  // Nuevas funcionalidades solicitadas
+  const [cantidadPersonas, setCantidadPersonas] = useState<number>(
+    initialCita?.asistencia?.cantidadPersonas || 2
+  );
+  const [tipoAcompanantes, setTipoAcompanantes] = useState<TipoAcompanantes>(
+    initialCita?.asistencia?.tipoAcompanantes || "solo_pareja"
+  );
+  const [hayFamilia, setHayFamilia] = useState<boolean>(
+    initialCita?.asistencia?.hayFamilia || false
+  );
+
+  const [importancia, setImportancia] = useState<ImportanciaCita>(
+    initialCita?.importancia || "alta"
+  );
+  const [ambiente, setAmbiente] = useState<AmbienteCita>(
+    initialCita?.ambiente || "interior"
+  );
+  const [esFlexible, setEsFlexible] = useState<boolean>(
+    initialCita?.esFlexible ?? true
+  );
+
   // Lugar y coordenadas
   const [lugar, setLugar] = useState<ILugar>(
     initialCita?.lugar || {
@@ -66,6 +100,15 @@ export function NovioForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handlePersonasChange = (num: number) => {
+    setCantidadPersonas(num);
+    if (num === 2) {
+      setTipoAcompanantes("solo_pareja");
+    } else if (tipoAcompanantes === "solo_pareja") {
+      setTipoAcompanantes("mayoria_conocidos");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -75,7 +118,6 @@ export function NovioForm({
       return;
     }
 
-    // Combinar fecha y hora en formato ISO UTC
     const combinedDate = new Date(`${fecha}T${hora}:00`);
     if (isNaN(combinedDate.getTime())) {
       setError("La fecha u hora seleccionada no es válida.");
@@ -102,6 +144,15 @@ export function NovioForm({
         tematica,
         vestimentaRecomendada: vestimenta.trim(),
         estado,
+        asistencia: {
+          cantidadPersonas,
+          tipoAcompanantes:
+            cantidadPersonas === 2 ? "solo_pareja" : tipoAcompanantes,
+          hayFamilia,
+        },
+        importancia,
+        ambiente,
+        esFlexible,
       };
 
       const res = await fetch(endpoint, {
@@ -127,8 +178,8 @@ export function NovioForm({
   };
 
   return (
-    <div className="bg-card rounded-[20px] p-6 sm:p-9 shadow-velada border border-line max-w-[720px] mx-auto animate-fade-up">
-      {/* Encabezado del Formulario */}
+    <div className="bg-card rounded-[20px] p-6 sm:p-9 shadow-velada border border-line max-w-[760px] mx-auto animate-fade-up">
+      {/* Encabezado */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-gold-deep font-semibold mb-1">
@@ -153,7 +204,7 @@ export function NovioForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Nombre de la cita */}
         <div>
           <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
@@ -209,6 +260,160 @@ export function NovioForm({
               onChange={(e) => setHora(e.target.value)}
               className="w-full py-3 px-3.5 border border-line rounded-[10px] font-sans text-sm bg-ivory text-ink focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20"
             />
+          </div>
+        </div>
+
+        {/* SECCIÓN NUEVA 1: Asistencia, Compañía y Familia */}
+        <div className="bg-paper/50 rounded-2xl p-4 sm:p-5 border border-line space-y-4">
+          <div className="flex items-center gap-2 text-ink font-serif font-semibold text-sm">
+            <Users size={16} className="text-gold-deep" />
+            <span>Compañía y Asistencia al Plan</span>
+          </div>
+
+          {/* Cantidad de personas */}
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-2">
+              ¿Cuántas personas asistirán en total?
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[2, 3, 4, 6, 8, 12].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handlePersonasChange(num)}
+                  className={`py-2 px-3.5 rounded-xl text-xs font-semibold transition-all ${
+                    cantidadPersonas === num
+                      ? "bg-ink text-white shadow-sm"
+                      : "bg-card text-ink-soft border border-line hover:border-ink/20"
+                  }`}
+                >
+                  {num === 2 ? "Solo nosotros dos (2)" : `${num} personas`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tipo de acompañantes si son más de 2 */}
+          {cantidadPersonas > 2 && (
+            <div className="pt-2 border-t border-line/60">
+              <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-2">
+                ¿Los demás asistentes son conocidos o desconocidos?
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTipoAcompanantes("mayoria_conocidos")}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold text-center transition-all ${
+                    tipoAcompanantes === "mayoria_conocidos"
+                      ? "border border-rose bg-rose-soft text-ink"
+                      : "bg-card border border-line text-ink-soft"
+                  }`}
+                >
+                  👥 Mayoría conocidos (amigos/cercanos)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTipoAcompanantes("mayoria_desconocidos")}
+                  className={`py-2.5 px-3 rounded-xl text-xs font-semibold text-center transition-all ${
+                    tipoAcompanantes === "mayoria_desconocidos"
+                      ? "border border-rose bg-rose-soft text-ink"
+                      : "bg-card border border-line text-ink-soft"
+                  }`}
+                >
+                  🎭 Mayoría desconocidos (evento/social)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Aviso si hay familia */}
+          <div className="pt-2 border-t border-line/60 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-xs font-semibold text-ink">
+                ¿Habrá familiares presentes?
+              </div>
+              <div className="text-[11px] text-ink-soft">
+                Le ayuda a tu novia a saber si es un ambiente familiar.
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setHayFamilia(false)}
+                className={`py-1.5 px-3.5 rounded-xl text-xs font-semibold transition-all ${
+                  !hayFamilia
+                    ? "bg-card border border-ink text-ink"
+                    : "bg-card/50 border border-line text-ink-soft"
+                }`}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => setHayFamilia(true)}
+                className={`py-1.5 px-3.5 rounded-xl text-xs font-semibold transition-all ${
+                  hayFamilia
+                    ? "bg-rose text-white border border-rose"
+                    : "bg-card/50 border border-line text-ink-soft"
+                }`}
+              >
+                Sí, con familia 👨‍👩‍👧
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* SECCIÓN NUEVA 2: Importancia, Ambiente y Flexibilidad */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Importancia */}
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-2 flex items-center gap-1.5">
+              <Flame size={13} className="text-rose" />
+              <span>Importancia</span>
+            </label>
+            <select
+              value={importancia}
+              onChange={(e) => setImportancia(e.target.value as ImportanciaCita)}
+              className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
+            >
+              <option value="especial">✨ Muy Especial / Crucial</option>
+              <option value="alta">🌟 Alta Prioridad</option>
+              <option value="media">💫 Media</option>
+              <option value="casual">☕ Casual / Espontánea</option>
+            </select>
+          </div>
+
+          {/* Ambiente Interior / Exterior */}
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-2 flex items-center gap-1.5">
+              <Home size={13} className="text-gold-deep" />
+              <span>Ambiente</span>
+            </label>
+            <select
+              value={ambiente}
+              onChange={(e) => setAmbiente(e.target.value as AmbienteCita)}
+              className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
+            >
+              <option value="interior">🏠 Interior (Indoor)</option>
+              <option value="exterior">🌳 Exterior (Outdoor)</option>
+              <option value="mixto">🌤️ Mixto (Ambos)</option>
+            </select>
+          </div>
+
+          {/* Flexibilidad de horario */}
+          <div>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-2 flex items-center gap-1.5">
+              <Clock size={13} className="text-gold" />
+              <span>¿Horario flexible?</span>
+            </label>
+            <select
+              value={esFlexible ? "true" : "false"}
+              onChange={(e) => setEsFlexible(e.target.value === "true")}
+              className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
+            >
+              <option value="true">⏱️ Sí, la novia puede proponer cambio</option>
+              <option value="false">🔒 No, horario estricto / reservación</option>
+            </select>
           </div>
         </div>
 
