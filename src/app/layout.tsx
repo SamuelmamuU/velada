@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -37,7 +38,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
       <body className="font-sans antialiased min-h-screen selection:bg-rose-soft selection:text-ink">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
