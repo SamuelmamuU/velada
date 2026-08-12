@@ -15,6 +15,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { CitaDetailView } from "@/components/citas/CitaDetailView";
+
 interface NovioDashboardProps {
   onViewDetail?: (cita: ICitaResponse) => void;
 }
@@ -24,9 +26,9 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
 
   const [citas, setCitas] = useState<ICitaResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<"list" | "create" | "edit">(
-    "list"
-  );
+  const [currentView, setCurrentView] = useState<
+    "list" | "create" | "edit" | "detail"
+  >("list");
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
 
   // Estados de modal de eliminación y notificaciones
@@ -64,7 +66,12 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   };
 
   const handleCreateSuccess = (nuevaCita: ICitaResponse) => {
-    setCitas((prev) => [...prev, nuevaCita].sort((a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime()));
+    setCitas((prev) =>
+      [...prev, nuevaCita].sort(
+        (a, b) =>
+          new Date(a.horario).getTime() - new Date(b.horario).getTime()
+      )
+    );
     setCurrentView("list");
     showToast("¡Velada agendada exitosamente! Tu novia ya puede verla 💛");
   };
@@ -73,7 +80,10 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     setCitas((prev) =>
       prev
         .map((c) => (c.id === citaActualizada.id ? citaActualizada : c))
-        .sort((a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime())
+        .sort(
+          (a, b) =>
+            new Date(a.horario).getTime() - new Date(b.horario).getTime()
+        )
     );
     setCurrentView("list");
     setSelectedCita(null);
@@ -121,6 +131,8 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               ? "NUEVA CITA"
               : currentView === "edit"
               ? "EDITAR CITA"
+              : currentView === "detail"
+              ? "DETALLE DE LA CITA"
               : "PANEL DEL NOVIO"
           }
           onBack={
@@ -133,6 +145,17 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           }
           backLabel="Volver a la lista"
         />
+
+        {/* Vista de Detalle Individual */}
+        {currentView === "detail" && selectedCita && (
+          <CitaDetailView
+            cita={selectedCita}
+            onBack={() => {
+              setCurrentView("list");
+              setSelectedCita(null);
+            }}
+          />
+        )}
 
         {/* Vista de Creación o Edición */}
         {currentView === "create" && (
@@ -225,7 +248,11 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                     cita={cita}
                     index={idx}
                     isNovio={true}
-                    onSelect={(c) => onViewDetail?.(c)}
+                    onSelect={(c) => {
+                      setSelectedCita(c);
+                      setCurrentView("detail");
+                      onViewDetail?.(c);
+                    }}
                     onEdit={(c) => {
                       setSelectedCita(c);
                       setCurrentView("edit");
