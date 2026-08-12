@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #2B2438;
+  --ink-soft: #584C68;
+  --ivory: #FAF6F0;
+  --paper: #F1E9DE;
+  --card: #FFFFFF;
+  --gold: #C08A3E;
+  --gold-deep: #8F6425;
+  --rose: #B85C6B;
+  --rose-soft: #EFD3D8;
+  --line: rgba(43, 36, 56, 0.12);
+  --shadow: 0 20px 40px -20px rgba(43, 36, 56, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ivory);
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(192, 138, 62, 0.10), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(184, 92, 107, 0.10), transparent 40%);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* Sello de cera tipo Velada */
+.seal {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #E3B15E, var(--gold-deep) 75%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ivory);
+  font-family: var(--font-fraunces), serif;
+  font-weight: 600;
+  font-size: 20px;
+  box-shadow: 0 6px 14px -4px rgba(143, 100, 37, 0.55), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.seal::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px dashed rgba(143, 100, 37, 0.35);
+}
+
+/* Solapa degradada tipo sobre de carta */
+.invite-flap {
+  height: 64px;
+  position: relative;
+  background: linear-gradient(120deg, var(--rose), var(--gold));
+  clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
+}
+
+.detail-flap {
+  height: 96px;
+  background: linear-gradient(120deg, var(--rose), var(--gold));
+  clip-path: polygon(0 0, 50% 68%, 100% 0, 100% 100%, 0 100%);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.45s ease forwards;
+}

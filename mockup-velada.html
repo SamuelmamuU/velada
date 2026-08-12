@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velada — Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2B2438;
+    --ink-soft:#584C68;
+    --ivory:#FAF6F0;
+    --paper:#F1E9DE;
+    --card:#FFFFFF;
+    --gold:#C08A3E;
+    --gold-deep:#8F6425;
+    --rose:#B85C6B;
+    --rose-soft:#EFD3D8;
+    --line: rgba(43,36,56,0.12);
+    --shadow: 0 20px 40px -20px rgba(43,36,56,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--ivory);
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(192,138,62,0.10), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(184,92,107,0.10), transparent 40%);
+    font-family:'Inter', sans-serif;
+    color: var(--ink);
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    letter-spacing:-0.01em;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.02em; }
+
+  /* ---------- prototype switcher ---------- */
+  .proto-bar{
+    position:sticky; top:0; z-index:50;
+    display:flex; gap:6px; flex-wrap:wrap;
+    padding:10px 16px;
+    background: rgba(43,36,56,0.94);
+    backdrop-filter: blur(6px);
+  }
+  .proto-bar span{
+    color: rgba(250,246,240,0.5);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    align-self:center;
+    margin-right:4px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .proto-btn{
+    border:1px solid rgba(250,246,240,0.18);
+    background: transparent;
+    color: rgba(250,246,240,0.75);
+    font-family:'Inter', sans-serif;
+    font-size:12.5px;
+    padding:7px 12px;
+    border-radius:100px;
+    cursor:pointer;
+    transition: all .15s ease;
+    white-space:nowrap;
+  }
+  .proto-btn:hover{ border-color: rgba(250,246,240,0.4); color:#fff; }
+  .proto-btn.active{ background: var(--gold); border-color: var(--gold); color:#2B2438; font-weight:600; }
+
+  .screen{ display:none; animation: fadeUp .45s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  .wrap{ max-width:1040px; margin:0 auto; padding:48px 24px 96px; }
+
+  /* ---------- seal / logo ---------- */
+  .seal{
+    width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 32% 28%, #E3B15E, var(--gold-deep) 75%);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ivory);
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    box-shadow: 0 6px 14px -4px rgba(143,100,37,0.55), inset 0 0 0 2px rgba(255,255,255,0.15);
+    position:relative;
+    flex-shrink:0;
+  }
+  .seal::after{
+    content:"";
+    position:absolute; inset:-5px;
+    border-radius:50%;
+    border:1px dashed rgba(143,100,37,0.35);
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand-name{ font-size:22px; font-weight:600; }
+  .brand-tag{ font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; letter-spacing:0.06em; }
+
+  /* ---------- LOGIN ---------- */
+  .login-stage{
+    min-height:calc(100vh - 46px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .login-card{
+    width:100%; max-width:380px;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding:40px 34px 34px;
+    text-align:center;
+  }
+  .login-card .seal{ margin:0 auto 18px; }
+  .login-card h1{ font-size:26px; margin:0 0 6px; }
+  .login-card p{ color:var(--ink-soft); font-size:14px; margin:0 0 28px; line-height:1.5;}
+  .field{ text-align:left; margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    font-family:'Inter',sans-serif; font-size:14px;
+    background: var(--ivory);
+    color: var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color: var(--gold); box-shadow:0 0 0 3px rgba(192,138,62,0.18);
+  }
+  .role-toggle{ display:flex; gap:8px; margin-bottom:22px; }
+  .role-opt{
+    flex:1; padding:12px 8px; border-radius:10px;
+    border:1px solid var(--line); cursor:pointer;
+    font-size:13px; font-weight:600; text-align:center;
+    color:var(--ink-soft); transition: all .15s ease;
+  }
+  .role-opt.selected{ border-color:var(--rose); background: var(--rose-soft); color:var(--ink); }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px 20px; border-radius:12px; border:none;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px;
+    cursor:pointer; transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary{ background: var(--ink); color:#fff; width:100%; }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 10px 18px -8px rgba(43,36,56,0.5); }
+  .btn-gold{ background: var(--gold); color:#2B2438; }
+  .btn-gold:hover{ transform:translateY(-1px); box-shadow:0 10px 18px -8px rgba(192,138,62,0.55); }
+  .btn-outline{ background:transparent; border:1.5px solid var(--ink); color:var(--ink); }
+  .btn-outline:hover{ background: var(--ink); color:#fff; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); border:1px solid var(--line); }
+
+  /* ---------- top app bar ---------- */
+  .app-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:36px; flex-wrap:wrap; gap:16px;
+  }
+  .app-bar-right{ display:flex; align-items:center; gap:12px; }
+  .user-chip{
+    display:flex; align-items:center; gap:10px;
+    background:var(--card); border:1px solid var(--line);
+    padding:6px 14px 6px 6px; border-radius:100px; font-size:13px; font-weight:500;
+  }
+  .user-chip .dot{ width:30px; height:30px; border-radius:50%; background:var(--rose-soft); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; color:var(--rose); font-size:13px;}
+
+  .section-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:14px;}
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold-deep); margin:0 0 6px; }
+  .section-head h2{ font-size:28px; margin:0; }
+  .section-head .sub{ color:var(--ink-soft); font-size:14px; margin-top:4px; }
+
+  /* ---------- invitation cards ---------- */
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:22px; }
+  .invite-card{
+    background:var(--card); border-radius:6px 6px 18px 18px; overflow:hidden;
+    box-shadow: 0 14px 30px -18px rgba(43,36,56,0.35);
+    border:1px solid var(--line);
+    cursor:pointer; transition: transform .2s ease, box-shadow .2s ease;
+    display:flex; flex-direction:column;
+  }
+  .invite-card:hover{ transform:translateY(-4px); box-shadow: 0 22px 34px -16px rgba(43,36,56,0.4); }
+  .invite-flap{
+    height:64px; position:relative;
+    background: linear-gradient(120deg, var(--rose), var(--gold));
+    clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
+  }
+  .invite-body{ padding:20px 20px 22px; flex:1; display:flex; flex-direction:column; gap:10px;}
+  .status-pill{
+    align-self:flex-start;
+    font-size:11px; font-weight:600; padding:4px 10px; border-radius:100px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:0.03em;
+  }
+  .status-confirmada{ background:#E4EFE2; color:#3E7A3D; }
+  .status-pendiente{ background:#F6EAD2; color:var(--gold-deep); }
+  .invite-title{ font-size:20px; margin:2px 0 0; }
+  .invite-desc{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin:0; }
+  .invite-meta{ display:flex; flex-direction:column; gap:6px; margin-top:6px; font-size:12.5px; color:var(--ink-soft); }
+  .invite-meta div{ display:flex; align-items:center; gap:7px; }
+  .invite-meta svg{ flex-shrink:0; opacity:0.7; }
+  .invite-tag{
+    align-self:flex-start; margin-top:4px;
+    font-size:11px; font-weight:600; color:var(--rose);
+    border:1px solid var(--rose-soft); background:var(--rose-soft);
+    padding:3px 10px; border-radius:100px;
+  }
+
+  .fab{
+    position:fixed; right:28px; bottom:28px; z-index:20;
+    box-shadow: 0 16px 30px -12px rgba(43,36,56,0.5);
+    border-radius:100px; padding:15px 22px;
+  }
+
+  /* ---------- form ---------- */
+  .form-card{
+    background:var(--card); border-radius:20px; padding:32px;
+    box-shadow: var(--shadow); max-width:640px; margin:0 auto;
+  }
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-grid .full{ grid-column: 1 / -1; }
+  .map-picker{
+    grid-column:1/-1;
+    border-radius:14px; overflow:hidden; border:1px solid var(--line);
+    height:180px; position:relative;
+    background: repeating-linear-gradient(0deg, #E7DECF 0 1px, transparent 1px 26px),
+                repeating-linear-gradient(90deg, #E7DECF 0 1px, transparent 1px 26px),
+                #F2EAE0;
+  }
+  .map-pin{ position:absolute; top:44%; left:52%; transform:translate(-50%,-100%); animation: bob 2.2s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translate(-50%,-100%);} 50%{ transform:translate(-50%,-108%);} }
+  .map-hint{ position:absolute; bottom:10px; left:10px; background:rgba(255,255,255,0.9); font-size:11px; padding:5px 10px; border-radius:100px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace;}
+  .form-actions{ display:flex; gap:12px; margin-top:26px; }
+
+  /* ---------- detail view ---------- */
+  .detail-wrap{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap:28px; align-items:start; }
+  .detail-card{ background:var(--card); border-radius:6px 6px 22px 22px; overflow:hidden; box-shadow:var(--shadow); }
+  .detail-flap{ height:96px; background:linear-gradient(120deg, var(--rose), var(--gold)); clip-path: polygon(0 0, 50% 68%, 100% 0, 100% 100%, 0 100%); }
+  .detail-body{ padding:30px 32px 34px; }
+  .detail-title{ font-size:32px; margin:6px 0 10px; }
+  .detail-desc{ color:var(--ink-soft); font-size:15px; line-height:1.65; margin:0 0 22px; }
+  .info-row{ display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--line); }
+  .info-row:first-of-type{ border-top:none; }
+  .info-icon{ width:34px; height:34px; border-radius:9px; background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .info-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .info-value{ font-size:14.5px; font-weight:500; margin-top:2px; }
+  .cal-actions{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+
+  .map-panel{ background:var(--card); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+  .map-canvas{
+    height:260px; position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 30% 20%, #E9E1D2, transparent 60%),
+      repeating-linear-gradient(100deg, #E4DAC8 0 2px, transparent 2px 30px),
+      repeating-linear-gradient(10deg, #E4DAC8 0 2px, transparent 2px 40px),
+      #F2EAE0;
+  }
+  .map-canvas .road{ position:absolute; background:#D8CBB0; }
+  .map-panel-foot{ padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .map-panel-foot .place{ font-size:13.5px; font-weight:600; }
+  .map-panel-foot .addr{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+
+  .attire-panel{ margin-top:20px; background:var(--paper); border-radius:18px; padding:20px 22px; }
+  .attire-panel h3{ font-size:15px; margin:0 0 6px; }
+  .attire-panel p{ margin:0; font-size:13.5px; color:var(--ink-soft); line-height:1.55; }
+
+  @media (max-width: 760px){
+    .detail-wrap{ grid-template-columns:1fr; }
+    .form-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="proto-bar">
+  <span>Mockup ·</span>
+  <button class="proto-btn active" data-target="login">Iniciar sesión</button>
+  <button class="proto-btn" data-target="novio-list">Novio · Panel</button>
+  <button class="proto-btn" data-target="novio-form">Novio · Nueva cita</button>
+  <button class="proto-btn" data-target="novia-list">Novia · Mis citas</button>
+  <button class="proto-btn" data-target="novia-detail">Novia · Detalle</button>
+</div>
+
+<!-- ================= LOGIN ================= -->
+<section class="screen active" id="login">
+  <div class="login-stage">
+    <div class="login-card">
+      <div class="seal">V</div>
+      <h1>Velada</h1>
+      <p>Cada cita, una pequeña invitación.<br>Inicia sesión para continuar.</p>
+      <div class="field">
+        <label>Correo</label>
+        <input type="email" placeholder="tu@correo.com" value="novio@velada.app">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" value="••••••••">
+      </div>
+      <div class="role-toggle">
+        <div class="role-opt selected">Soy el Novio</div>
+        <div class="role-opt">Soy la Novia</div>
+      </div>
+      <button class="btn btn-primary" onclick="go('novio-list')">Entrar</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NOVIO · LISTA ================= -->
+<section class="screen" id="novio-list">
+  <div class="wrap">
+    <div class="app-bar">
+      <div class="brand">
+        <div class="seal" style="width:40px;height:40px;font-size:16px;">V</div>
+        <div>
+          <div class="brand-name">Velada</div>
+          <div class="brand-tag">PANEL DEL NOVIO</div>
+        </div>
+      </div>
+      <div class="app-bar-right">
+        <div class="user-chip"><div class="dot">N</div> Novio</div>
+        <button class="btn btn-ghost" style="padding:9px 16px;">Salir</button>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Tus citas agendadas</p>
+        <h2>Próximas veladas</h2>
+        <p class="sub">3 citas creadas · la novia puede verlas en cuanto las agendes.</p>
+      </div>
+      <button class="btn btn-gold" onclick="go('novio-form')">+ Nueva cita</button>
+    </div>
+
+    <div class="card-grid">
+      <div class="invite-card" onclick="go('novia-detail')">
+        <div class="invite-flap"></div>
+        <div class="invite-body">
+          <span class="status-pill status-confirmada">CONFIRMADA</span>
+          <h3 class="invite-title">Cena bajo las luces</h3>
+          <p class="invite-desc">Una mesa reservada para nosotros, vino tinto y la terraza que tanto te gusta.</p>
+          <div class="invite-meta">
+            <div>🕗 Sáb 15 ago · 8:00 PM</div>
+            <div>📍 Terraza San Pedro, Monterrey</div>
+          </div>
+          <span class="invite-tag">Temática: Romántico</span>
+        </div>
+      </div>
+
+      <div class="invite-card">
+        <div class="invite-flap" style="background:linear-gradient(120deg, var(--gold), var(--rose));"></div>
+        <div class="invite-body">
+          <span class="status-pill status-pendiente">PENDIENTE</span>
+          <h3 class="invite-title">Tarde de museo</h3>
+          <p class="invite-desc">Recorrido por la exposición nueva y café después, sin prisa.</p>
+          <div class="invite-meta">
+            <div>🕓 Dom 23 ago · 4:00 PM</div>
+            <div>📍 MARCO, Centro</div>
+          </div>
+          <span class="invite-tag">Temática: Cultural</span>
+        </div>
+      </div>
+
+      <div class="invite-card">
+        <div class="invite-flap" style="background:linear-gradient(120deg, var(--rose), #D6A6E0);"></div>
+        <div class="invite-body">
+          <span class="status-pill status-confirmada">CONFIRMADA</span>
+          <h3 class="invite-title">Ruta de tacos y estrellas</h3>
+          <p class="invite-desc">Empezamos en el centro y terminamos viendo estrellas en la Huasteca.</p>
+          <div class="invite-meta">
+            <div>🕕 Vie 29 ago · 6:30 PM</div>
+            <div>📍 Barrio Antiguo → Huasteca</div>
+          </div>
+          <span class="invite-tag">Temática: Aventura</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-gold fab" onclick="go('novio-form')">+ Nueva cita</button>
+</section>
+
+<!-- ================= NOVIO · FORM ================= -->
+<section class="screen" id="novio-form">
+  <div class="wrap" style="max-width:760px;">
+    <div class="app-bar">
+      <div class="brand">
+        <div class="seal" style="width:40px;height:40px;font-size:16px;">V</div>
+        <div>
+          <div class="brand-name">Velada</div>
+          <div class="brand-tag">NUEVA CITA</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="padding:9px 16px;" onclick="go('novio-list')">← Volver</button>
+    </div>
+
+    <div class="form-card">
+      <p class="eyebrow">Crear invitación</p>
+      <h2 style="margin-top:0;">Diseña la próxima cita</h2>
+      <div class="form-grid" style="margin-top:20px;">
+        <div class="field full">
+          <label>Nombre de la cita</label>
+          <input type="text" placeholder="Ej. Cena bajo las luces" value="Cena bajo las luces">
+        </div>
+        <div class="field full">
+          <label>Descripción</label>
+          <textarea rows="3" placeholder="Cuéntale de qué se trata...">Una mesa reservada para nosotros, vino tinto y la terraza que tanto te gusta.</textarea>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" value="2026-08-15">
+        </div>
+        <div class="field">
+          <label>Hora</label>
+          <input type="time" value="20:00">
+        </div>
+        <div class="field full">
+          <label>Lugar</label>
+          <input type="text" placeholder="Dirección o nombre del lugar" value="Terraza San Pedro, Monterrey">
+        </div>
+        <div class="field">
+          <label>Temática</label>
+          <select><option>Romántico</option><option>Casual</option><option>Aventura</option><option>Cultural</option><option>Formal</option></select>
+        </div>
+        <div class="field">
+          <label>Vestimenta recomendada</label>
+          <input type="text" placeholder="Ej. Elegante casual" value="Elegante casual">
+        </div>
+        <div class="field full" style="margin-bottom:0;">
+          <label>Ubicación en el mapa</label>
+          <div class="map-picker">
+            <div class="map-pin">
+              <svg width="26" height="34" viewBox="0 0 26 34" fill="none"><path d="M13 0C5.8 0 0 5.8 0 13c0 9.7 13 21 13 21s13-11.3 13-21C26 5.8 20.2 0 13 0z" fill="#B85C6B"/><circle cx="13" cy="13" r="5" fill="#FAF6F0"/></svg>
+            </div>
+            <div class="map-hint">Toca el mapa para fijar el lugar exacto</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" style="flex:1;" onclick="go('novio-list')">Guardar y agendar cita</button>
+        <button class="btn btn-ghost" onclick="go('novio-list')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NOVIA · LISTA ================= -->
+<section class="screen" id="novia-list">
+  <div class="wrap">
+    <div class="app-bar">
+      <div class="brand">
+        <div class="seal" style="width:40px;height:40px;font-size:16px;">V</div>
+        <div>
+          <div class="brand-name">Velada</div>
+          <div class="brand-tag">MIS CITAS</div>
+        </div>
+      </div>
+      <div class="app-bar-right">
+        <div class="user-chip"><div class="dot">N</div> Novia</div>
+        <button class="btn btn-ghost" style="padding:9px 16px;">Salir</button>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Te está esperando</p>
+        <h2>Próxima cita en 4 días</h2>
+        <p class="sub">Solo lectura — tu novio se encarga de agendar cada detalle.</p>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="invite-card" onclick="go('novia-detail')">
+        <div class="invite-flap"></div>
+        <div class="invite-body">
+          <span class="status-pill status-confirmada">CONFIRMADA</span>
+          <h3 class="invite-title">Cena bajo las luces</h3>
+          <p class="invite-desc">Una mesa reservada para nosotros, vino tinto y la terraza que tanto te gusta.</p>
+          <div class="invite-meta">
+            <div>🕗 Sáb 15 ago · 8:00 PM</div>
+            <div>📍 Terraza San Pedro, Monterrey</div>
+          </div>
+          <span class="invite-tag">Temática: Romántico</span>
+        </div>
+      </div>
+
+      <div class="invite-card">
+        <div class="invite-flap" style="background:linear-gradient(120deg, var(--gold), var(--rose));"></div>
+        <div class="invite-body">
+          <span class="status-pill status-pendiente">PENDIENTE</span>
+          <h3 class="invite-title">Tarde de museo</h3>
+          <p class="invite-desc">Recorrido por la exposición nueva y café después, sin prisa.</p>
+          <div class="invite-meta">
+            <div>🕓 Dom 23 ago · 4:00 PM</div>
+            <div>📍 MARCO, Centro</div>
+          </div>
+          <span class="invite-tag">Temática: Cultural</span>
+        </div>
+      </div>
+
+      <div class="invite-card">
+        <div class="invite-flap" style="background:linear-gradient(120deg, var(--rose), #D6A6E0);"></div>
+        <div class="invite-body">
+          <span class="status-pill status-confirmada">CONFIRMADA</span>
+          <h3 class="invite-title">Ruta de tacos y estrellas</h3>
+          <p class="invite-desc">Empezamos en el centro y terminamos viendo estrellas en la Huasteca.</p>
+          <div class="invite-meta">
+            <div>🕕 Vie 29 ago · 6:30 PM</div>
+            <div>📍 Barrio Antiguo → Huasteca</div>
+          </div>
+          <span class="invite-tag">Temática: Aventura</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NOVIA · DETALLE ================= -->
+<section class="screen" id="novia-detail">
+  <div class="wrap">
+    <div class="app-bar">
+      <div class="brand">
+        <div class="seal" style="width:40px;height:40px;font-size:16px;">V</div>
+        <div>
+          <div class="brand-name">Velada</div>
+          <div class="brand-tag">DETALLE DE LA CITA</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="padding:9px 16px;" onclick="go('novia-list')">← Volver</button>
+    </div>
+
+    <div class="detail-wrap">
+      <div>
+        <div class="detail-card">
+          <div class="detail-flap"></div>
+          <div class="detail-body">
+            <span class="status-pill status-confirmada">CONFIRMADA</span>
+            <h1 class="detail-title">Cena bajo las luces</h1>
+            <p class="detail-desc">Una mesa reservada para nosotros, vino tinto y la terraza que tanto te gusta. Llegamos temprano para alcanzar el atardecer.</p>
+
+            <div class="info-row">
+              <div class="info-icon">🕗</div>
+              <div><div class="info-label">Horario</div><div class="info-value">Sábado 15 de agosto · 8:00 PM</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">📍</div>
+              <div><div class="info-label">Lugar</div><div class="info-value">Terraza San Pedro, Monterrey</div></div>
+            </div>
+            <div class="info-row">
+              <div class="info-icon">✦</div>
+              <div><div class="info-label">Temática</div><div class="info-value">Romántico</div></div>
+            </div>
+
+            <div class="cal-actions">
+              <button class="btn btn-gold">📅 Agregar a Google Calendar</button>
+              <button class="btn btn-outline">⬇ Descargar .ics</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="attire-panel">
+          <h3>👗 Vestimenta recomendada</h3>
+          <p>Elegante casual — algo cómodo que te haga sentir bonita, la terraza tiene piso de piedra.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="map-panel">
+          <div class="map-canvas">
+            <div class="road" style="top:40%; left:0; width:100%; height:6px;"></div>
+            <div class="road" style="left:35%; top:0; width:6px; height:100%;"></div>
+            <div class="road" style="left:70%; top:0; width:4px; height:100%; transform:rotate(12deg);"></div>
+            <div style="position:absolute; top:38%; left:52%; transform:translate(-50%,-100%);">
+              <svg width="30" height="40" viewBox="0 0 26 34" fill="none"><path d="M13 0C5.8 0 0 5.8 0 13c0 9.7 13 21 13 21s13-11.3 13-21C26 5.8 20.2 0 13 0z" fill="#B85C6B"/><circle cx="13" cy="13" r="5" fill="#FAF6F0"/></svg>
+            </div>
+          </div>
+          <div class="map-panel-foot">
+            <div>
+              <div class="place">Terraza San Pedro</div>
+              <div class="addr">Av. Real, San Pedro Garza García</div>
+            </div>
+            <button class="btn btn-ghost" style="padding:8px 14px; font-size:12.5px;">Abrir mapa</button>
+          </div>
+        </div>
+        <p class="mono" style="font-size:11px; color:var(--ink-soft); margin-top:10px; text-align:center;">Mapa interactivo — Leaflet + OpenStreetMap</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.proto-btn').forEach(b => b.classList.toggle('active', b.dataset.target === id));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('.proto-btn').forEach(b => b.addEventListener('click', () => go(b.dataset.target)));
+  document.querySelectorAll('.role-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.role-opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+</script>
+</body>
+</html>
