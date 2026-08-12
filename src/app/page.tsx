@@ -8,6 +8,7 @@ import { Sparkles, Calendar, PlusCircle, Heart } from "lucide-react";
 
 import { NovioDashboard } from "@/components/novio/NovioDashboard";
 import { NoviaDashboard } from "@/components/novia/NoviaDashboard";
+import { TestRunnerModal } from "@/components/ui/TestRunnerModal";
 
 function DashboardContent() {
   const { user, switchDemoRole } = useAuth();
@@ -27,6 +28,7 @@ function DashboardContent() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <TestRunnerModal />
             <span className="text-ivory/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
             <button
               onClick={() => switchDemoRole("novia")}
@@ -55,6 +57,7 @@ function DashboardContent() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <TestRunnerModal />
           <span className="text-ivory/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
           <button
             onClick={() => switchDemoRole("novio")}
