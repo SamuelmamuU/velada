@@ -89,4 +89,4 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 - [x] **Fase 8**: Notificaciones in-app de nuevas invitaciones y recordatorios.
 - [x] **Fase 9**: Pruebas automatizadas unitarias, de integración y UI test runner.
 - [x] **Fase 10**: Despliegue en producción (Vercel + MongoDB Atlas en plan gratuito $0). Ver [docs/despliegue.md](docs/despliegue.md).
-- [ ] **Fase 11**: Pulido final y entrega.
+- [x] **Fase 11**: Pulido final, checklist de requerimientos y entrega. Ver [docs/checklist-requerimientos.md](docs/checklist-requerimientos.md) y [docs/guia-de-uso.md](docs/guia-de-uso.md).
