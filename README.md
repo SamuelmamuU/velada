@@ -79,14 +79,14 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ## 📋 Fases de Desarrollo
 
 - [x] **Fase 0**: Preparación del entorno y verificación Ping/Pong.
-- [ ] **Fase 1**: Diseño de arquitectura y modelo de datos (Mongoose, API contract).
-- [ ] **Fase 2**: Backend: autenticación y usuarios con JWT y roles.
-- [ ] **Fase 3**: Backend: CRUD completo de citas con permisos.
-- [ ] **Fase 4**: Frontend: estructura base, sesión y diseño Velada.
-- [ ] **Fase 5**: Frontend: panel y formulario de citas del Novio.
-- [ ] **Fase 6**: Frontend: vista de citas, mapa y exportación a calendario de la Novia.
-- [ ] **Fase 7**: Integración avanzada de mapas interactivos.
-- [ ] **Fase 8**: Notificaciones y recordatorios.
-- [ ] **Fase 9**: Pruebas unitarias, de integración y extremo a extremo.
-- [ ] **Fase 10**: Despliegue en producción (Vercel + MongoDB Atlas).
+- [x] **Fase 1**: Diseño de arquitectura y modelo de datos (Mongoose, API contract).
+- [x] **Fase 2**: Backend: autenticación y usuarios con JWT y roles.
+- [x] **Fase 3**: Backend: CRUD completo de citas con validación Zod y geocodificación.
+- [x] **Fase 4**: Frontend: estructura base, sesión y diseño Velada.
+- [x] **Fase 5**: Frontend: panel y formulario de citas del Novio con mapa interactivo.
+- [x] **Fase 6**: Frontend: vista de citas, cuenta regresiva, mapas y exportación a calendario de la Novia.
+- [x] **Fase 7**: Integración avanzada de mapas interactivos (Leaflet + OSM) con sugerencias y fallbacks.
+- [x] **Fase 8**: Notificaciones in-app de nuevas invitaciones y recordatorios.
+- [x] **Fase 9**: Pruebas automatizadas unitarias, de integración y UI test runner.
+- [x] **Fase 10**: Despliegue en producción (Vercel + MongoDB Atlas en plan gratuito $0). Ver [docs/despliegue.md](docs/despliegue.md).
 - [ ] **Fase 11**: Pulido final y entrega.
