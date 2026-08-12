@@ -4,12 +4,13 @@ import React from "react";
 import { ICitaResponse } from "@/types";
 import { format, isPast } from "date-fns";
 import { es } from "date-fns/locale";
-import { MapPin, Clock, Edit2, Trash2, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Edit2, Trash2, ChevronRight, Sparkles } from "lucide-react";
 
 interface InviteCardProps {
   cita: ICitaResponse;
   index?: number;
   isNovio?: boolean;
+  isNew?: boolean;
   onSelect?: (cita: ICitaResponse) => void;
   onEdit?: (cita: ICitaResponse) => void;
   onDelete?: (cita: ICitaResponse) => void;
@@ -19,6 +20,7 @@ export function InviteCard({
   cita,
   index = 0,
   isNovio = false,
+  isNew = false,
   onSelect,
   onEdit,
   onDelete,
@@ -38,7 +40,6 @@ export function InviteCard({
   try {
     const d = new Date(cita.horario);
     formattedDate = format(d, "EEE dd MMM · h:mm a", { locale: es });
-    // Capitalizar primera letra del día
     formattedDate =
       formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
     isDatePast = isPast(d);
@@ -46,7 +47,6 @@ export function InviteCard({
     formattedDate = cita.horario;
   }
 
-  // Estado visual
   const isCancelled = cita.estado === "cancelada";
   const isPending = cita.estado === "pendiente";
 
@@ -55,13 +55,20 @@ export function InviteCard({
       onClick={() => onSelect?.(cita)}
       className={`group relative bg-card rounded-[6px_6px_18px_18px] overflow-hidden border border-line shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col ${
         isCancelled ? "opacity-75 grayscale-[30%]" : ""
-      }`}
+      } ${isNew ? "ring-2 ring-gold shadow-lg" : ""}`}
     >
       {/* Solapa del sobre */}
       <div
-        className="invite-flap w-full transition-transform duration-300 group-hover:scale-y-105 origin-top"
+        className="invite-flap w-full transition-transform duration-300 group-hover:scale-y-105 origin-top relative"
         style={{ background: flapGradient }}
-      />
+      >
+        {isNew && (
+          <div className="absolute top-2 right-2 bg-ink text-gold font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shadow flex items-center gap-1 animate-pulse">
+            <Sparkles size={11} />
+            <span>NUEVA</span>
+          </div>
+        )}
+      </div>
 
       {/* Cuerpo de la invitación */}
       <div className="p-5 flex-1 flex flex-col justify-between gap-3">
