@@ -1,0 +1,196 @@
+import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { requireAuth, requireRole } from "@/lib/auth";
+import { connectDB } from "@/lib/mongodb";
+import { Cita } from "@/models/Cita";
+import { EditarCitaSchema } from "@/lib/validations/cita";
+
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
+
+// GET /api/citas/:id — Ver detalle de una cita (Novio y Novia)
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  try {
+    const auth = requireAuth(req);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const { id } = params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Identificador de cita inválido" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const cita = await Cita.findById(id)
+      .populate("creadoPor", "nombre email rol")
+      .lean();
+
+    if (!cita) {
+      return NextResponse.json(
+        { success: false, error: "Cita no encontrada" },
+        { status: 404 }
+      );
+    }
+
+    const rawCita: any = cita;
+    return NextResponse.json({
+      success: true,
+      cita: {
+        id: rawCita._id.toString(),
+        nombre: rawCita.nombre,
+        descripcion: rawCita.descripcion,
+        horario: rawCita.horario.toISOString(),
+        lugar: rawCita.lugar,
+        tematica: rawCita.tematica,
+        vestimentaRecomendada: rawCita.vestimentaRecomendada,
+        estado: rawCita.estado,
+        creadoPor:
+          rawCita.creadoPor && typeof rawCita.creadoPor === "object" && rawCita.creadoPor.nombre
+            ? {
+                id: rawCita.creadoPor._id?.toString() || "",
+                nombre: rawCita.creadoPor.nombre,
+              }
+            : rawCita.creadoPor?.toString(),
+        createdAt: rawCita.createdAt?.toISOString(),
+        updatedAt: rawCita.updatedAt?.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    console.error(`[GET /api/citas/${params.id} Error]:`, error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Error al obtener la cita" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/citas/:id — Editar cita (Exclusivo para Novio)
+export async function PUT(req: NextRequest, { params }: RouteParams) {
+  try {
+    const auth = requireRole(req, ["novio"]);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const { id } = params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Identificador de cita inválido" },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, error: "El cuerpo de la petición es obligatorio" },
+        { status: 400 }
+      );
+    }
+
+    const parseResult = EditarCitaSchema.safeParse(body);
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.errors.map((e) => e.message).join(", ");
+      return NextResponse.json(
+        { success: false, error: errorMsg, details: parseResult.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const updateData: Record<string, any> = { ...parseResult.data };
+    if (updateData.horario) {
+      updateData.horario = new Date(updateData.horario);
+    }
+
+    await connectDB();
+
+    const citaActualizada: any = await Cita.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+      .populate("creadoPor", "nombre email rol")
+      .lean();
+
+    if (!citaActualizada) {
+      return NextResponse.json(
+        { success: false, error: "Cita no encontrada para actualizar" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Cita actualizada correctamente",
+      cita: {
+        id: citaActualizada._id.toString(),
+        nombre: citaActualizada.nombre,
+        descripcion: citaActualizada.descripcion,
+        horario: citaActualizada.horario.toISOString(),
+        lugar: citaActualizada.lugar,
+        tematica: citaActualizada.tematica,
+        vestimentaRecomendada: citaActualizada.vestimentaRecomendada,
+        estado: citaActualizada.estado,
+        creadoPor:
+          citaActualizada.creadoPor &&
+          typeof citaActualizada.creadoPor === "object" &&
+          citaActualizada.creadoPor.nombre
+            ? {
+                id: citaActualizada.creadoPor._id?.toString() || "",
+                nombre: citaActualizada.creadoPor.nombre,
+              }
+            : citaActualizada.creadoPor?.toString(),
+        createdAt: citaActualizada.createdAt?.toISOString(),
+        updatedAt: citaActualizada.updatedAt?.toISOString(),
+      },
+    });
+  } catch (error: any) {
+    console.error(`[PUT /api/citas/${params.id} Error]:`, error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Error al actualizar la cita" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/citas/:id — Eliminar o cancelar cita (Exclusivo para Novio)
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const auth = requireRole(req, ["novio"]);
+    if (auth.errorResponse) return auth.errorResponse;
+
+    const { id } = params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Identificador de cita inválido" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const citaEliminada = await Cita.findByIdAndDelete(id);
+    if (!citaEliminada) {
+      return NextResponse.json(
+        { success: false, error: "Cita no encontrada para eliminar" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Cita eliminada correctamente",
+      id,
+    });
+  } catch (error: any) {
+    console.error(`[DELETE /api/citas/${params.id} Error]:`, error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Error al eliminar la cita" },
+      { status: 500 }
+    );
+  }
+}
