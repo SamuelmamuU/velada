@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Cita } from "@/models/Cita";
 import { EditarCitaSchema } from "@/lib/validations/cita";
+import { memoryStore } from "@/lib/store";
 
 interface RouteParams {
   params: {
@@ -18,48 +19,59 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, error: "Identificador de cita inválido" },
-        { status: 400 }
-      );
+
+    const db = await connectDB();
+
+    if (db && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        const cita = await Cita.findById(id)
+          .populate("creadoPor", "nombre email rol")
+          .lean();
+
+        if (cita) {
+          const rawCita: any = cita;
+          return NextResponse.json({
+            success: true,
+            cita: {
+              id: rawCita._id.toString(),
+              nombre: rawCita.nombre,
+              descripcion: rawCita.descripcion,
+              horario: rawCita.horario.toISOString(),
+              lugar: rawCita.lugar,
+              tematica: rawCita.tematica,
+              vestimentaRecomendada: rawCita.vestimentaRecomendada,
+              estado: rawCita.estado,
+              creadoPor:
+                rawCita.creadoPor &&
+                typeof rawCita.creadoPor === "object" &&
+                rawCita.creadoPor.nombre
+                  ? {
+                      id: rawCita.creadoPor._id?.toString() || "",
+                      nombre: rawCita.creadoPor.nombre,
+                    }
+                  : rawCita.creadoPor?.toString(),
+              createdAt: rawCita.createdAt?.toISOString(),
+              updatedAt: rawCita.updatedAt?.toISOString(),
+            },
+          });
+        }
+      } catch (dbErr) {
+        console.warn("[MongoDB GET /:id error, checking memory]:", dbErr);
+      }
     }
 
-    await connectDB();
-
-    const cita = await Cita.findById(id)
-      .populate("creadoPor", "nombre email rol")
-      .lean();
-
-    if (!cita) {
+    // Fallback en memoria
+    const memCita = memoryStore.citas.find((c) => c.id === id);
+    if (!memCita) {
       return NextResponse.json(
         { success: false, error: "Cita no encontrada" },
         { status: 404 }
       );
     }
 
-    const rawCita: any = cita;
     return NextResponse.json({
       success: true,
-      cita: {
-        id: rawCita._id.toString(),
-        nombre: rawCita.nombre,
-        descripcion: rawCita.descripcion,
-        horario: rawCita.horario.toISOString(),
-        lugar: rawCita.lugar,
-        tematica: rawCita.tematica,
-        vestimentaRecomendada: rawCita.vestimentaRecomendada,
-        estado: rawCita.estado,
-        creadoPor:
-          rawCita.creadoPor && typeof rawCita.creadoPor === "object" && rawCita.creadoPor.nombre
-            ? {
-                id: rawCita.creadoPor._id?.toString() || "",
-                nombre: rawCita.creadoPor.nombre,
-              }
-            : rawCita.creadoPor?.toString(),
-        createdAt: rawCita.createdAt?.toISOString(),
-        updatedAt: rawCita.updatedAt?.toISOString(),
-      },
+      cita: memCita,
     });
   } catch (error: any) {
     console.error(`[GET /api/citas/${params.id} Error]:`, error);
@@ -77,12 +89,6 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, error: "Identificador de cita inválido" },
-        { status: 400 }
-      );
-    }
 
     const body = await req.json().catch(() => null);
     if (!body) {
@@ -106,47 +112,74 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       updateData.horario = new Date(updateData.horario);
     }
 
-    await connectDB();
+    const db = await connectDB();
 
-    const citaActualizada: any = await Cita.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    )
-      .populate("creadoPor", "nombre email rol")
-      .lean();
+    if (db && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        const citaActualizada: any = await Cita.findByIdAndUpdate(
+          id,
+          { $set: updateData },
+          { new: true, runValidators: true }
+        )
+          .populate("creadoPor", "nombre email rol")
+          .lean();
 
-    if (!citaActualizada) {
+        if (citaActualizada) {
+          return NextResponse.json({
+            success: true,
+            message: "Cita actualizada correctamente",
+            cita: {
+              id: citaActualizada._id.toString(),
+              nombre: citaActualizada.nombre,
+              descripcion: citaActualizada.descripcion,
+              horario: citaActualizada.horario.toISOString(),
+              lugar: citaActualizada.lugar,
+              tematica: citaActualizada.tematica,
+              vestimentaRecomendada: citaActualizada.vestimentaRecomendada,
+              estado: citaActualizada.estado,
+              creadoPor:
+                citaActualizada.creadoPor &&
+                typeof citaActualizada.creadoPor === "object" &&
+                citaActualizada.creadoPor.nombre
+                  ? {
+                      id: citaActualizada.creadoPor._id?.toString() || "",
+                      nombre: citaActualizada.creadoPor.nombre,
+                    }
+                  : citaActualizada.creadoPor?.toString(),
+              createdAt: citaActualizada.createdAt?.toISOString(),
+              updatedAt: citaActualizada.updatedAt?.toISOString(),
+            },
+          });
+        }
+      } catch (dbErr) {
+        console.warn("[MongoDB PUT /:id error, checking memory]:", dbErr);
+      }
+    }
+
+    // Fallback en memoria
+    const memIndex = memoryStore.citas.findIndex((c) => c.id === id);
+    if (memIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Cita no encontrada para actualizar" },
         { status: 404 }
       );
     }
 
+    const current = memoryStore.citas[memIndex];
+    const updatedMemCita = {
+      ...current,
+      ...parseResult.data,
+      horario: parseResult.data.horario || current.horario,
+      lugar: parseResult.data.lugar || current.lugar,
+      updatedAt: new Date().toISOString(),
+    };
+
+    memoryStore.citas[memIndex] = updatedMemCita;
+
     return NextResponse.json({
       success: true,
       message: "Cita actualizada correctamente",
-      cita: {
-        id: citaActualizada._id.toString(),
-        nombre: citaActualizada.nombre,
-        descripcion: citaActualizada.descripcion,
-        horario: citaActualizada.horario.toISOString(),
-        lugar: citaActualizada.lugar,
-        tematica: citaActualizada.tematica,
-        vestimentaRecomendada: citaActualizada.vestimentaRecomendada,
-        estado: citaActualizada.estado,
-        creadoPor:
-          citaActualizada.creadoPor &&
-          typeof citaActualizada.creadoPor === "object" &&
-          citaActualizada.creadoPor.nombre
-            ? {
-                id: citaActualizada.creadoPor._id?.toString() || "",
-                nombre: citaActualizada.creadoPor.nombre,
-              }
-            : citaActualizada.creadoPor?.toString(),
-        createdAt: citaActualizada.createdAt?.toISOString(),
-        updatedAt: citaActualizada.updatedAt?.toISOString(),
-      },
+      cita: updatedMemCita,
     });
   } catch (error: any) {
     console.error(`[PUT /api/citas/${params.id} Error]:`, error);
@@ -157,29 +190,41 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/citas/:id — Eliminar o cancelar cita (Exclusivo para Novio)
+// DELETE /api/citas/:id — Eliminar cita (Exclusivo para Novio)
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
     const auth = requireRole(req, ["novio"]);
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, error: "Identificador de cita inválido" },
-        { status: 400 }
-      );
+
+    const db = await connectDB();
+
+    if (db && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        const citaEliminada = await Cita.findByIdAndDelete(id);
+        if (citaEliminada) {
+          return NextResponse.json({
+            success: true,
+            message: "Cita eliminada correctamente",
+            id,
+          });
+        }
+      } catch (dbErr) {
+        console.warn("[MongoDB DELETE /:id error, checking memory]:", dbErr);
+      }
     }
 
-    await connectDB();
-
-    const citaEliminada = await Cita.findByIdAndDelete(id);
-    if (!citaEliminada) {
+    // Fallback en memoria
+    const memIndex = memoryStore.citas.findIndex((c) => c.id === id);
+    if (memIndex === -1) {
       return NextResponse.json(
         { success: false, error: "Cita no encontrada para eliminar" },
         { status: 404 }
       );
     }
+
+    memoryStore.citas.splice(memIndex, 1);
 
     return NextResponse.json({
       success: true,

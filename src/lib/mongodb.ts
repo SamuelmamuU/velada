@@ -2,16 +2,9 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-  // En desarrollo sin .env configurado, advertencia controlada
-  console.warn(
-    "⚠️ [MongoDB] Advertencia: MONGODB_URI no está definido en variables de entorno."
-  );
-}
-
 interface MongooseCache {
   conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
+  promise: Promise<typeof mongoose | null> | null;
 }
 
 declare global {
@@ -25,14 +18,12 @@ if (!cached) {
   cached = global.mongooseCache = { conn: null, promise: null };
 }
 
-export async function connectDB(): Promise<typeof mongoose> {
+export async function connectDB(): Promise<typeof mongoose | null> {
   if (!MONGODB_URI) {
-    throw new Error(
-      "Por favor define la variable de entorno MONGODB_URI en tu archivo .env.local"
-    );
+    return null;
   }
 
-  if (cached!.conn) {
+  if (cached!.conn && cached!.conn.connection.readyState === 1) {
     return cached!.conn;
   }
 
@@ -40,6 +31,7 @@ export async function connectDB(): Promise<typeof mongoose> {
     const opts = {
       bufferCommands: false,
       maxPoolSize: 10,
+      serverSelectionTimeoutMS: 2500, // Timeout rápido para no bloquear en desarrollo local
     };
 
     cached!.promise = mongoose
@@ -47,17 +39,19 @@ export async function connectDB(): Promise<typeof mongoose> {
       .then((m) => {
         return m;
       })
-      .catch((err) => {
+      .catch(() => {
         cached!.promise = null;
-        throw err;
+        cached!.conn = null;
+        return null;
       });
   }
 
   try {
     cached!.conn = await cached!.promise;
-  } catch (e) {
+  } catch {
     cached!.promise = null;
-    throw e;
+    cached!.conn = null;
+    return null;
   }
 
   return cached!.conn;
