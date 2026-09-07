@@ -73,7 +73,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       )
     );
     setCurrentView("list");
-    showToast("¡Velada agendada exitosamente! Tu novia ya puede verla 💛");
+    showToast("¡Carta de invitación enviada exitosamente! Tu novia ya puede verla en su buzón 💌");
   };
 
   const handleEditSuccess = (citaActualizada: ICitaResponse) => {
@@ -151,21 +151,43 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           backLabel="Volver a la lista"
         />
 
-        {/* Vista de Detalle Individual */}
+        {/* Vista de Detalle Individual (Carta romántica con dog-ear) */}
         {currentView === "detail" && selectedCita && (
-          <CitaDetailView
-            cita={selectedCita}
-            onBack={() => {
-              setCurrentView("list");
-              setSelectedCita(null);
-            }}
-            onCitaUpdated={(updated) => {
-              setCitas((prev) =>
-                prev.map((c) => (c.id === updated.id ? updated : c))
-              );
-              setSelectedCita(updated);
-            }}
-          />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 bg-white/80 backdrop-blur border border-sky-200/70 p-3 rounded-2xl shadow-xs max-w-[760px] mx-auto">
+              <span className="text-xs font-medium text-sky-800 flex items-center gap-1.5 pl-2">
+                <span>💌 Vista de la carta de amor</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentView("edit")}
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                >
+                  ✏️ Editar cita
+                </button>
+                <button
+                  onClick={() => setCitaToDelete(selectedCita)}
+                  className="px-3 py-1.5 rounded-xl border border-blush-200 text-blush-500 hover:bg-blush-50 font-medium text-xs transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+
+            <CitaDetailView
+              cita={selectedCita}
+              onBack={() => {
+                setCurrentView("list");
+                setSelectedCita(null);
+              }}
+              onCitaUpdated={(updated) => {
+                setCitas((prev) =>
+                  prev.map((c) => (c.id === updated.id ? updated : c))
+                );
+                setSelectedCita(updated);
+              }}
+            />
+          </div>
         )}
 
         {/* Vista de Creación o Edición */}
@@ -226,34 +248,34 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
             {/* Encabezado de la Sección */}
             <div className="flex items-end justify-between flex-wrap gap-4 mb-4">
               <div>
-                <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-gold-deep font-semibold mb-1">
-                  Tus citas agendadas
+                <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-sky-700 font-bold mb-1">
+                  Tus cartas e invitaciones
                 </p>
-                <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-ink">
-                  Próximas veladas
+                <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink">
+                  Planesito de Vida
                 </h1>
                 <p className="text-ink-soft text-sm mt-1 font-normal">
                   {citas.length}{" "}
-                  {citas.length === 1 ? "cita creada" : "citas creadas"} · la novia
-                  puede verlas en cuanto las agendes.
+                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · Tu novia
+                  las recibirá en formato de carta interactiva con mapa en su buzón.
                 </p>
               </div>
 
               <button
                 onClick={() => setCurrentView("create")}
-                className="inline-flex items-center gap-2 bg-gold hover:bg-gold-deep text-ink hover:text-white font-semibold text-sm py-3 px-5 rounded-xl shadow-sm hover:shadow-lg transition-all duration-150 active:translate-y-0 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm py-3 px-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 active:translate-y-0 cursor-pointer"
               >
                 <Plus size={16} />
-                <span>+ Nueva cita</span>
+                <span>+ Escribir nueva carta</span>
               </button>
             </div>
 
             {/* Estado de Carga */}
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 bg-card rounded-2xl border border-line">
-                <Loader2 size={32} className="animate-spin text-gold-deep mb-3" />
+                <Loader2 size={32} className="animate-spin text-sky-600 mb-3" />
                 <p className="font-serif text-ink-soft text-sm">
-                  Cargando tus veladas agendadas...
+                  Cargando tus cartas agendadas...
                 </p>
               </div>
             )}
@@ -261,22 +283,22 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
             {/* Estado Vacío */}
             {!loading && citas.length === 0 && (
               <div className="text-center py-16 px-6 bg-card rounded-2xl border border-line shadow-card max-w-lg mx-auto">
-                <div className="w-14 h-14 rounded-2xl bg-rose-soft flex items-center justify-center text-rose mx-auto mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 mx-auto mb-4">
                   <CalendarHeart size={28} />
                 </div>
-                <h3 className="font-serif text-xl font-semibold mb-2">
-                  Aún no has creado ninguna cita
+                <h3 className="font-serif text-xl font-bold mb-2 text-ink">
+                  Aún no has escrito ninguna carta
                 </h3>
                 <p className="text-ink-soft text-sm leading-relaxed mb-6">
-                  Sorprende a tu novia diseñando la primera velada romántica, con
-                  lugar, temática y ubicación en mapa.
+                  Sorprende a tu novia diseñando la primera invitación romántica, con
+                  dedicatoria, fecha, lugar y mapa en su segunda hoja.
                 </p>
                 <button
                   onClick={() => setCurrentView("create")}
-                  className="bg-ink text-white font-semibold text-sm py-3 px-5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all inline-flex items-center gap-2"
+                  className="bg-sky-600 text-white font-bold text-sm py-3 px-5 rounded-xl hover:bg-sky-700 hover:shadow-md transition-all inline-flex items-center gap-2"
                 >
-                  <Sparkles size={16} className="text-gold" />
-                  <span>Crear la primera cita</span>
+                  <Sparkles size={16} className="text-sky-200" />
+                  <span>Escribir la primera carta</span>
                 </button>
               </div>
             )}

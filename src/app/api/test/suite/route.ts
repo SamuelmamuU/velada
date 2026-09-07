@@ -5,8 +5,10 @@ import {
   CrearCitaSchema,
   EditarCitaSchema,
   PropuestaCambioSchema,
+  ResponderCitaSchema,
 } from "@/lib/validations/cita";
 import { generateGoogleCalendarUrl, generateIcsContent } from "@/lib/calendar";
+import { generateNarrativeLetter } from "@/lib/narrativeLetter";
 
 export async function GET(req: NextRequest) {
   const results: {
@@ -215,6 +217,38 @@ export async function GET(req: NextRequest) {
     "PROP-02",
     "Rechazo de propuesta con fecha u horario corrupto",
     !parsePropuestaInv.success
+  );
+
+  // ================= 4B. RESPUESTA A CARTAS DE AMOR (ACEPTAR/RECHAZAR) =================
+  const parseRespuestaAceptar = ResponderCitaSchema.safeParse({
+    respuesta: "aceptada",
+  });
+  const parseRespuestaRechazar = ResponderCitaSchema.safeParse({
+    respuesta: "rechazada",
+  });
+  const parseRespuestaInvalida = ResponderCitaSchema.safeParse({
+    respuesta: "otra_cosa",
+  });
+
+  addTest(
+    "Cartas y Buzón",
+    "CARTA-01",
+    "Validación de aceptación de carta/invitación (respuesta: 'aceptada')",
+    parseRespuestaAceptar.success
+  );
+
+  addTest(
+    "Cartas y Buzón",
+    "CARTA-02",
+    "Validación de declinación de carta/invitación (respuesta: 'rechazada')",
+    parseRespuestaRechazar.success
+  );
+
+  addTest(
+    "Cartas y Buzón",
+    "CARTA-03",
+    "Rechazo de estado de respuesta no autorizado",
+    !parseRespuestaInvalida.success
   );
 
   // ================= 5. GENERACIÓN DE CALENDARIO (.ICS Y GOOGLE CAL) =================

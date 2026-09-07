@@ -102,10 +102,11 @@ const CitaSchema = new Schema<ICitaDocument>(
     estado: {
       type: String,
       enum: {
-        values: ["pendiente", "confirmada", "cancelada"],
-        message: "El estado debe ser 'pendiente', 'confirmada' o 'cancelada'",
+        values: ["pendiente", "aceptada", "rechazada", "confirmada", "cancelada"],
+        message:
+          "El estado debe ser 'pendiente', 'aceptada', 'rechazada', 'confirmada' o 'cancelada'",
       },
-      default: "confirmada",
+      default: "pendiente",
       index: true,
     },
     asistencia: {

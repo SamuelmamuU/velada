@@ -15,7 +15,7 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
   const { user, logout } = useAuth();
 
   const defaultTag =
-    user?.rol === "novio" ? "PANEL DEL NOVIO" : "MIS CITAS";
+    user?.rol === "novio" ? "PANEL DEL NOVIO" : "BUZÓN DE CITAS";
 
   const displayTag = tag || defaultTag;
   const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "N" : "N");
@@ -24,44 +24,45 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
     <header className="flex items-center justify-between flex-wrap gap-4 mb-9">
       {/* Marca / Logo */}
       <div className="flex items-center gap-3.5">
-        <Seal size="md" />
+        <Seal letter="P" size="md" variant="blue" />
         <div>
-          <div className="font-serif font-semibold text-[22px] text-ink leading-tight">
-            Velada
+          <div className="font-serif font-bold text-[23px] text-ink leading-tight tracking-tight flex items-center gap-1.5">
+            <span>Planesito de Vida</span>
+            <span className="text-xs text-rose">💌</span>
           </div>
-          <div className="font-mono text-[11px] text-ink-soft tracking-[0.06em] uppercase">
+          <div className="font-mono text-[10.5px] text-ink-soft tracking-[0.08em] uppercase">
             {displayTag}
           </div>
         </div>
       </div>
 
       {/* Acciones y Chip de Usuario */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {onBack && (
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-ink-soft bg-transparent border border-line hover:bg-paper/80 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-ink-soft bg-card/80 border border-line hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300 transition-all shadow-sm"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
             <span>{backLabel}</span>
           </button>
         )}
 
         {user && (
-          <div className="flex items-center gap-2.5 bg-card border border-line py-1.5 pl-1.5 pr-3.5 rounded-full text-[13px] font-medium shadow-sm">
-            <div className="w-[30px] h-[30px] rounded-full bg-rose-soft flex items-center justify-center font-serif font-semibold text-rose text-[13px]">
+          <div className="flex items-center gap-2 bg-card border border-line/80 py-1.5 pl-1.5 pr-3 rounded-full text-xs font-medium shadow-sm">
+            <div className="w-[28px] h-[28px] rounded-full bg-sky-100 flex items-center justify-center font-serif font-bold text-sky-700 text-xs">
               {userInitial}
             </div>
-            <span className="text-ink">{user.nombre}</span>
+            <span className="text-ink font-semibold">{user.nombre}</span>
           </div>
         )}
 
         <button
           onClick={() => logout()}
           title="Cerrar sesión"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-ink-soft bg-transparent border border-line hover:text-rose hover:border-rose-soft hover:bg-rose-soft/20 transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-ink-soft bg-card/60 border border-line/80 hover:text-blush-500 hover:border-blush-200 hover:bg-blush-50 transition-all shadow-sm cursor-pointer"
         >
-          <LogOut size={15} />
+          <LogOut size={14} />
           <span className="hidden sm:inline">Salir</span>
         </button>
       </div>

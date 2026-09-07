@@ -19,15 +19,15 @@ export function generateGoogleCalendarUrl(cita: ICitaResponse): string {
   const startFormatted = formatGCalDate(startDate);
   const endFormatted = formatGCalDate(endDate);
 
-  const details = `${cita.descripcion}\n\n👗 Vestimenta recomendada: ${cita.vestimentaRecomendada}\n✦ Temática: ${cita.tematica}\n\nOrganizado con amor en Velada 💌`;
+  const details = `${cita.descripcion}\n\n👗 Vestimenta recomendada: ${cita.vestimentaRecomendada}\n✦ Temática: ${cita.tematica}\n\nOrganizado con amor en Planesito de Vida 💌`;
 
   const params = new URLSearchParams({
     action: "TEMPLATE",
-    text: `Velada: ${cita.nombre}`,
+    text: `Planesito de Vida: ${cita.nombre}`,
     dates: `${startFormatted}/${endFormatted}`,
     details: details,
     location: cita.lugar.direccion,
-    sprop: "name:Velada",
+    sprop: "name:Planesito de Vida",
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -50,14 +50,14 @@ export function generateIcsContent(cita: ICitaResponse): string {
     );
   };
 
-  const uid = `velada-${cita.id || Date.now()}@velada.app`;
+  const uid = `planesito-${cita.id || Date.now()}@planesitodevida.app`;
   const now = formatIcsDate(new Date());
   const start = formatIcsDate(startDate);
   const end = formatIcsDate(endDate);
 
-  const summary = `Velada: ${cita.nombre.replace(/,/g, "\\,")}`;
+  const summary = `Planesito de Vida: ${cita.nombre.replace(/,/g, "\\,")}`;
   const location = cita.lugar.direccion.replace(/,/g, "\\,");
-  const description = `${cita.descripcion}\\n\\nVestimenta: ${cita.vestimentaRecomendada}\\nTemática: ${cita.tematica}\\nOrganizado en Velada 💌`.replace(
+  const description = `${cita.descripcion}\\n\\nVestimenta: ${cita.vestimentaRecomendada}\\nTemática: ${cita.tematica}\\nOrganizado en Planesito de Vida 💌`.replace(
     /\n/g,
     "\\n"
   );
@@ -65,7 +65,7 @@ export function generateIcsContent(cita: ICitaResponse): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Velada//Citas para Pareja//ES",
+    "PRODID:-//Planesito de Vida//Citas para Pareja//ES",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -91,7 +91,7 @@ export function downloadIcsFile(cita: ICitaResponse) {
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const filename = `velada-${cita.nombre.toLowerCase().replace(/\s+/g, "-")}.ics`;
+  const filename = `planesito-${cita.nombre.toLowerCase().replace(/\s+/g, "-")}.ics`;
 
   link.href = url;
   link.setAttribute("download", filename);

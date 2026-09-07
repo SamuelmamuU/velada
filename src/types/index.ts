@@ -2,7 +2,12 @@ import { Document, Types } from "mongoose";
 
 export type RolUsuario = "novio" | "novia";
 
-export type EstadoCita = "pendiente" | "confirmada" | "cancelada";
+export type EstadoCita =
+  | "pendiente"
+  | "aceptada"
+  | "rechazada"
+  | "confirmada"
+  | "cancelada";
 
 export type TematicaCita =
   | "Romántico"

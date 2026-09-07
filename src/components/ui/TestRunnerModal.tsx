@@ -56,8 +56,8 @@ export function TestRunnerModal() {
         title="Ejecutar suite de pruebas automatizadas"
         className="px-3 py-1 rounded-full bg-white/10 hover:bg-gold hover:text-ink transition-colors font-sans text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer"
       >
-        <FlaskConical size={13} className="text-gold" />
-        <span>Pruebas (Fase 9)</span>
+        <FlaskConical size={13} className="text-sky-300" />
+        <span>Pruebas del Sistema</span>
       </button>
 
       {open && (

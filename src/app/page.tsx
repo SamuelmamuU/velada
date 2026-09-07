@@ -18,21 +18,21 @@ function DashboardContent() {
     return (
       <div>
         {/* Barra de control rápido de roles para prototipo */}
-        <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#2B2438]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
+        <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="text-ivory/50 uppercase tracking-widest text-[11px]">
-              Sesión activa ·
+            <span className="text-white/60 uppercase tracking-widest text-[11px]">
+              Planesito de Vida ·
             </span>
-            <span className="bg-gold/20 text-gold font-semibold px-2.5 py-0.5 rounded-full text-[11px]">
+            <span className="bg-sky-400/25 text-sky-200 font-semibold px-2.5 py-0.5 rounded-full text-[11px] border border-sky-400/30">
               Rol Novio (Editor)
             </span>
           </div>
           <div className="flex items-center gap-2">
             <TestRunnerModal />
-            <span className="text-ivory/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
+            <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
             <button
               onClick={() => switchDemoRole("novia")}
-              className="px-3 py-1 rounded-full bg-white/10 hover:bg-gold hover:text-ink transition-colors font-sans text-xs font-medium"
+              className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer"
             >
               Cambiar a Novia 💛
             </button>
@@ -47,21 +47,21 @@ function DashboardContent() {
   return (
     <div>
       {/* Barra de control rápido de roles */}
-      <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#2B2438]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
+      <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
         <div className="flex items-center gap-2">
-          <span className="text-ivory/50 uppercase tracking-widest text-[11px]">
-            Sesión activa ·
+          <span className="text-white/60 uppercase tracking-widest text-[11px]">
+            Planesito de Vida ·
           </span>
-          <span className="bg-rose-soft/20 text-rose font-semibold px-2.5 py-0.5 rounded-full text-[11px]">
-            Rol Novia (Solo Lectura)
+          <span className="bg-blush-400/25 text-blush-200 font-semibold px-2.5 py-0.5 rounded-full text-[11px] border border-blush-300/30">
+            Rol Novia (Buzón de cartas)
           </span>
         </div>
         <div className="flex items-center gap-2">
           <TestRunnerModal />
-          <span className="text-ivory/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
+          <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
           <button
             onClick={() => switchDemoRole("novio")}
-            className="px-3 py-1 rounded-full bg-white/10 hover:bg-gold hover:text-ink transition-colors font-sans text-xs font-medium"
+            className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer"
           >
             Cambiar a Novio 🎩
           </button>

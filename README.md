@@ -1,10 +1,10 @@
-# Velada 🕯️💌 — Aplicación Web de Citas para Pareja
+# Planesito de Vida 💌✨ — Aplicación Web de Citas de Amor para Pareja
 
-> *Cada cita, una pequeña invitación.*
+> *Cartas de amor hechas a mano, momentos íntimos y planes para toda la vida.*
 
-Aplicación web diseñada exclusivamente para parejas con dos perfiles de usuario:
-- **Novio**: Diseña, crea, agenda, edita y gestiona citas románticas y planes sorpresa.
-- **Novia**: Visualiza sus citas agendadas en formato invitación de carta, con mapas interactivos y sincronización directa con Google Calendar / Apple Calendar.
+Aplicación web romántica diseñada con estética artesanal y de buzón postal para parejas con dos perfiles de usuario:
+- **Novio**: Diseña, escribe y envía cartas de invitación románticas a su novia con dedicatoria, fecha, hora, detalles y ubicación en mapa.
+- **Novia**: Abre su buzón de cartas animado, desdobla invitaciones narrativas manuscritas, voltea la hoja con esquina doblada (dog-ear) para consultar el mapa, y responde (Aceptar / Rechazar / Guardar) o sugiere ajustes de horario.
 
 ---
 

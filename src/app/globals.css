@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --ink: #2B2438;
-  --ink-soft: #584C68;
-  --ivory: #FAF6F0;
-  --paper: #F1E9DE;
+  --ink: #1B2B3A;
+  --ink-soft: #4E6882;
+  --ivory: #F8FBFE;
+  --paper: #FCFAF5;
   --card: #FFFFFF;
-  --gold: #C08A3E;
-  --gold-deep: #8F6425;
-  --rose: #B85C6B;
-  --rose-soft: #EFD3D8;
-  --line: rgba(43, 36, 56, 0.12);
-  --shadow: 0 20px 40px -20px rgba(43, 36, 56, 0.35);
+  --gold: #D1A35B;
+  --gold-deep: #946B2A;
+  --rose: #4A7FA8;
+  --rose-soft: #E3EFF9;
+  --sky-light: #F0F6FD;
+  --sky-accent: #75ACE0;
+  --sky-deep: #346895;
+  --blush-pastel: #FCEEF1;
+  --line: rgba(45, 80, 120, 0.12);
+  --shadow: 0 18px 45px -15px rgba(28, 55, 88, 0.16);
 }
 
 * {
@@ -28,26 +32,27 @@ html, body {
 body {
   background: var(--ivory);
   background-image:
-    radial-gradient(circle at 15% 0%, rgba(192, 138, 62, 0.10), transparent 45%),
-    radial-gradient(circle at 90% 10%, rgba(184, 92, 107, 0.10), transparent 40%);
+    radial-gradient(circle at 12% 8%, rgba(188, 224, 253, 0.35), transparent 50%),
+    radial-gradient(circle at 88% 12%, rgba(254, 238, 242, 0.40), transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(235, 245, 255, 0.40), transparent 60%);
   color: var(--ink);
   min-height: 100vh;
 }
 
-/* Sello de cera tipo Velada */
+/* Sello postal y lacre para Planesito de Vida */
 .seal {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #E3B15E, var(--gold-deep) 75%);
+  background: radial-gradient(circle at 32% 28%, #7CB3E4, var(--sky-deep) 80%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ivory);
+  color: #FFFFFF;
   font-family: var(--font-fraunces), serif;
   font-weight: 600;
   font-size: 20px;
-  box-shadow: 0 6px 14px -4px rgba(143, 100, 37, 0.55), inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 16px -4px rgba(52, 104, 149, 0.45), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
   position: relative;
   flex-shrink: 0;
 }
@@ -55,23 +60,72 @@ body {
 .seal::after {
   content: "";
   position: absolute;
-  inset: -5px;
+  inset: -4px;
   border-radius: 50%;
-  border: 1px dashed rgba(143, 100, 37, 0.35);
+  border: 1px dashed rgba(74, 127, 168, 0.4);
 }
 
-/* Solapa degradada tipo sobre de carta */
+/* Sello de cera dorado suave */
+.seal-gold {
+  background: radial-gradient(circle at 32% 28%, #E5BE73, var(--gold-deep) 80%);
+  box-shadow: 0 6px 16px -4px rgba(148, 107, 42, 0.45), inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.seal-gold::after {
+  border-color: rgba(209, 163, 91, 0.45);
+}
+
+/* Solapa degradada tipo sobre de carta pastel */
 .invite-flap {
-  height: 64px;
+  height: 60px;
   position: relative;
-  background: linear-gradient(120deg, var(--rose), var(--gold));
-  clip-path: polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(120deg, #BCE0FD, #FDEEF1);
+  clip-path: polygon(0 0, 50% 65%, 100% 0, 100% 100%, 0 100%);
 }
 
 .detail-flap {
-  height: 96px;
-  background: linear-gradient(120deg, var(--rose), var(--gold));
-  clip-path: polygon(0 0, 50% 68%, 100% 0, 100% 100%, 0 100%);
+  height: 80px;
+  background: linear-gradient(120deg, #A5CAED, #FDEEF1);
+  clip-path: polygon(0 0, 50% 70%, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Textura sutil de papel artesanal */
+.paper-texture {
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(30, 60, 95, 0.03) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+/* Resplandor suave para cartas pendientes de respuesta */
+@keyframes letterGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #75ACE0, 0 0 20px 4px rgba(117, 172, 224, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 3px #4D8EC9, 0 0 30px 7px rgba(77, 142, 201, 0.65);
+  }
+}
+
+.animate-letter-glow {
+  animation: letterGlow 2.8s ease-in-out infinite;
+}
+
+/* Efecto 3D de voltear página (Flip) */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }
 
 @keyframes fadeUp {
@@ -86,5 +140,5 @@ body {
 }
 
 .animate-fade-up {
-  animation: fadeUp 0.45s ease forwards;
+  animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

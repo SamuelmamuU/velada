@@ -5,7 +5,8 @@ import { ICitaResponse } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
-import { CitaDetailView } from "@/components/citas/CitaDetailView";
+import { LoveLetterView } from "@/components/citas/LoveLetterView";
+import { MailboxOverlay } from "@/components/citas/MailboxOverlay";
 import {
   differenceInDays,
   differenceInHours,
@@ -18,11 +19,11 @@ import {
   Loader2,
   Heart,
   Sparkles,
-  Bell,
   Clock,
   MapPin,
-  CalendarCheck,
   ChevronRight,
+  Mail,
+  Send,
 } from "lucide-react";
 
 export function NoviaDashboard() {
@@ -32,12 +33,16 @@ export function NoviaDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
 
-  // Sistema de invitaciones vistas/no vistas en localStorage
+  // Overlay del buzón de cartas
+  const [showMailbox, setShowMailbox] = useState(false);
+  const [hasShownAutoMailbox, setHasShownAutoMailbox] = useState(false);
+
+  // Sistema de invitaciones vistas
   const [viewedCitaIds, setViewedCitaIds] = useState<string[]>([]);
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("velada_viewed_citas");
+      const stored = localStorage.getItem("planesito_viewed_citas");
       if (stored) {
         setViewedCitaIds(JSON.parse(stored));
       }
@@ -51,10 +56,7 @@ export function NoviaDashboard() {
       const updated = [...viewedCitaIds, citaId];
       setViewedCitaIds(updated);
       try {
-        localStorage.setItem(
-          "velada_viewed_citas",
-          JSON.stringify(updated)
-        );
+        localStorage.setItem("planesito_viewed_citas", JSON.stringify(updated));
       } catch (e) {
         console.error(e);
       }
@@ -73,7 +75,7 @@ export function NoviaDashboard() {
         setCitas(data.citas);
       }
     } catch (err) {
-      console.error("Error al cargar citas de la novia:", err);
+      console.error("Error al cargar cartas de la novia:", err);
     } finally {
       setLoading(false);
     }
@@ -83,25 +85,36 @@ export function NoviaDashboard() {
     fetchCitas();
   }, [fetchCitas]);
 
-  // Citas próximas ordenadas
+  // Identificar citas pendientes de respuesta
+  const pendingCitas = citas.filter(
+    (c) =>
+      c.estado === "pendiente" ||
+      (!c.estado && c.propuestaCambio?.estado === "pendiente")
+  );
+
+  // Abrir buzón automáticamente en la primera carga si hay cartas pendientes sin responder
+  useEffect(() => {
+    if (!loading && !hasShownAutoMailbox && pendingCitas.length > 0) {
+      setShowMailbox(true);
+      setHasShownAutoMailbox(true);
+    }
+  }, [loading, hasShownAutoMailbox, pendingCitas.length]);
+
+  // Citas próximas aceptadas ordenadas cronológicamente
   const proximasCitas = citas
     .filter(
       (c) =>
-        c.estado !== "cancelada" &&
+        (c.estado === "aceptada" || c.estado === "confirmada") &&
         isFuture(new Date(c.horario))
     )
     .sort(
-      (a, b) =>
-        new Date(a.horario).getTime() - new Date(b.horario).getTime()
+      (a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime()
     );
 
   const proximaCita = proximasCitas[0];
 
-  // Identificar citas nuevas (no vistas)
-  const nuevasCitas = citas.filter((c) => !viewedCitaIds.includes(c.id));
-
   // Cuenta regresiva descriptiva
-  let countdownTitle = "Próximas veladas agendadas";
+  let countdownTitle = "Tus cartas de amor";
   let countdownBadge = "";
   if (proximaCita) {
     const d = new Date(proximaCita.horario);
@@ -132,74 +145,99 @@ export function NoviaDashboard() {
     setSelectedCita(cita);
   };
 
+  const handleCitaUpdated = (updated: ICitaResponse) => {
+    setCitas((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    if (selectedCita?.id === updated.id) {
+      setSelectedCita(updated);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-ivory text-ink">
-      <div className="max-w-[1040px] mx-auto px-6 py-8 sm:py-12">
-        {/* Cabecera de la App */}
+    <div className="min-h-screen bg-[#F8FBFE] text-ink pb-20">
+      {/* OVERLAY DEL BUZÓN DE CARTAS (Pantalla de bienvenida interactiva) */}
+      {showMailbox && pendingCitas.length > 0 && (
+        <MailboxOverlay
+          pendingCitas={pendingCitas}
+          onClose={() => setShowMailbox(false)}
+          onCitaUpdated={(updated) => {
+            handleCitaUpdated(updated);
+            // Si ya no quedan pendientes, cerramos el buzón
+            if (pendingCitas.length <= 1) {
+              setTimeout(() => setShowMailbox(false), 1200);
+            }
+          }}
+        />
+      )}
+
+      <div className="max-w-[1040px] mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        {/* Cabecera */}
         <AppHeader
-          tag={selectedCita ? "DETALLE DE LA CITA" : "MIS CITAS"}
+          tag={selectedCita ? "CARTA DE INVITACIÓN" : "CORRESPONDENCIA DE AMOR"}
           onBack={selectedCita ? () => setSelectedCita(null) : undefined}
-          backLabel="Volver a mis citas"
+          backLabel="Volver a todas las cartas"
         />
 
-        {/* Vista de Detalle Individual */}
+        {/* Vista de Detalle Individual de la Carta (Mismo componente que en el buzón) */}
         {selectedCita ? (
-          <CitaDetailView
-            cita={selectedCita}
-            onBack={() => setSelectedCita(null)}
-            onCitaUpdated={(updated) => {
-              setCitas((prev) =>
-                prev.map((c) => (c.id === updated.id ? updated : c))
-              );
-              setSelectedCita(updated);
-            }}
-          />
+          <div className="animate-fade-up">
+            <LoveLetterView
+              cita={selectedCita}
+              onClose={() => setSelectedCita(null)}
+              onCitaUpdated={handleCitaUpdated}
+              showCloseButton={true}
+            />
+          </div>
         ) : (
-          /* Vista de Lista de Invitaciones */
+          /* Vista del Dashboard con la lista de cartas */
           <div className="space-y-8">
-            {/* 1. Banner de Notificación de Nuevas Invitaciones (RF-25) */}
-            {!loading && nuevasCitas.length > 0 && (
-              <div className="bg-gradient-to-r from-gold/15 to-rose-soft/40 border border-gold/40 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 shadow-sm animate-fade-up">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/20 flex items-center justify-center text-gold-deep flex-shrink-0">
-                    <Sparkles size={20} className="animate-pulse" />
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-semibold text-sm sm:text-base text-ink">
-                      💌 ¡Tienes {nuevasCitas.length}{" "}
-                      {nuevasCitas.length === 1
-                        ? "nueva invitación!"
-                        : "nuevas invitaciones!"}
-                    </h4>
-                    <p className="text-xs text-ink-soft">
-                      Tu novio ha preparado una nueva sorpresa para ti. Toca la
-                      tarjeta destacada para abrirla.
-                    </p>
-                  </div>
+            {/* Banner de acceso rápido al buzón de cartas */}
+            <div className="bg-gradient-to-r from-sky-100/90 via-sky-50 to-blush-50 border border-sky-200/80 rounded-[22px] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-sky-200/70 text-sky-800 flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Mail size={24} className="animate-bounce" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-sky-950">
+                    Buzón postal de cartas
+                  </h3>
+                  <p className="text-xs text-sky-800/80">
+                    {pendingCitas.length > 0
+                      ? `Tienes ${pendingCitas.length} carta(s) pendiente(s) de respuesta.`
+                      : "Todas tus cartas han sido revisadas. Puedes abrir el buzón cuando gustes."}
+                  </p>
                 </div>
               </div>
-            )}
 
-            {/* 2. Banner de Recordatorio de Cita Próxima (RF-26) */}
+              <button
+                type="button"
+                onClick={() => setShowMailbox(true)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Sparkles size={15} />
+                <span>Abrir mi buzón de cartas 📬</span>
+              </button>
+            </div>
+
+            {/* Recordatorio de Próxima Cita Aceptada */}
             {!loading && proximaCita && (
-              <div className="bg-card border border-line rounded-[20px] p-6 shadow-velada animate-fade-up">
+              <div className="bg-white rounded-[22px] border border-sky-200/70 p-6 shadow-sm animate-fade-up">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-rose-soft flex items-center justify-center text-rose flex-shrink-0">
-                      <Bell size={24} className="animate-bounce" />
+                    <div className="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-700 flex-shrink-0">
+                      <Heart size={24} className="fill-sky-400 text-sky-500" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-gold-deep font-semibold">
-                          Recordatorio de Velada
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-sky-800 font-bold">
+                          Próxima velada confirmada
                         </span>
                         {countdownBadge && (
-                          <span className="bg-gold/20 text-gold-deep font-mono text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full">
                             {countdownBadge}
                           </span>
                         )}
                       </div>
-                      <h2 className="font-serif text-2xl font-semibold text-ink">
+                      <h2 className="font-serif text-2xl font-bold text-ink">
                         {proximaCita.nombre}
                       </h2>
                       <p className="text-xs text-ink-soft mt-1 line-clamp-1 max-w-xl">
@@ -208,7 +246,7 @@ export function NoviaDashboard() {
 
                       <div className="flex items-center gap-4 mt-3 flex-wrap text-xs text-ink-soft">
                         <div className="flex items-center gap-1.5 font-medium text-ink">
-                          <Clock size={14} className="text-gold-deep" />
+                          <Clock size={14} className="text-sky-700" />
                           <span>
                             {format(
                               new Date(proximaCita.horario),
@@ -218,7 +256,7 @@ export function NoviaDashboard() {
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <MapPin size={14} className="text-rose" />
+                          <MapPin size={14} className="text-blush-400" />
                           <span className="truncate">
                             {proximaCita.lugar.direccion}
                           </span>
@@ -229,55 +267,54 @@ export function NoviaDashboard() {
 
                   <button
                     onClick={() => handleSelectCita(proximaCita)}
-                    className="inline-flex items-center gap-2 bg-ink text-white hover:bg-gold-deep font-semibold text-xs py-3 px-4 rounded-xl shadow-sm transition-all"
+                    className="inline-flex items-center gap-2 bg-sky-600 text-white hover:bg-sky-700 font-semibold text-xs py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer"
                   >
-                    <span>Ver detalle y mapa</span>
+                    <span>Ver carta y mapa</span>
                     <ChevronRight size={14} />
                   </button>
                 </div>
               </div>
             )}
 
-            {/* 3. Encabezado de Sección */}
+            {/* Encabezado de la Sección de Cartas */}
             <div>
-              <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-gold-deep font-semibold mb-1">
-                Te está esperando
+              <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-sky-700 font-bold mb-1">
+                Correspondencia de amor
               </p>
-              <h1 className="font-serif text-3xl sm:text-4xl font-semibold text-ink">
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink tracking-tight">
                 {countdownTitle}
               </h1>
-              <p className="text-ink-soft text-sm mt-1 font-normal">
-                Solo lectura — tu novio se encarga de agendar cada detalle con amor 💛.
+              <p className="text-ink-soft text-sm mt-1">
+                Toca cualquier carta para abrir su sobre, leer la dedicatoria y voltear la hoja para ver el mapa 💌.
               </p>
             </div>
 
             {/* Estado de Carga */}
             {loading && (
-              <div className="flex flex-col items-center justify-center py-20 bg-card rounded-2xl border border-line">
-                <Loader2 size={32} className="animate-spin text-gold-deep mb-3" />
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-sky-100">
+                <Loader2 size={32} className="animate-spin text-sky-600 mb-3" />
                 <p className="font-serif text-ink-soft text-sm">
-                  Cargando tus cartas e invitaciones...
+                  Cargando tus cartas de amor...
                 </p>
               </div>
             )}
 
             {/* Estado Vacío */}
             {!loading && citas.length === 0 && (
-              <div className="text-center py-16 px-6 bg-card rounded-2xl border border-line shadow-card max-w-lg mx-auto">
-                <div className="w-14 h-14 rounded-2xl bg-rose-soft flex items-center justify-center text-rose mx-auto mb-4">
-                  <Heart size={28} className="fill-rose" />
+              <div className="text-center py-16 px-6 bg-white rounded-2xl border border-sky-100 shadow-sm max-w-lg mx-auto">
+                <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 mx-auto mb-4">
+                  <Heart size={28} className="fill-sky-400 text-sky-500" />
                 </div>
-                <h3 className="font-serif text-xl font-semibold mb-2">
-                  No hay citas agendadas por ahora
+                <h3 className="font-serif text-xl font-bold mb-2 text-ink">
+                  Aún no hay cartas en tu buzón
                 </h3>
                 <p className="text-ink-soft text-sm leading-relaxed">
-                  Tu novio está preparando la próxima sorpresa. En cuanto la agende,
-                  aparecerá aquí en formato de carta.
+                  Tu novio está preparando una nueva sorpresa escrita con todo su corazón. En cuanto la envíe, aparecerá aquí esperándote.
                 </p>
               </div>
             )}
 
-            {/* Cuadrícula de Invitaciones */}
+            {/* Cuadrícula de Invitaciones (Con resplandor para las pendientes) */}
             {!loading && citas.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {citas.map((cita, idx) => {

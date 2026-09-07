@@ -47,51 +47,52 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-ivory">
       <div className="w-full max-w-[390px] bg-card rounded-[20px] shadow-velada p-9 sm:p-10 text-center border border-line animate-fade-up">
-        {/* Sello de Cera */}
+        {/* Sello Postal / Lacre */}
         <div className="flex justify-center mb-4">
-          <Seal size="lg" />
+          <Seal letter="P" size="xl" variant="blue" />
         </div>
 
-        <h1 className="font-serif text-[28px] font-semibold text-ink tracking-tight mb-1.5">
-          Velada
+        <h1 className="font-serif text-[29px] font-bold text-ink tracking-tight mb-1.5 flex items-center justify-center gap-1.5">
+          <span>Planesito de Vida</span>
+          <span className="text-xl">💌</span>
         </h1>
         <p className="text-ink-soft text-[14px] leading-relaxed mb-7 font-normal">
-          Cada cita, una pequeña invitación.
+          Cartas de amor e invitaciones íntimas.
           <br />
-          Inicia sesión para continuar.
+          Inicia sesión para abrir tu correspondencia.
         </p>
 
         {error && (
-          <div className="mb-5 p-3 rounded-xl bg-rose-soft/50 border border-rose/30 text-ink text-left text-xs flex items-start gap-2 animate-fade-up">
-            <AlertCircle size={16} className="text-rose flex-shrink-0 mt-0.5" />
+          <div className="mb-5 p-3 rounded-xl bg-blush-50 border border-blush-200 text-ink text-left text-xs flex items-start gap-2 animate-fade-up">
+            <AlertCircle size={16} className="text-blush-500 flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {/* Selector de Rol */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2.5 mb-4">
             <button
               type="button"
               onClick={() => handleRoleChange("novio")}
-              className={`flex-1 py-3 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all ${
+              className={`flex-1 py-3 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all cursor-pointer ${
                 role === "novio"
-                  ? "border-rose bg-rose-soft text-ink shadow-sm"
-                  : "border-line text-ink-soft hover:border-ink/20"
+                  ? "border-sky-400 bg-sky-100 text-sky-900 shadow-sm"
+                  : "border-line text-ink-soft hover:bg-sky-50/50"
               }`}
             >
-              Soy el Novio
+              🎩 Soy el Novio
             </button>
             <button
               type="button"
               onClick={() => handleRoleChange("novia")}
-              className={`flex-1 py-3 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all ${
+              className={`flex-1 py-3 px-2 rounded-xl border text-[13px] font-semibold text-center transition-all cursor-pointer ${
                 role === "novia"
-                  ? "border-rose bg-rose-soft text-ink shadow-sm"
-                  : "border-line text-ink-soft hover:border-ink/20"
+                  ? "border-blush-300 bg-blush-100 text-blush-900 shadow-sm"
+                  : "border-line text-ink-soft hover:bg-blush-50/50"
               }`}
             >
-              Soy la Novia
+              💛 Soy la Novia
             </button>
           </div>
 

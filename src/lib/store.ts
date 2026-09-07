@@ -41,7 +41,7 @@ if (!globalStore.__velada_mem_db) {
         tematica: "Romántico",
         vestimentaRecomendada:
           "Elegante casual — algo cómodo que te haga sentir bonita, la terraza tiene piso de piedra.",
-        estado: "confirmada",
+        estado: "aceptada",
         asistencia: {
           cantidadPersonas: 2,
           tipoAcompanantes: "solo_pareja",
@@ -100,7 +100,7 @@ if (!globalStore.__velada_mem_db) {
         tematica: "Aventura",
         vestimentaRecomendada:
           "Ropa abrigadora ligera para la noche y calzado para exterior.",
-        estado: "confirmada",
+        estado: "aceptada",
         asistencia: {
           cantidadPersonas: 4,
           tipoAcompanantes: "mayoria_conocidos",
@@ -109,6 +109,36 @@ if (!globalStore.__velada_mem_db) {
         importancia: "alta",
         ambiente: "exterior",
         esFlexible: false,
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c104",
+        nombre: "Pícnic sorpresa y atardecer",
+        descripcion:
+          "Una canastita con tus postres favoritos, frutas frescas y una mantita en el pasto para ver caer el sol abrazados.",
+        horario: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Parque Fundidora, Jardines Orientales, Monterrey, N.L.",
+          lat: 25.6787,
+          lng: -100.2842,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada:
+          "Vestido fresco o ropa cómoda de verano que te permita sentarte en el césped.",
+        estado: "pendiente",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "especial",
+        ambiente: "exterior",
+        esFlexible: true,
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",

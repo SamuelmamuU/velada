@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Inter, Caveat, IBM_Plex_Mono } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const inter = Inter({
   display: "swap",
 });
 
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  display: "swap",
+});
+
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "600"],
   subsets: ["latin"],
@@ -23,8 +29,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Velada — Citas para Pareja",
-  description: "Cada cita, una pequeña invitación. Aplicación web de citas para pareja.",
+  title: "Planesito de Vida — Citas de Amor",
+  description:
+    "Cartas de amor e invitaciones íntimas para agendar los momentos más lindos juntos.",
 };
 
 export default function RootLayout({
@@ -35,9 +42,9 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${fraunces.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+      className={`${fraunces.variable} ${inter.variable} ${caveat.variable} ${ibmPlexMono.variable}`}
     >
-      <body className="font-sans antialiased min-h-screen selection:bg-rose-soft selection:text-ink">
+      <body className="font-sans antialiased min-h-screen selection:bg-sky-pastel selection:text-ocean-ink">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

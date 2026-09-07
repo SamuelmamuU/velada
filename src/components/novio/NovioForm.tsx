@@ -65,7 +65,7 @@ export function NovioForm({
   const [vestimenta, setVestimenta] = useState(
     initialCita?.vestimentaRecomendada || ""
   );
-  const [estado, setEstado] = useState(initialCita?.estado || "confirmada");
+  const [estado, setEstado] = useState(initialCita?.estado || "pendiente");
 
   // Nuevas funcionalidades solicitadas
   const [cantidadPersonas, setCantidadPersonas] = useState<number>(
@@ -182,11 +182,11 @@ export function NovioForm({
       {/* Encabezado */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-gold-deep font-semibold mb-1">
-            {isEditing ? "Modificar velada" : "Crear invitación"}
+          <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-sky-700 font-bold mb-1">
+            {isEditing ? "Modificar carta" : "Escribir nueva carta de amor"}
           </p>
-          <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-ink">
-            {isEditing ? "Edita los detalles de la cita" : "Diseña la próxima cita"}
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
+            {isEditing ? "Edita la carta de amor" : "Prepara la próxima cita para tu novia 💌"}
           </h2>
         </div>
         <button
@@ -506,17 +506,21 @@ export function NovioForm({
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 bg-ink text-white font-semibold text-sm py-3.5 px-5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 active:translate-y-0 disabled:opacity-60 flex items-center justify-center gap-2"
+            className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm py-3.5 px-5 rounded-xl hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 active:translate-y-0 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                <span>Guardando cita...</span>
+                <span>Guardando carta...</span>
               </>
             ) : (
               <>
-                <Sparkles size={16} className="text-gold" />
-                <span>{isEditing ? "Guardar cambios" : "Guardar y agendar cita"}</span>
+                <Sparkles size={16} className="text-sky-200" />
+                <span>
+                  {isEditing
+                    ? "Guardar cambios en la carta"
+                    : "Enviar carta de amor al buzón 💌"}
+                </span>
               </>
             )}
           </button>

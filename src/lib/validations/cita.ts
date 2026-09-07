@@ -55,13 +55,14 @@ export const CrearCitaSchema = z.object({
     .min(1, "La vestimenta recomendada no puede estar vacía")
     .trim(),
   estado: z
-    .enum(["pendiente", "confirmada", "cancelada"], {
+    .enum(["pendiente", "aceptada", "rechazada", "confirmada", "cancelada"], {
       errorMap: () => ({
-        message: "El estado debe ser 'pendiente', 'confirmada' o 'cancelada'",
+        message:
+          "El estado debe ser 'pendiente', 'aceptada', 'rechazada', 'confirmada' o 'cancelada'",
       }),
     })
     .optional()
-    .default("confirmada"),
+    .default("pendiente"),
   asistencia: AsistenciaSchema,
   importancia: z
     .enum(["especial", "alta", "media", "casual"])
@@ -83,4 +84,12 @@ export const PropuestaCambioSchema = z.object({
       message: "Formato de fecha u horario inválido",
     }),
   motivo: z.string().optional(),
+});
+
+export const ResponderCitaSchema = z.object({
+  respuesta: z.enum(["aceptada", "rechazada", "pendiente"], {
+    errorMap: () => ({
+      message: "La respuesta debe ser 'aceptada', 'rechazada' o 'pendiente'",
+    }),
+  }),
 });
