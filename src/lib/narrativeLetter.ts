@@ -76,7 +76,7 @@ export function generateNarrativeLetter(cita: ICitaResponse): NarrativeParts {
 
   const cierre =
     "Nada me haría más feliz que compartir este momento contigo. ¿Me concederías el honor de acompañarme?";
-  const firma = "Con todo mi amor, tu novio 💙";
+  const firma = "Con todo mi amor, tu novio";
 
   const posdata = cita.esFlexible
     ? "P.D.: Si por alguna razón la hora se te complica, amor, dímelo con confianza y encontramos el mejor momento para los dos."

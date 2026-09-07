@@ -186,7 +186,7 @@ export function NovioForm({
             {isEditing ? "Modificar carta" : "Escribir nueva carta de amor"}
           </p>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
-            {isEditing ? "Edita la carta de amor" : "Prepara la próxima cita para tu novia 💌"}
+            {isEditing ? "Edita la carta de amor" : "Prepara la próxima cita para Diana"}
           </h2>
         </div>
         <button
@@ -309,7 +309,7 @@ export function NovioForm({
                       : "bg-card border border-line text-ink-soft"
                   }`}
                 >
-                  👥 Mayoría conocidos (amigos/cercanos)
+                  Mayoría conocidos (amigos/cercanos)
                 </button>
                 <button
                   type="button"
@@ -320,7 +320,7 @@ export function NovioForm({
                       : "bg-card border border-line text-ink-soft"
                   }`}
                 >
-                  🎭 Mayoría desconocidos (evento/social)
+                  Mayoría desconocidos (evento/social)
                 </button>
               </div>
             </div>
@@ -333,7 +333,7 @@ export function NovioForm({
                 ¿Habrá familiares presentes?
               </div>
               <div className="text-[11px] text-ink-soft">
-                Le ayuda a tu novia a saber si es un ambiente familiar.
+                Le ayuda a Diana a saber si es un ambiente familiar.
               </div>
             </div>
             <div className="flex gap-2">
@@ -357,7 +357,7 @@ export function NovioForm({
                     : "bg-card/50 border border-line text-ink-soft"
                 }`}
               >
-                Sí, con familia 👨‍👩‍👧
+                Sí, con familia
               </button>
             </div>
           </div>
@@ -376,10 +376,10 @@ export function NovioForm({
               onChange={(e) => setImportancia(e.target.value as ImportanciaCita)}
               className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
             >
-              <option value="especial">✨ Muy Especial / Crucial</option>
-              <option value="alta">🌟 Alta Prioridad</option>
-              <option value="media">💫 Media</option>
-              <option value="casual">☕ Casual / Espontánea</option>
+              <option value="especial">Muy Especial / Crucial</option>
+              <option value="alta">Alta Prioridad</option>
+              <option value="media">Media</option>
+              <option value="casual">Casual / Espontánea</option>
             </select>
           </div>
 
@@ -394,9 +394,9 @@ export function NovioForm({
               onChange={(e) => setAmbiente(e.target.value as AmbienteCita)}
               className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
             >
-              <option value="interior">🏠 Interior (Indoor)</option>
-              <option value="exterior">🌳 Exterior (Outdoor)</option>
-              <option value="mixto">🌤️ Mixto (Ambos)</option>
+              <option value="interior">Interior (Indoor)</option>
+              <option value="exterior">Exterior (Outdoor)</option>
+              <option value="mixto">Mixto (Ambos)</option>
             </select>
           </div>
 
@@ -411,8 +411,8 @@ export function NovioForm({
               onChange={(e) => setEsFlexible(e.target.value === "true")}
               className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
             >
-              <option value="true">⏱️ Sí, la novia puede proponer cambio</option>
-              <option value="false">🔒 No, horario estricto / reservación</option>
+              <option value="true">Sí, Diana puede proponer cambio</option>
+              <option value="false">No, horario estricto / reservación</option>
             </select>
           </div>
         </div>
@@ -519,7 +519,7 @@ export function NovioForm({
                 <span>
                   {isEditing
                     ? "Guardar cambios en la carta"
-                    : "Enviar carta de amor al buzón 💌"}
+                    : "Enviar carta de amor al buzón"}
                 </span>
               </>
             )}

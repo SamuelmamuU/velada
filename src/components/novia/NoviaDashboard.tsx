@@ -42,7 +42,9 @@ export function NoviaDashboard() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("planesito_viewed_citas");
+      const stored =
+        localStorage.getItem("nuestras_aventuras_viewed_citas") ||
+        localStorage.getItem("planesito_viewed_citas");
       if (stored) {
         setViewedCitaIds(JSON.parse(stored));
       }
@@ -56,7 +58,10 @@ export function NoviaDashboard() {
       const updated = [...viewedCitaIds, citaId];
       setViewedCitaIds(updated);
       try {
-        localStorage.setItem("planesito_viewed_citas", JSON.stringify(updated));
+        localStorage.setItem(
+          "nuestras_aventuras_viewed_citas",
+          JSON.stringify(updated)
+        );
       } catch (e) {
         console.error(e);
       }
@@ -214,7 +219,7 @@ export function NoviaDashboard() {
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles size={15} />
-                <span>Abrir mi buzón de cartas 📬</span>
+                <span>Abrir mi buzón de cartas</span>
               </button>
             </div>
 
@@ -285,7 +290,7 @@ export function NoviaDashboard() {
                 {countdownTitle}
               </h1>
               <p className="text-ink-soft text-sm mt-1">
-                Toca cualquier carta para abrir su sobre, leer la dedicatoria y voltear la hoja para ver el mapa 💌.
+                Toca cualquier carta para abrir su sobre, leer la dedicatoria y voltear la hoja para ver el mapa.
               </p>
             </div>
 

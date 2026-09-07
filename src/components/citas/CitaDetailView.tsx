@@ -58,7 +58,7 @@ export function CitaDetailView({
               estado: "aceptada",
             },
           };
-          setFeedbackMsg("¡Horario actualizado con la propuesta de tu novia! ✨");
+          setFeedbackMsg("Horario actualizado con la propuesta de Diana.");
         } else {
           updated = {
             ...currentCita,
@@ -104,7 +104,7 @@ export function CitaDetailView({
               </div>
               <div>
                 <h4 className="font-serif font-bold text-base text-ink">
-                  💛 ¡Tu novia ha sugerido un nuevo horario!
+                  ¡Diana ha sugerido un nuevo horario!
                 </h4>
                 <div className="text-xs text-ink-soft mt-1 space-y-0.5">
                   <div>
@@ -128,12 +128,12 @@ export function CitaDetailView({
               <button
                 onClick={() => handleRespondProposal("aceptar")}
                 disabled={respondingProposal}
-                className="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                className="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 {respondingProposal ? (
                   <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  <span>Aceptar propuesta ✨</span>
+                  <span>Aceptar propuesta</span>
                 )}
               </button>
               <button

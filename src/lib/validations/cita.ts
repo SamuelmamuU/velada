@@ -93,3 +93,10 @@ export const ResponderCitaSchema = z.object({
     }),
   }),
 });
+
+export const RecuerdoSchema = z.object({
+  fotoUrl: z
+    .string({ required_error: "La foto del recuerdo es obligatoria" })
+    .min(1, "La foto no puede estar vacía"),
+  pieDeFoto: z.string().optional(),
+});

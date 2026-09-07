@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { requireAuth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Cita } from "@/models/Cita";
-import { ResponderCitaSchema } from "@/lib/validations/cita";
+import { RecuerdoSchema } from "@/lib/validations/cita";
 import { memoryStore } from "@/lib/store";
 
 interface RouteParams {
@@ -12,7 +12,7 @@ interface RouteParams {
   };
 }
 
-// POST /api/citas/:id/responder — Aceptar o rechazar una carta/cita (Novia o Novio)
+// POST /api/citas/:id/recuerdo — Guardar foto y nota de recuerdo (Novio o Novia)
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
     const auth = requireAuth(req);
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const parseResult = ResponderCitaSchema.safeParse(body);
+    const parseResult = RecuerdoSchema.safeParse(body);
     if (!parseResult.success) {
       const errorMsg = parseResult.error.errors.map((e) => e.message).join(", ");
       return NextResponse.json(
@@ -37,14 +37,29 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { respuesta } = parseResult.data;
+    const { fotoUrl, pieDeFoto } = parseResult.data;
+    const fechaSubida = new Date();
+    const recuerdoObj = {
+      fotoUrl,
+      pieDeFoto: pieDeFoto || "",
+      fechaSubida: fechaSubida.toISOString(),
+    };
+
     const db = await connectDB();
 
     if (db && mongoose.Types.ObjectId.isValid(id)) {
       try {
         const citaActualizada: any = await Cita.findByIdAndUpdate(
           id,
-          { $set: { estado: respuesta } },
+          {
+            $set: {
+              recuerdo: {
+                fotoUrl,
+                pieDeFoto: pieDeFoto || "",
+                fechaSubida,
+              },
+            },
+          },
           { new: true, runValidators: true }
         )
           .populate("creadoPor", "nombre email rol")
@@ -53,12 +68,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         if (citaActualizada) {
           return NextResponse.json({
             success: true,
-            message:
-              respuesta === "aceptada"
-                ? "Invitación aceptada con amor"
-                : respuesta === "rechazada"
-                ? "Respuesta guardada con cariño"
-                : "Estado actualizado a pendiente",
+            message: "Recuerdo guardado con éxito",
             cita: {
               id: citaActualizada._id.toString(),
               nombre: citaActualizada.nombre,
@@ -68,38 +78,24 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
               tematica: citaActualizada.tematica,
               vestimentaRecomendada: citaActualizada.vestimentaRecomendada,
               estado: citaActualizada.estado,
-              asistencia: citaActualizada.asistencia || {
-                cantidadPersonas: 2,
-                tipoAcompanantes: "solo_pareja",
-                hayFamilia: false,
+              asistencia: citaActualizada.asistencia,
+              importancia: citaActualizada.importancia,
+              ambiente: citaActualizada.ambiente,
+              esFlexible: citaActualizada.esFlexible,
+              propuestaCambio: citaActualizada.propuestaCambio,
+              recuerdo: {
+                fotoUrl: citaActualizada.recuerdo.fotoUrl,
+                pieDeFoto: citaActualizada.recuerdo.pieDeFoto,
+                fechaSubida: citaActualizada.recuerdo.fechaSubida?.toISOString(),
               },
-              importancia: citaActualizada.importancia || "alta",
-              ambiente: citaActualizada.ambiente || "interior",
-              esFlexible: citaActualizada.esFlexible ?? true,
-              propuestaCambio: citaActualizada.propuestaCambio
-                ? {
-                    nuevoHorario: citaActualizada.propuestaCambio.nuevoHorario?.toISOString(),
-                    motivo: citaActualizada.propuestaCambio.motivo,
-                    fechaSolicitud: citaActualizada.propuestaCambio.fechaSolicitud?.toISOString(),
-                    estado: citaActualizada.propuestaCambio.estado,
-                  }
-                : undefined,
-              creadoPor:
-                citaActualizada.creadoPor &&
-                typeof citaActualizada.creadoPor === "object" &&
-                citaActualizada.creadoPor.nombre
-                  ? {
-                      id: citaActualizada.creadoPor._id?.toString() || "",
-                      nombre: citaActualizada.creadoPor.nombre,
-                    }
-                  : citaActualizada.creadoPor?.toString(),
+              creadoPor: citaActualizada.creadoPor,
               createdAt: citaActualizada.createdAt?.toISOString(),
               updatedAt: citaActualizada.updatedAt?.toISOString(),
             },
           });
         }
       } catch (dbErr) {
-        console.warn("[MongoDB POST /responder error, checking memory]:", dbErr);
+        console.warn("[MongoDB POST /recuerdo error, checking memory]:", dbErr);
       }
     }
 
@@ -107,7 +103,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const memIndex = memoryStore.citas.findIndex((c) => c.id === id);
     if (memIndex === -1) {
       return NextResponse.json(
-        { success: false, error: "Cita no encontrada para responder" },
+        { success: false, error: "Cita no encontrada para agregar recuerdo" },
         { status: 404 }
       );
     }
@@ -115,7 +111,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const current = memoryStore.citas[memIndex];
     const updatedMemCita = {
       ...current,
-      estado: respuesta as any,
+      recuerdo: recuerdoObj,
       updatedAt: new Date().toISOString(),
     };
 
@@ -123,18 +119,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message:
-        respuesta === "aceptada"
-          ? "Invitación aceptada con amor"
-          : respuesta === "rechazada"
-          ? "Respuesta guardada con cariño"
-          : "Estado actualizado a pendiente",
+      message: "Recuerdo guardado con éxito",
       cita: updatedMemCita,
     });
   } catch (error: any) {
-    console.error(`[POST /api/citas/${params.id}/responder Error]:`, error);
+    console.error(`[POST /api/citas/${params.id}/recuerdo Error]:`, error);
     return NextResponse.json(
-      { success: false, error: error.message || "Error al responder a la invitación" },
+      { success: false, error: error.message || "Error al guardar el recuerdo" },
       { status: 500 }
     );
   }

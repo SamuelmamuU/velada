@@ -19,15 +19,15 @@ export function generateGoogleCalendarUrl(cita: ICitaResponse): string {
   const startFormatted = formatGCalDate(startDate);
   const endFormatted = formatGCalDate(endDate);
 
-  const details = `${cita.descripcion}\n\n👗 Vestimenta recomendada: ${cita.vestimentaRecomendada}\n✦ Temática: ${cita.tematica}\n\nOrganizado con amor en Planesito de Vida 💌`;
+  const details = `${cita.descripcion}\n\nVestimenta recomendada: ${cita.vestimentaRecomendada}\nTemática: ${cita.tematica}\n\nOrganizado con amor en Nuestras Aventuras`;
 
   const params = new URLSearchParams({
     action: "TEMPLATE",
-    text: `Planesito de Vida: ${cita.nombre}`,
+    text: `Nuestras Aventuras: ${cita.nombre}`,
     dates: `${startFormatted}/${endFormatted}`,
     details: details,
     location: cita.lugar.direccion,
-    sprop: "name:Planesito de Vida",
+    sprop: "name:Nuestras Aventuras",
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -50,14 +50,14 @@ export function generateIcsContent(cita: ICitaResponse): string {
     );
   };
 
-  const uid = `planesito-${cita.id || Date.now()}@planesitodevida.app`;
+  const uid = `nuestras-aventuras-${cita.id || Date.now()}@nuestrasaventuras.app`;
   const now = formatIcsDate(new Date());
   const start = formatIcsDate(startDate);
   const end = formatIcsDate(endDate);
 
-  const summary = `Planesito de Vida: ${cita.nombre.replace(/,/g, "\\,")}`;
+  const summary = `Nuestras Aventuras: ${cita.nombre.replace(/,/g, "\\,")}`;
   const location = cita.lugar.direccion.replace(/,/g, "\\,");
-  const description = `${cita.descripcion}\\n\\nVestimenta: ${cita.vestimentaRecomendada}\\nTemática: ${cita.tematica}\\nOrganizado en Planesito de Vida 💌`.replace(
+  const description = `${cita.descripcion}\\n\\nVestimenta: ${cita.vestimentaRecomendada}\\nTemática: ${cita.tematica}\\nOrganizado en Nuestras Aventuras`.replace(
     /\n/g,
     "\\n"
   );
@@ -65,7 +65,7 @@ export function generateIcsContent(cita: ICitaResponse): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Planesito de Vida//Citas para Pareja//ES",
+    "PRODID:-//Nuestras Aventuras//Diario de Citas y Viajes//ES",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -91,7 +91,7 @@ export function downloadIcsFile(cita: ICitaResponse) {
   const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const filename = `planesito-${cita.nombre.toLowerCase().replace(/\s+/g, "-")}.ics`;
+  const filename = `nuestras-aventuras-${cita.nombre.toLowerCase().replace(/\s+/g, "-")}.ics`;
 
   link.href = url;
   link.setAttribute("download", filename);

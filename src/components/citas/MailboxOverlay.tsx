@@ -78,20 +78,48 @@ export function MailboxOverlay({
               <motion.div
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="inline-flex items-center gap-2 bg-white/90 text-sky-900 border border-sky-200 px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm mb-6"
+                className="inline-flex items-center gap-2 bg-white/90 text-sky-900 border border-sky-200 px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm mb-5"
               >
                 <Sparkles size={14} className="text-sky-500 animate-pulse" />
                 <span>
                   {pendingCitas.length === 1
-                    ? "¡Tienes 1 nueva carta de amor!"
-                    : `¡Tienes ${pendingCitas.length} nuevas cartas de amor!`}
+                    ? "Tienes 1 nueva carta de amor"
+                    : `Tienes ${pendingCitas.length} nuevas cartas de amor`}
                 </span>
               </motion.div>
+
+              {/* Placa superior con efecto de brochazo / pintura hecha a mano: Samuel y Diana */}
+              <div className="relative mb-3 flex flex-col items-center select-none">
+                <svg
+                  className="absolute -inset-x-6 -inset-y-3 w-[calc(100%+48px)] h-[calc(100%+24px)] text-white/95 drop-shadow-md -z-10"
+                  viewBox="0 0 280 60"
+                  fill="currentColor"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 12 18 Q 80 4 140 10 Q 210 5 268 16 Q 275 35 260 48 Q 180 56 120 50 Q 50 55 10 42 Q 4 28 12 18 Z" />
+                </svg>
+
+                <div className="px-6 py-1.5 text-center">
+                  <span
+                    className="font-handwriting text-3xl sm:text-4xl text-sky-950 font-bold tracking-wide block drop-shadow-[0_1px_1px_rgba(40,75,110,0.25)]"
+                    style={{
+                      transform: "rotate(-1.5deg)",
+                      textShadow:
+                        "1px 1px 0 rgba(255,255,255,0.8), -1px -1px 0 rgba(100,150,200,0.15)",
+                    }}
+                  >
+                    Samuel & Diana
+                  </span>
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.25em] text-sky-700/80 block mt-0.5">
+                    Buzón de Nuestras Aventuras
+                  </span>
+                </div>
+              </div>
 
               {/* ILUSTRACIÓN INTERACTIVA DEL BUZÓN (3D / Handcrafted) */}
               <div
                 onClick={handleOpenMailbox}
-                className="group relative cursor-pointer select-none transition-transform hover:scale-105 active:scale-95 duration-300 py-4"
+                className="group relative cursor-pointer select-none transition-transform hover:scale-105 active:scale-95 duration-300 py-2"
                 role="button"
                 tabIndex={0}
                 aria-label="Abrir puerta del buzón"

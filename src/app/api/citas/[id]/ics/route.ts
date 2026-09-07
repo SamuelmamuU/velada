@@ -43,7 +43,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     };
 
     const icsString = generateIcsContent(formattedCita);
-    const filename = `velada-${formattedCita.nombre
+    const filename = `nuestras-aventuras-${formattedCita.nombre
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "-")}.ics`;
 

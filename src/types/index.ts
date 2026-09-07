@@ -45,6 +45,12 @@ export interface IPropuestaCambio {
   estado: "pendiente" | "aceptada" | "rechazada";
 }
 
+export interface IRecuerdo {
+  fotoUrl: string;
+  pieDeFoto?: string;
+  fechaSubida?: string;
+}
+
 export interface IUsuario {
   nombre: string;
   email: string;
@@ -84,6 +90,7 @@ export interface ICita {
     fechaSolicitud: Date;
     estado: "pendiente" | "aceptada" | "rechazada";
   };
+  recuerdo?: IRecuerdo;
   creadoPor: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
@@ -107,6 +114,7 @@ export interface ICitaResponse {
   ambiente?: AmbienteCita;
   esFlexible?: boolean;
   propuestaCambio?: IPropuestaCambio;
+  recuerdo?: IRecuerdo;
   creadoPor?: {
     id: string;
     nombre: string;

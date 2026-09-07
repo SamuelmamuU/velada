@@ -19,7 +19,7 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-ivory p-6">
         <Seal size="lg" className="animate-pulse mb-4" />
-        <p className="font-serif text-ink text-base">Cargando tu velada...</p>
+        <p className="font-serif text-ink text-base">Cargando Nuestras Aventuras...</p>
       </div>
     );
   }

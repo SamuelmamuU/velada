@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Seal } from "@/components/ui/Seal";
+import { AppLogo } from "@/components/ui/AppLogo";
 import { LogOut, ArrowLeft } from "lucide-react";
 
 interface AppHeaderProps {
@@ -15,22 +15,21 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
   const { user, logout } = useAuth();
 
   const defaultTag =
-    user?.rol === "novio" ? "PANEL DEL NOVIO" : "BUZÓN DE CITAS";
+    user?.rol === "novio" ? "PANEL DE SAMUEL" : "BUZÓN DE DIANA";
 
   const displayTag = tag || defaultTag;
-  const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "N" : "N");
+  const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "S" : "D");
 
   return (
     <header className="flex items-center justify-between flex-wrap gap-4 mb-9">
-      {/* Marca / Logo */}
-      <div className="flex items-center gap-3.5">
-        <Seal letter="P" size="md" variant="blue" />
+      {/* Marca / Logo con NuestrasAventurasLG.png */}
+      <div className="flex items-center gap-3">
+        <AppLogo size="md" />
         <div>
-          <div className="font-serif font-bold text-[23px] text-ink leading-tight tracking-tight flex items-center gap-1.5">
-            <span>Planesito de Vida</span>
-            <span className="text-xs text-rose">💌</span>
+          <div className="font-serif font-bold text-[22px] sm:text-[24px] text-ink leading-tight tracking-tight">
+            Nuestras Aventuras
           </div>
-          <div className="font-mono text-[10.5px] text-ink-soft tracking-[0.08em] uppercase">
+          <div className="font-mono text-[10px] sm:text-[10.5px] text-sky-800 tracking-[0.12em] uppercase font-semibold">
             {displayTag}
           </div>
         </div>

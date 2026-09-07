@@ -28,10 +28,16 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+import { TravelJournalBackground } from "@/components/ui/TravelJournalBackground";
+
 export const metadata: Metadata = {
-  title: "Planesito de Vida — Citas de Amor",
+  title: "Nuestras Aventuras",
   description:
-    "Cartas de amor e invitaciones íntimas para agendar los momentos más lindos juntos.",
+    "Diario de viajes, cartas de amor y momentos especiales de Samuel y Diana.",
+  icons: {
+    icon: "/NuestrasAventurasLG.png",
+    apple: "/NuestrasAventurasLG.png",
+  },
 };
 
 export default function RootLayout({
@@ -44,7 +50,8 @@ export default function RootLayout({
       lang="es"
       className={`${fraunces.variable} ${inter.variable} ${caveat.variable} ${ibmPlexMono.variable}`}
     >
-      <body className="font-sans antialiased min-h-screen selection:bg-sky-pastel selection:text-ocean-ink">
+      <body className="font-sans antialiased min-h-screen selection:bg-sky-pastel selection:text-ocean-ink relative">
+        <TravelJournalBackground />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

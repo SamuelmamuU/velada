@@ -63,7 +63,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
         return NextResponse.json({
           success: true,
-          message: "Propuesta de cambio enviada a tu novio 💌",
+          message: "Propuesta de cambio enviada a tu novio",
           propuesta: {
             nuevoHorario: proposedDate.toISOString(),
             motivo: motivo || "",
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      message: "Propuesta de cambio enviada a tu novio 💌",
+      message: "Propuesta de cambio enviada a tu novio",
       propuesta: memCita.propuestaCambio,
     });
   } catch (error: any) {
@@ -148,7 +148,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
           success: true,
           message:
             accion === "aceptar"
-              ? "Horario actualizado con la sugerencia de tu novia ✨"
+              ? "Horario actualizado con la sugerencia de Diana"
               : "Propuesta declinada; se mantiene el horario original.",
           cita: {
             id: cita._id.toString(),
@@ -185,7 +185,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       success: true,
       message:
         accion === "aceptar"
-          ? "Horario actualizado con la sugerencia de tu novia ✨"
+          ? "Horario actualizado con la sugerencia de Diana"
           : "Propuesta declinada; se mantiene el horario original.",
       cita: memCita,
     });

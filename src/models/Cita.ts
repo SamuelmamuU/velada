@@ -67,6 +67,24 @@ const PropuestaCambioSchema = new Schema(
   { _id: false }
 );
 
+const RecuerdoSchema = new Schema(
+  {
+    fotoUrl: {
+      type: String,
+      required: [true, "La foto del recuerdo es obligatoria"],
+    },
+    pieDeFoto: {
+      type: String,
+      trim: true,
+    },
+    fechaSubida: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const CitaSchema = new Schema<ICitaDocument>(
   {
     nombre: {
@@ -133,6 +151,10 @@ const CitaSchema = new Schema<ICitaDocument>(
     },
     propuestaCambio: {
       type: PropuestaCambioSchema,
+      default: undefined,
+    },
+    recuerdo: {
+      type: RecuerdoSchema,
       default: undefined,
     },
     creadoPor: {

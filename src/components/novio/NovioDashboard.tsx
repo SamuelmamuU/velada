@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   CalendarClock,
+  Edit2,
+  Mail,
 } from "lucide-react";
 
 interface NovioDashboardProps {
@@ -73,7 +75,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       )
     );
     setCurrentView("list");
-    showToast("¡Carta de invitación enviada exitosamente! Tu novia ya puede verla en su buzón 💌");
+    showToast("Carta de invitación enviada exitosamente. Diana ya puede verla en su buzón.");
   };
 
   const handleEditSuccess = (citaActualizada: ICitaResponse) => {
@@ -87,7 +89,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     );
     setCurrentView("list");
     setSelectedCita(null);
-    showToast("Cita actualizada correctamente ✨");
+    showToast("Cita actualizada correctamente.");
   };
 
   const handleDeleteConfirm = async () => {
@@ -156,18 +158,20 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3 bg-white/80 backdrop-blur border border-sky-200/70 p-3 rounded-2xl shadow-xs max-w-[760px] mx-auto">
               <span className="text-xs font-medium text-sky-800 flex items-center gap-1.5 pl-2">
-                <span>💌 Vista de la carta de amor</span>
+                <Mail size={14} className="text-sky-600" />
+                <span>Vista de la carta de amor</span>
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentView("edit")}
-                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  ✏️ Editar cita
+                  <Edit2 size={13} />
+                  <span>Editar cita</span>
                 </button>
                 <button
                   onClick={() => setCitaToDelete(selectedCita)}
-                  className="px-3 py-1.5 rounded-xl border border-blush-200 text-blush-500 hover:bg-blush-50 font-medium text-xs transition-colors"
+                  className="px-3 py-1.5 rounded-xl border border-blush-200 text-blush-500 hover:bg-blush-50 font-medium text-xs transition-colors cursor-pointer"
                 >
                   Eliminar
                 </button>
@@ -224,7 +228,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                     </div>
                     <div>
                       <h4 className="font-serif font-semibold text-base text-ink">
-                        💌 Tu novia ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
+                        Diana ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
                         {citasConPropuesta.length === 1 ? "cita" : "citas"}
                       </h4>
                       <p className="text-xs text-ink-soft">
@@ -237,7 +241,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                       setSelectedCita(citasConPropuesta[0]);
                       setCurrentView("detail");
                     }}
-                    className="bg-ink hover:bg-gold-deep text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all"
+                    className="bg-ink hover:bg-gold-deep text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all cursor-pointer"
                   >
                     Revisar propuesta
                   </button>
@@ -252,11 +256,11 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                   Tus cartas e invitaciones
                 </p>
                 <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink">
-                  Planesito de Vida
+                  Nuestras Aventuras
                 </h1>
                 <p className="text-ink-soft text-sm mt-1 font-normal">
                   {citas.length}{" "}
-                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · Tu novia
+                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · Diana
                   las recibirá en formato de carta interactiva con mapa en su buzón.
                 </p>
               </div>
@@ -266,7 +270,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                 className="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm py-3 px-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 active:translate-y-0 cursor-pointer"
               >
                 <Plus size={16} />
-                <span>+ Escribir nueva carta</span>
+                <span>Escribir nueva carta</span>
               </button>
             </div>
 
@@ -334,7 +338,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               className="fixed right-7 bottom-7 z-40 bg-gold hover:bg-gold-deep text-ink hover:text-white font-semibold text-sm py-3.5 px-5 rounded-full shadow-2xl hover:shadow-[0_16px_30px_-12px_rgba(43,36,56,0.5)] transition-all flex items-center gap-2 cursor-pointer border border-gold-deep/20"
             >
               <Plus size={18} />
-              <span className="font-sans font-semibold">+ Nueva cita</span>
+              <span className="font-sans font-semibold">Nueva carta</span>
             </button>
           </div>
         )}

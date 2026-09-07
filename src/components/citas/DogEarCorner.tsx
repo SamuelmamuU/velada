@@ -2,22 +2,39 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { MapPin, Mail } from "lucide-react";
+import { MapPin, Mail, Camera } from "lucide-react";
 
 interface DogEarCornerProps {
-  currentSide: "letter" | "map";
+  currentSide: "letter" | "map" | "memory";
+  hasMemory?: boolean;
   onFlip: () => void;
   className?: string;
 }
 
 export function DogEarCorner({
   currentSide,
+  hasMemory = true,
   onFlip,
   className = "",
 }: DogEarCornerProps) {
-  const isLetter = currentSide === "letter";
-  const label = isLetter ? "Voltear al mapa" : "Voltear a la carta";
-  const Icon = isLetter ? MapPin : Mail;
+  let label = "Voltear al mapa";
+  let Icon = MapPin;
+
+  if (currentSide === "letter") {
+    label = "Voltear al mapa";
+    Icon = MapPin;
+  } else if (currentSide === "map") {
+    if (hasMemory) {
+      label = "Voltear al recuerdo";
+      Icon = Camera;
+    } else {
+      label = "Voltear a la carta";
+      Icon = Mail;
+    }
+  } else if (currentSide === "memory") {
+    label = "Voltear a la carta";
+    Icon = Mail;
+  }
 
   return (
     <div

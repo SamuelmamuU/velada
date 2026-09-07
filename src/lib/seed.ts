@@ -97,6 +97,56 @@ export async function seedDatabase() {
     console.log(`[Seed] ${citasIniciales.length} citas iniciales creadas.`);
   }
 
+  // 3. Asegurar que existan citas pasadas para probar Recuerdos
+  if (novioUser) {
+    const cabanaExist = await Cita.findOne({ nombre: "Escapada romántica a la cabaña" });
+    if (!cabanaExist) {
+      await Cita.create({
+        nombre: "Escapada romántica a la cabaña",
+        descripcion: "Un fin de semana alejados del ruido de la ciudad, chimenea encendida y chocolate caliente.",
+        horario: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Cabañas del Bosque, Santiago, N.L.",
+          lat: 25.4267,
+          lng: -100.1508,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Suéter abrigador y botas cómodas.",
+        estado: "confirmada",
+        importancia: "especial",
+        ambiente: "mixto",
+        recuerdo: {
+          fotoUrl: "/polaroids/CABANA.jpg",
+          pieDeFoto: "Nuestra tarde perfecta en la cabaña entre la niebla y el café caliente.",
+          fechaSubida: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+        },
+        creadoPor: novioUser._id,
+      });
+      console.log("[Seed] Cita pasada con recuerdo creada.");
+    }
+
+    const santaLuciaExist = await Cita.findOne({ nombre: "Paseo por Santa Lucía" });
+    if (!santaLuciaExist) {
+      await Cita.create({
+        nombre: "Paseo por Santa Lucía",
+        descripcion: "Caminata al atardecer por el canal, viendo las luces reflejadas en el agua.",
+        horario: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Paseo Santa Lucía, Monterrey, N.L.",
+          lat: 25.6698,
+          lng: -100.3015,
+        },
+        tematica: "Casual",
+        vestimentaRecomendada: "Ropa fresca y tenis cómodos.",
+        estado: "confirmada",
+        importancia: "alta",
+        ambiente: "exterior",
+        creadoPor: novioUser._id,
+      });
+      console.log("[Seed] Cita pasada sin recuerdo creada.");
+    }
+  }
+
   return {
     usuarios: usuariosCreados.map((u) => ({
       id: u._id.toString(),

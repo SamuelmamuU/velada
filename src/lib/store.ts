@@ -146,6 +146,70 @@ if (!globalStore.__velada_mem_db) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c105",
+        nombre: "Nuestra escapada a las cabañas",
+        descripcion:
+          "Fin de semana en el bosque, fogata bajo la noche despejada y el café de la mañana mirando la montaña.",
+        horario: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Cabañas del Bosque, Santiago, N.L.",
+          lat: 25.4241,
+          lng: -100.1508,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Ropa abrigadora cómoda para el bosque.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "especial",
+        ambiente: "exterior",
+        esFlexible: false,
+        recuerdo: {
+          fotoUrl: "/polaroids/CABANA.jpg",
+          pieDeFoto: "Nuestra cabaña mágica en la montaña",
+          fechaSubida: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c106",
+        nombre: "Paseo en bote por Santa Lucía",
+        descripcion:
+          "Recorrido nocturno por el canal, luces reflejadas en el agua y cena deliciosa al terminar el trayecto.",
+        horario: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Paseo Santa Lucía, Centro, Monterrey, N.L.",
+          lat: 25.6714,
+          lng: -100.3012,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Casual elegante para paseo junto al canal.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "alta",
+        ambiente: "exterior",
+        esFlexible: true,
+        // Sin foto aún para probar botón Agregar Recuerdos!
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
     ],
   };
 }
