@@ -17,14 +17,16 @@ import {
   CalendarClock,
   Edit2,
   Mail,
+  QrCode,
 } from "lucide-react";
+import { QrPairingModal } from "@/components/pareja/QrPairingModal";
 
 interface NovioDashboardProps {
   onViewDetail?: (cita: ICitaResponse) => void;
 }
 
 export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
-  const { token } = useAuth();
+  const { token, user, pareja } = useAuth();
 
   const [citas, setCitas] = useState<ICitaResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,10 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     "list" | "create" | "edit" | "detail"
   >("list");
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+
+  const partnerName = user?.nombrePareja || "Diana";
+
 
   // Estados de modal de eliminación y notificaciones
   const [citaToDelete, setCitaToDelete] = useState<ICitaResponse | null>(null);
@@ -75,7 +81,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       )
     );
     setCurrentView("list");
-    showToast("Carta de invitación enviada exitosamente. Diana ya puede verla en su buzón.");
+    showToast(`Carta de invitación enviada exitosamente. ${partnerName} ya puede verla en su buzón.`);
   };
 
   const handleEditSuccess = (citaActualizada: ICitaResponse) => {
@@ -228,7 +234,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                     </div>
                     <div>
                       <h4 className="font-serif font-semibold text-base text-ink">
-                        Diana ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
+                        {partnerName} ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
                         {citasConPropuesta.length === 1 ? "cita" : "citas"}
                       </h4>
                       <p className="text-xs text-ink-soft">
@@ -244,6 +250,34 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                     className="bg-ink hover:bg-gold-deep text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all cursor-pointer"
                   >
                     Revisar propuesta
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Banner de Invitación QR si no está conectado aún */}
+            {!loading && pareja?.estado !== "conectados" && user?.estadoPareja !== "conectados" && (
+              <div className="bg-sky-50/90 border border-sky-200 rounded-2xl p-5 shadow-xs animate-fade-up">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center flex-shrink-0">
+                      <QrCode size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-serif font-semibold text-base text-ink">
+                        Conecta el buzón con tu pareja mediante Código QR
+                      </h4>
+                      <p className="text-xs text-ink-soft">
+                        Muestra tu código QR o compártele tu código de invitación para que tus cartas lleguen directamente a su buzón.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setQrModalOpen(true)}
+                    className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <QrCode size={14} />
+                    <span>Ver mi Código QR</span>
                   </button>
                 </div>
               </div>
@@ -376,6 +410,9 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           </div>
         </div>
       )}
+
+      <QrPairingModal isOpen={qrModalOpen} onClose={() => setQrModalOpen(false)} />
     </div>
   );
 }
+

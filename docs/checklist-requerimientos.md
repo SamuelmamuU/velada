@@ -32,8 +32,13 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 | **RF-22** | Enlace directo para agregar cita a Google Calendar sin descargar archivos. |  Cumplido | Función `generateGoogleCalendarUrl` con apertura inmediata de Google Calendar. |
 | **RF-23** | Archivo/enlace de calendario incluye nombre, descripción, horario y lugar. |  Cumplido | Formateo completo de metadatos RFC 5545 y parámetros de URL. |
 | **RF-24** | Exportación de calendario disponible para Novio y Novia. |  Cumplido | Habilitado en la pantalla `CitaDetailView` para ambos perfiles. |
-| **RF-25** | Notificar a la novia cuando se agenda una nueva cita. |  Cumplido | Banner de nuevas invitaciones y badge animado `✨ NUEVA` en tarjetas no abiertas. |
-| **RF-26** | Enviar recordatorio automático antes del horario de la cita. |  Cumplido | Banner dinámico de recordatorio con cuenta regresiva en días, horas y minutos. |
+| **RF-25** | Notificar a la novia cuando se agenda una nueva cita. | Cumplido | Banner de nuevas invitaciones y badge animado en tarjetas no abiertas. |
+| **RF-26** | Enviar recordatorio automático antes del horario de la cita. | Cumplido | Banner dinámico de recordatorio con cuenta regresiva en días, horas y minutos. |
+| **RF-27** | Creación y registro de perfiles de usuario personalizados (`novio` o `novia`). | Cumplido | Endpoint `POST /api/auth/register` y pestaña en `LoginForm` con selector de rol. |
+| **RF-28** | Generación de Código QR y clave de vinculación única para emparejamiento. | Cumplido | Librería `qrcode` en `GET /api/pareja/codigo` y modal postal `QrPairingModal`. |
+| **RF-29** | Escaneo de Código QR o ingreso manual de código para vincular pareja. | Cumplido | Componente `html5-qrcode` con lector por cámara y fallback de entrada manual en `POST /api/pareja/vincular`. |
+| **RF-30** | Sincronización instantánea y privada de citas y buzón entre pareja vinculada. | Cumplido | Aislamiento y vinculación de correspondencia por `parejaId` en `GET/POST /api/citas`. |
+| **RF-31** | Gestión del estado de conexión de la pareja (estado, datos de pareja, desvincular). | Cumplido | `PairingStatusBadge` en cabecera, consulta `GET /api/pareja/estado` y opción `POST /api/pareja/desvincular`. |
 
 ---
 
@@ -41,21 +46,21 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 
 | ID | Requerimiento | Estado | Detalle de Implementación |
 |---|---|:---:|---|
-| **RNF-01** | Interfaz clara, intuitiva y usable sin instrucciones. |  Cumplido | Layout tipo sobre de carta romántica, botones claros con microanimaciones. |
-| **RNF-02** | Diseño responsive priorizando dispositivos móviles. |  Cumplido | Tailwind adaptativo (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`). |
-| **RNF-03** | Diseño moderno con paleta de color propia y tipografía con carácter. |  Cumplido | Réplica exacta de `mockup-velada.html`: fuentes *Fraunces*, *Inter*, *IBM Plex Mono*, colores cálidos (`--gold`, `--rose`, `--ivory`). |
-| **RNF-04** | Carga de páginas en menos de 2 segundos. |  Cumplido | Next.js App Router optimizado, bundle liviano (111 kB First Load JS). |
-| **RNF-05** | Mapa cargado de forma asíncrona sin bloquear la página. |  Cumplido | Carga dinámica en cliente (`useEffect` + dynamic import de Leaflet). |
-| **RNF-06** | Contraseñas almacenadas con hash (`bcrypt`). |  Cumplido | Contraseñas cifradas con `bcryptjs` con 10 rondas de salt. |
-| **RNF-07** | Comunicación cliente-servidor sobre HTTPS en producción. |  Cumplido | Certificados SSL automáticos en Vercel. |
-| **RNF-08** | Validación de permisos por rol en el backend en cada endpoint. |  Cumplido | Middlewares `requireRole` y `requireAuth` verificados en tests automáticos. |
-| **RNF-09** | Claves y secretos fuera del código fuente en variables de entorno. |  Cumplido | Gestionados mediante `.env.local` y `.env.example`. |
-| **RNF-10** | Aplicación disponible públicamente vía URL. |  Cumplido | Arquitectura lista para despliegue en Vercel Hobby en [docs/despliegue.md](despliegue.md). |
-| **RNF-11** | Código versionado en Git con historial de cambios claro. |  Cumplido | Commits atómicos y descriptivos en español por cada fase completada. |
-| **RNF-12** | Base de datos con respaldos periódicos. |  Cumplido | MongoDB Atlas incluye snapshots y backups automáticos diarios. |
-| **RNF-13** | Costo $0 con herramientas y planes gratuitos. |  Cumplido | Next.js + MongoDB Atlas M0 + Leaflet/OSM + Vercel Hobby ($0). |
-| **RNF-14** | Arquitectura extensible para features futuras (fotos, calificaciones). |  Cumplido | Esquema de Mongoose desacoplado y componentes modulares. |
-| **RNF-15** | Compatibilidad con navegadores modernos (Chrome, Safari, Firefox). |  Cumplido | Estándares HTML5/CSS3 validados en móvil y escritorio. |
+| **RNF-01** | Interfaz clara, intuitiva y usable sin instrucciones. | Cumplido | Layout tipo sobre de carta romántica, botones claros con microanimaciones. |
+| **RNF-02** | Diseño responsive priorizando dispositivos móviles. | Cumplido | Tailwind adaptativo (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`). |
+| **RNF-03** | Diseño moderno con paleta de color propia y tipografía con carácter. | Cumplido | Estética de diario de viaje y carta manuscrita, fuentes serif/handwriting, colores pastel. |
+| **RNF-04** | Carga de páginas en menos de 2 segundos. | Cumplido | Next.js App Router optimizado, bundle liviano. |
+| **RNF-05** | Mapa cargado de forma asíncrona sin bloquear la página. | Cumplido | Carga dinámica en cliente (`useEffect` + dynamic import de Leaflet). |
+| **RNF-06** | Contraseñas almacenadas con hash (`bcrypt`). | Cumplido | Contraseñas cifradas con `bcryptjs` con 10 rondas de salt. |
+| **RNF-07** | Comunicación cliente-servidor sobre HTTPS en producción. | Cumplido | Certificados SSL automáticos en Vercel. |
+| **RNF-08** | Validación de permisos por rol en el backend en cada endpoint. | Cumplido | Middlewares `requireRole` y `requireAuth` verificados en tests automáticos. |
+| **RNF-09** | Claves y secretos fuera del código fuente en variables de entorno. | Cumplido | Gestionados mediante `.env.local` y `.env.example`. |
+| **RNF-10** | Aplicación disponible públicamente vía URL. | Cumplido | Arquitectura lista para despliegue en Vercel Hobby en [docs/despliegue.md](despliegue.md). |
+| **RNF-11** | Código versionado en Git con historial de cambios claro. | Cumplido | Commits atómicos y descriptivos en español por cada fase completada. |
+| **RNF-12** | Base de datos con respaldos periódicos. | Cumplido | MongoDB Atlas incluye snapshots y backups automáticos diarios. |
+| **RNF-13** | Costo $0 con herramientas y planes gratuitos. | Cumplido | Next.js + MongoDB Atlas M0 + Leaflet/OSM + Vercel Hobby ($0). |
+| **RNF-14** | Arquitectura extensible para features futuras (fotos, calificaciones). | Cumplido | Esquema de Mongoose desacoplado y componentes modulares. |
+| **RNF-15** | Compatibilidad con navegadores modernos (Chrome, Safari, Firefox). | Cumplido | Estándares HTML5/CSS3 validados en móvil y escritorio. |
 
 ---
 
@@ -63,14 +68,15 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 
 | ID | Restricción | Estado | Detalle |
 |---|---|:---:|---|
-| **RST-01** | Solo existen dos usuarios en el sistema (Novio y Novia). |  Cumplido | Seed automático de las 2 cuentas fijas sin registro público abierto. |
-| **RST-02** | No se requiere panel de administración adicional. |  Cumplido | Todo el flujo se gestiona en los dos paneles de usuario. |
-| **RST-03** | Presupuesto del proyecto: $0. |  Cumplido | Todas las librerías, proveedores de mapas y hosting elegidos son 100% gratuitos. |
+| **RST-01** | Admisión de perfiles dinámicos y vinculación de parejas por código QR. | Cumplido | Sincronización y aislamiento de datos por pareja mediante `parejaId`. |
+| **RST-02** | No se requiere panel de administración adicional. | Cumplido | Todo el flujo se gestiona en los dos paneles de usuario. |
+| **RST-03** | Presupuesto del proyecto: $0. | Cumplido | Todas las librerías, escáneres QR y hosting elegidos son 100% gratuitos. |
 
 ---
 
 ### Resumen Estadístico
-- **Requerimientos Funcionales Cumplidos**: 26 / 26 (100%)
+- **Requerimientos Funcionales Totales**: 31 / 31 (100% Cumplidos)
 - **Requerimientos No Funcionales Cumplidos**: 15 / 15 (100%)
 - **Restricciones Cumplidas**: 3 / 3 (100%)
 - **Requerimientos Pendientes**: 0
+

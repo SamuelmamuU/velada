@@ -34,7 +34,24 @@ const UsuarioSchema = new Schema<IUsuarioDocument>(
       },
       required: [true, "El rol es obligatorio"],
     },
+    parejaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Pareja",
+      default: null,
+      index: true,
+    },
+    codigoVinculacion: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      index: true,
+    },
+    avatarUrl: {
+      type: String,
+      default: null,
+    },
   },
+
   {
     timestamps: true,
     toJSON: {

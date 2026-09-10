@@ -1,8 +1,9 @@
-import { ICitaResponse, IUsuarioResponse } from "@/types";
+import { ICitaResponse, IUsuarioResponse, IPareja } from "@/types";
 
 // Base de datos en memoria para fallback cuando MongoDB no está en ejecución localmente
 interface MemoryDatabase {
   usuarios: (IUsuarioResponse & { passwordHash: string })[];
+  parejas: IPareja[];
   citas: ICitaResponse[];
 }
 
@@ -13,17 +14,37 @@ if (!globalStore.__velada_mem_db) {
     usuarios: [
       {
         id: "64f1a2b3c4d5e6f7a8b9c001",
-        nombre: "Novio",
+        nombre: "Samuel",
         email: "novio@velada.app",
         rol: "novio",
+        parejaId: "pareja_default_samuel_diana",
+        codigoVinculacion: "AVENTURA-LOVE",
+        estadoPareja: "conectados",
+        nombrePareja: "Diana",
         passwordHash: "$2a$10$7rO0y4.t03rC70wA0e0Hqu8p9KqY6z0cR0Y0e0Hqu8p9KqY6z0cRe", // NovioVelada2026!
       },
       {
         id: "64f1a2b3c4d5e6f7a8b9c002",
-        nombre: "Novia",
+        nombre: "Diana",
         email: "novia@velada.app",
         rol: "novia",
+        parejaId: "pareja_default_samuel_diana",
+        codigoVinculacion: "AVENTURA-LOVE",
+        estadoPareja: "conectados",
+        nombrePareja: "Samuel",
         passwordHash: "$2a$10$7rO0y4.t03rC70wA0e0Hqu8p9KqY6z0cR0Y0e0Hqu8p9KqY6z0cRe", // NoviaVelada2026!
+      },
+    ],
+    parejas: [
+      {
+        id: "pareja_default_samuel_diana",
+        codigoVinculacion: "AVENTURA-LOVE",
+        novioId: "64f1a2b3c4d5e6f7a8b9c001",
+        noviaId: "64f1a2b3c4d5e6f7a8b9c002",
+        estado: "conectados",
+        fechaVinculacion: "2026-01-01T00:00:00.000Z",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
       },
     ],
     citas: [
@@ -50,6 +71,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "especial",
         ambiente: "exterior",
         esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -79,6 +101,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "media",
         ambiente: "interior",
         esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -109,6 +132,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "alta",
         ambiente: "exterior",
         esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -139,6 +163,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "especial",
         ambiente: "exterior",
         esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
@@ -168,6 +193,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "especial",
         ambiente: "exterior",
         esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
         recuerdo: {
           fotoUrl: "/polaroids/CABANA.jpg",
           pieDeFoto: "Nuestra cabaña mágica en la montaña",
@@ -202,6 +228,7 @@ if (!globalStore.__velada_mem_db) {
         importancia: "alta",
         ambiente: "exterior",
         esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
         // Sin foto aún para probar botón Agregar Recuerdos!
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
@@ -214,4 +241,20 @@ if (!globalStore.__velada_mem_db) {
   };
 }
 
+if (globalStore.__velada_mem_db && !Array.isArray(globalStore.__velada_mem_db.parejas)) {
+  globalStore.__velada_mem_db.parejas = [
+    {
+      id: "pareja_default_samuel_diana",
+      codigoVinculacion: "AVENTURA-LOVE",
+      novioId: "64f1a2b3c4d5e6f7a8b9c001",
+      noviaId: "64f1a2b3c4d5e6f7a8b9c002",
+      estado: "conectados",
+      fechaVinculacion: "2026-01-01T00:00:00.000Z",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    },
+  ];
+}
+
 export const memoryStore = globalStore.__velada_mem_db!;
+

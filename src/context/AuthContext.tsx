@@ -1,15 +1,26 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { IUsuarioResponse, RolUsuario } from "@/types";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { IUsuarioResponse, IParejaResponse, RolUsuario } from "@/types";
 
 interface AuthContextType {
   user: IUsuarioResponse | null;
   token: string | null;
   loading: boolean;
+  pareja: IParejaResponse | null;
+  parejaLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: {
+    nombre: string;
+    email: string;
+    password: string;
+    rol: RolUsuario;
+  }) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   switchDemoRole: (role: RolUsuario) => Promise<boolean>;
+  refreshPareja: () => Promise<void>;
+  vincularPareja: (codigo: string) => Promise<{ success: boolean; error?: string; message?: string }>;
+  desvincularPareja: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +29,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<IUsuarioResponse | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [pareja, setPareja] = useState<IParejaResponse | null>(null);
+  const [parejaLoading, setParejaLoading] = useState<boolean>(false);
+
+  const fetchParejaEstado = useCallback(async (authToken?: string) => {
+    const currentToken = authToken || token || (typeof window !== "undefined" ? localStorage.getItem("velada_token") : null);
+    if (!currentToken) {
+      setPareja(null);
+      return;
+    }
+
+    try {
+      setParejaLoading(true);
+      const res = await fetch("/api/pareja/estado", {
+        headers: {
+          Authorization: `Bearer ${currentToken}`,
+        },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setPareja(json.data);
+        }
+      }
+    } catch (err) {
+      console.error("Error al consultar estado de pareja:", err);
+    } finally {
+      setParejaLoading(false);
+    }
+  }, [token]);
 
   // Restaurar sesión al cargar la página
   useEffect(() => {
@@ -36,15 +76,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const data = await res.json();
             if (data.success && data.usuario) {
               setUser(data.usuario);
+              fetchParejaEstado(savedToken);
             } else {
               localStorage.removeItem("velada_token");
               setToken(null);
               setUser(null);
+              setPareja(null);
             }
           } else {
             localStorage.removeItem("velada_token");
             setToken(null);
             setUser(null);
+            setPareja(null);
           }
         }
       } catch (err) {
@@ -55,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initAuth();
-  }, []);
+  }, [fetchParejaEstado]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -74,10 +117,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(data.token);
       setUser(data.usuario);
       localStorage.setItem("velada_token", data.token);
+      fetchParejaEstado(data.token);
 
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || "Error de conexión con el servidor" };
+    }
+  };
+
+  const register = async (userData: {
+    nombre: string;
+    email: string;
+    password: string;
+    rol: RolUsuario;
+  }) => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "Error al crear la cuenta" };
+      }
+
+      setToken(data.token);
+      setUser(data.usuario);
+      localStorage.setItem("velada_token", data.token);
+      fetchParejaEstado(data.token);
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Error al conectar con el servidor" };
     }
   };
 
@@ -89,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setToken(null);
+      setPareja(null);
       localStorage.removeItem("velada_token");
     }
   };
@@ -100,15 +175,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res.success;
   };
 
+  const refreshPareja = async () => {
+    await fetchParejaEstado();
+    // También refrescar datos del usuario (nombre de pareja, etc.)
+    const currentToken = token || localStorage.getItem("velada_token");
+    if (currentToken) {
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${currentToken}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.usuario) {
+          setUser(json.usuario);
+        }
+      }
+    }
+  };
+
+  const vincularPareja = async (codigo: string) => {
+    const currentToken = token || localStorage.getItem("velada_token");
+    if (!currentToken) {
+      return { success: false, error: "No hay sesión activa" };
+    }
+
+    try {
+      const res = await fetch("/api/pareja/vincular", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+        body: JSON.stringify({ codigo }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "No se pudo vincular la cuenta" };
+      }
+
+      await refreshPareja();
+      return { success: true, message: data.message };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Error al conectar con el servidor" };
+    }
+  };
+
+  const desvincularPareja = async () => {
+    const currentToken = token || localStorage.getItem("velada_token");
+    if (!currentToken) return { success: false, error: "No hay sesión activa" };
+
+    try {
+      const res = await fetch("/api/pareja/desvincular", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${currentToken}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || "Error al desvincular la cuenta" };
+      }
+
+      await refreshPareja();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Error al conectar con el servidor" };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
         loading,
+        pareja,
+        parejaLoading,
         login,
+        register,
         logout,
         switchDemoRole,
+        refreshPareja,
+        vincularPareja,
+        desvincularPareja,
       }}
     >
       {children}
@@ -123,3 +273,4 @@ export function useAuth() {
   }
   return context;
 }
+

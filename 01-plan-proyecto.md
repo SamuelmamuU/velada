@@ -179,6 +179,38 @@ Este documento está redactado para ser ejecutado por un agente de IA (ej. Claud
 - [ ] Optimización de rendimiento (carga de imágenes, mapas, tiempos de respuesta).
 - [ ] Documentación final de uso para ambos usuarios.
 - [ ] Backup de la base de datos.
-- [ ] Entrega/presentación de la app a la novia 💛.
+- [ ] Entrega/presentación de la app a la pareja.
 
 **Criterio de aceptación:** la aplicación está lista para uso real y estable.
+
+---
+
+## Fase 12 — Creación de perfiles y vinculación de parejas por Código QR con sincronización
+
+**Objetivo:** Permitir el registro de múltiples usuarios/parejas, generación y escaneo de códigos QR para emparejamiento, y sincronización de citas y buzón exclusivo entre las parejas conectadas.
+
+- [x] **Modelo de datos y esquemas de vinculación**:
+  - Ampliar `Usuario`: añadir campos `parejaId` (referencia a la pareja o usuario vinculado), `codigoVinculacion` (código alfanumérico único para emparejamiento manual o QR), `avatarUrl` y timestamps de conexión.
+  - Crear modelo `Pareja` (o relación bidireccional en `Usuario`): `_id`, `codigoVinculacion`, `miembros` (`novioId`, `noviaId`), `estado` (`esperando_pareja` | `conectados`), `fechaVinculacion`.
+  - Adaptar `Cita`: asociar cada cita a `parejaId` para garantizar aislamiento y privacidad entre distintas parejas en la plataforma.
+- [x] **Backend: Endpoints de perfiles y emparejamiento**:
+  - `POST /api/auth/register` — Registro y creación de nuevo perfil de usuario (nombre, email, contraseña, rol `novio` o `novia`).
+  - `GET /api/pareja/codigo` — Obtener el código de vinculación y los datos para generar el código QR de la cuenta.
+  - `POST /api/pareja/vincular` — Vincular dos perfiles mediante el escaneo del código QR o el ingreso manual del código de invitación.
+  - `GET /api/pareja/estado` — Consultar el estado actual de sincronización con la pareja (datos del novio/novia vinculado, fecha de conexión, estado activo).
+  - `POST /api/pareja/desvincular` — Opción de desvincular pareja en caso de reinicio o cambio de cuenta.
+- [x] **Generación y renderizado de Código QR**:
+  - Integrar librería de generación de códigos QR (vectorial SVG/Canvas con diseño armónico acorde al estilo postal).
+  - Código QR dinámico que contiene el código seguro de vinculación o URL profunda (`/vincular?codigo=...`).
+  - Modal/tarjeta postal estilizada para mostrar el QR propio con botón para copiar el código alfanumérico de respaldo.
+- [x] **Escaneo y lectura de Código QR / Entrada manual**:
+  - Lector de código QR utilizando la cámara del dispositivo móvil/escritorio con permisos dinámicos y fallback accesible.
+  - Formulario alternativo de ingreso manual de código para casos donde la cámara no esté disponible o se comparta a distancia.
+  - Animación de confirmación de conexión ("Pareja conectada con éxito").
+- [x] **Sincronización de correspondencia y buzón**:
+  - Modificar las consultas de `GET /api/citas` y `POST /api/citas` para filtrar y sincronizar exclusivamente las citas de la pareja conectada.
+  - Vista adaptativa en el buzón y header que refleje el nombre real de la pareja vinculada (reemplazando nombres genéricos por los perfiles activos).
+  - Estado de espera informativo cuando un usuario aún no ha vinculado su cuenta ("Esperando a que tu pareja escanee tu código QR").
+
+
+**Criterio de aceptación:** Un usuario nuevo puede registrarse, generar su código QR, su pareja puede escanearlo desde su propio dispositivo y ambas cuentas quedan sincronizadas en tiempo real, compartiendo sus cartas, citas y recuerdos en su buzón común.

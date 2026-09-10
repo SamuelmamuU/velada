@@ -4,6 +4,7 @@ import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { LogOut, ArrowLeft } from "lucide-react";
+import { PairingStatusBadge } from "@/components/pareja/PairingStatusBadge";
 
 interface AppHeaderProps {
   tag?: string;
@@ -15,7 +16,9 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
   const { user, logout } = useAuth();
 
   const defaultTag =
-    user?.rol === "novio" ? "PANEL DE SAMUEL" : "BUZÓN DE DIANA";
+    user?.rol === "novio"
+      ? `PANEL DE ${(user?.nombre || "SAMUEL").toUpperCase()}`
+      : `BUZÓN DE ${(user?.nombre || "DIANA").toUpperCase()}`;
 
   const displayTag = tag || defaultTag;
   const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "S" : "D");
@@ -35,8 +38,8 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
         </div>
       </div>
 
-      {/* Acciones y Chip de Usuario */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* Acciones, Estado de Pareja QR y Chip de Usuario */}
+      <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
         {onBack && (
           <button
             onClick={onBack}
@@ -46,6 +49,8 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
             <span>{backLabel}</span>
           </button>
         )}
+
+        <PairingStatusBadge />
 
         {user && (
           <div className="flex items-center gap-2 bg-card border border-line/80 py-1.5 pl-1.5 pr-3 rounded-full text-xs font-medium shadow-sm">
@@ -68,3 +73,4 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
     </header>
   );
 }
+

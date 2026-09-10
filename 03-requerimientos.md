@@ -51,6 +51,14 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 - RF-25: El sistema debería notificar a la novia cuando se agenda una nueva cita.
 - RF-26: El sistema debería enviar un recordatorio antes del horario de la cita.
 
+### 1.6 Creación de perfiles y vinculación de parejas por Código QR con sincronización
+
+- RF-27: **Creación de perfiles de usuario**: El sistema debe permitir registrarse y crear perfiles personalizados (nombre, correo electrónico, contraseña segura, rol seleccionado: `novio` o `novia`).
+- RF-28: **Generación de Código QR de vinculación**: Cada perfil debe disponer de un Código QR único y un código alfanumérico legible de respaldo para invitar y vincular a su pareja.
+- RF-29: **Escaneo y conexión mediante Código QR / Entrada manual**: El usuario debe poder escanear el código QR de su pareja usando la cámara del dispositivo o ingresar el código alfanumérico manualmente para conectar ambas cuentas.
+- RF-30: **Sincronización privada de citas y buzón**: Al vincularse la pareja, todas las cartas, citas, propuestas de cambio y recuerdos compartidos quedan sincronizados de forma exclusiva e instantánea entre ambos miembros de la pareja vinculada.
+- RF-31: **Gestión del estado de conexión de la pareja**: La aplicación debe mostrar el estado actual de sincronización (pareja vinculada con su nombre, o esperando vinculación) y permitir desvincularse si se desea reiniciar la conexión.
+
 ---
 
 ## 2. Requerimientos no funcionales
@@ -81,7 +89,7 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 
 ### 2.5 Escalabilidad y costo
 
-- RNF-13: La solución debe operar preferentemente dentro de planes gratuitos, dado que es un proyecto personal de bajo volumen (2 usuarios, decenas de citas).
+- RNF-13: La solución debe operar eficientemente dentro de planes gratuitos, aislando las citas y correspondencia por cada pareja vinculada.
 - RNF-14: La arquitectura debe permitir agregar fácilmente nuevas funcionalidades futuras (ej. fotos de la cita, comentarios, calificación post-cita) sin rediseñar el sistema.
 
 ### 2.6 Compatibilidad
@@ -92,7 +100,7 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 
 ## 3. Restricciones del proyecto
 
-- RST-01: Solo existen dos usuarios en el sistema (no se requiere registro público ni gestión de múltiples parejas).
+- RST-01: El sistema admite perfiles dinámicos con vinculación de parejas mediante código QR, garantizando la privacidad y el aislamiento de las citas entre cada pareja conectada.
 - RST-02: No se requiere panel de administración adicional más allá de las vistas de novio y novia.
 - RST-03: El presupuesto ideal del proyecto es $0, priorizando herramientas y planes gratuitos.
 
@@ -102,5 +110,6 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 
 - El novio puede crear una cita completa (todos los campos) en menos de 2 minutos.
 - La novia puede ver el detalle de una cita, incluyendo el mapa, sin fricciones ni necesidad de ayuda técnica.
+- Dos personas pueden crear su perfil y vincularse escaneando un código QR en segundos para sincronizar sus aplicaciones.
 - La aplicación es accesible desde el celular de ambos en cualquier momento.
-- No existen errores críticos que impidan crear o visualizar una cita en el flujo principal.
+- No existen errores críticos que impidan crear, vincular o visualizar una cita en el flujo principal.

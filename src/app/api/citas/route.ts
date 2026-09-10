@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, requireRole } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Cita } from "@/models/Cita";
+import { Usuario } from "@/models/Usuario";
 import { seedDatabase } from "@/lib/seed";
 import { CrearCitaSchema } from "@/lib/validations/cita";
 import { memoryStore } from "@/lib/store";
 import mongoose from "mongoose";
 
-// GET /api/citas — Listar todas las citas (Novio y Novia)
+// GET /api/citas — Listar todas las citas de la pareja conectada
 export async function GET(req: NextRequest) {
   try {
     const auth = requireAuth(req);
@@ -22,7 +23,15 @@ export async function GET(req: NextRequest) {
           await seedDatabase();
         }
 
-        const citas = await Cita.find()
+        const user = await Usuario.findById(auth.user.id);
+        const filter: any = {};
+        if (user?.parejaId) {
+          filter.$or = [{ parejaId: user.parejaId }, { creadoPor: user._id }];
+        } else if (user) {
+          filter.creadoPor = user._id;
+        }
+
+        const citas = await Cita.find(filter)
           .populate("creadoPor", "nombre email rol")
           .sort({ horario: 1 })
           .lean();
@@ -36,6 +45,7 @@ export async function GET(req: NextRequest) {
           tematica: cita.tematica,
           vestimentaRecomendada: cita.vestimentaRecomendada,
           estado: cita.estado,
+          parejaId: cita.parejaId ? cita.parejaId.toString() : null,
           asistencia: cita.asistencia || {
             cantidadPersonas: 2,
             tipoAcompanantes: "solo_pareja",
@@ -74,10 +84,28 @@ export async function GET(req: NextRequest) {
     }
 
     // Fallback en memoria
+    const memUser = memoryStore.usuarios.find(
+      (u) => u.id === auth.user.id || u.email === auth.user.email
+    );
+
+    let citasMem = memoryStore.citas;
+    if (memUser?.parejaId) {
+      citasMem = memoryStore.citas.filter(
+        (c) =>
+          c.parejaId === memUser.parejaId ||
+          (typeof c.creadoPor === "object" ? c.creadoPor.id === memUser.id : c.creadoPor === memUser.id)
+      );
+    } else if (memUser) {
+      citasMem = memoryStore.citas.filter(
+        (c) =>
+          typeof c.creadoPor === "object" ? c.creadoPor.id === memUser.id : c.creadoPor === memUser.id
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      total: memoryStore.citas.length,
-      citas: [...memoryStore.citas].sort(
+      total: citasMem.length,
+      citas: [...citasMem].sort(
         (a, b) => new Date(a.horario).getTime() - new Date(b.horario).getTime()
       ),
     });
@@ -118,6 +146,8 @@ export async function POST(req: NextRequest) {
 
     if (db) {
       try {
+        const user = await Usuario.findById(auth.user.id);
+
         const nuevaCita = await Cita.create({
           nombre: validatedData.nombre,
           descripcion: validatedData.descripcion,
@@ -135,6 +165,7 @@ export async function POST(req: NextRequest) {
           ambiente: validatedData.ambiente || "interior",
           esFlexible: validatedData.esFlexible ?? true,
           creadoPor: new mongoose.Types.ObjectId(auth.user.id),
+          parejaId: user?.parejaId || null,
         });
 
         return NextResponse.json(
@@ -150,6 +181,7 @@ export async function POST(req: NextRequest) {
               tematica: nuevaCita.tematica,
               vestimentaRecomendada: nuevaCita.vestimentaRecomendada,
               estado: nuevaCita.estado,
+              parejaId: nuevaCita.parejaId ? nuevaCita.parejaId.toString() : null,
               asistencia: nuevaCita.asistencia,
               importancia: nuevaCita.importancia,
               ambiente: nuevaCita.ambiente,
@@ -170,6 +202,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback en memoria
+    const memUser = memoryStore.usuarios.find(
+      (u) => u.id === auth.user.id || u.email === auth.user.email
+    );
+
     const nuevaCitaMem = {
       id: "64f1a2b3c4d5e6f7a8b9c" + (Math.floor(Math.random() * 900) + 100),
       nombre: validatedData.nombre,
@@ -179,6 +215,7 @@ export async function POST(req: NextRequest) {
       tematica: validatedData.tematica,
       vestimentaRecomendada: validatedData.vestimentaRecomendada,
       estado: validatedData.estado || "confirmada",
+      parejaId: memUser?.parejaId || null,
       asistencia: validatedData.asistencia || {
         cantidadPersonas: 2,
         tipoAcompanantes: "solo_pareja" as const,
@@ -205,6 +242,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
+
   } catch (error: any) {
     console.error("[POST /api/citas Error]:", error);
     return NextResponse.json(

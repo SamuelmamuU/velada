@@ -13,6 +13,11 @@ import { TestRunnerModal } from "@/components/ui/TestRunnerModal";
 function DashboardContent() {
   const { user, switchDemoRole } = useAuth();
   const isNovio = user?.rol === "novio";
+  const isDemoAccount =
+    user?.email === "novio@velada.app" || user?.email === "novia@velada.app";
+
+  const partnerName = user?.nombrePareja || (isNovio ? "Diana" : "Samuel");
+  const userName = user?.nombre || (isNovio ? "Samuel" : "Diana");
 
   if (isNovio) {
     return (
@@ -24,19 +29,23 @@ function DashboardContent() {
               Nuestras Aventuras ·
             </span>
             <span className="bg-sky-400/25 text-sky-200 font-semibold px-2.5 py-0.5 rounded-full text-[11px] border border-sky-400/30">
-              Samuel (Novio)
+              {userName} (Novio)
             </span>
           </div>
           <div className="flex items-center gap-2">
             <TestRunnerModal />
-            <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
-            <button
-              onClick={() => switchDemoRole("novia")}
-              className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer flex items-center gap-1.5"
-            >
-              <Heart size={12} className="text-blush-300" />
-              <span>Ver como Diana</span>
-            </button>
+            {isDemoAccount && (
+              <>
+                <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
+                <button
+                  onClick={() => switchDemoRole("novia")}
+                  className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer flex items-center gap-1.5"
+                >
+                  <Heart size={12} className="text-blush-300" />
+                  <span>Ver como {partnerName}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -54,18 +63,22 @@ function DashboardContent() {
             Nuestras Aventuras ·
           </span>
           <span className="bg-blush-400/25 text-blush-200 font-semibold px-2.5 py-0.5 rounded-full text-[11px] border border-blush-300/30">
-            Diana (Buzón de cartas)
+            {userName} (Buzón de cartas)
           </span>
         </div>
         <div className="flex items-center gap-2">
           <TestRunnerModal />
-          <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
-          <button
-            onClick={() => switchDemoRole("novio")}
-            className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer flex items-center gap-1.5"
-          >
-            <span>Ver como Samuel</span>
-          </button>
+          {isDemoAccount && (
+            <>
+              <span className="text-white/50 text-[11px] hidden sm:inline">Cambiar vista a:</span>
+              <button
+                onClick={() => switchDemoRole("novio")}
+                className="px-3 py-1 rounded-full bg-white/10 hover:bg-sky-400 hover:text-slate-900 transition-colors font-sans text-xs font-medium cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Ver como {partnerName}</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -73,6 +86,7 @@ function DashboardContent() {
     </div>
   );
 }
+
 
 export default function Home() {
   return (

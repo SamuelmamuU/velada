@@ -56,6 +56,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                     estado: rawCita.propuestaCambio.estado,
                   }
                 : undefined,
+              recuerdo: rawCita.recuerdo,
+              parejaId: rawCita.parejaId ? rawCita.parejaId.toString() : null,
               creadoPor:
                 rawCita.creadoPor &&
                 typeof rawCita.creadoPor === "object" &&

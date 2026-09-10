@@ -163,6 +163,12 @@ const CitaSchema = new Schema<ICitaDocument>(
       required: [true, "El usuario creador es obligatorio"],
       index: true,
     },
+    parejaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Pareja",
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -180,6 +186,8 @@ const CitaSchema = new Schema<ICitaDocument>(
 // Índices compuestos y optimizados
 CitaSchema.index({ horario: 1, estado: 1 });
 CitaSchema.index({ creadoPor: 1, horario: 1 });
+CitaSchema.index({ parejaId: 1, horario: 1 });
+
 
 export const Cita: Model<ICitaDocument> =
   mongoose.models.Cita || mongoose.model<ICitaDocument>("Cita", CitaSchema);

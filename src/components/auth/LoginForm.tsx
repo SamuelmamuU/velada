@@ -5,14 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { AppLogo } from "@/components/ui/AppLogo";
 import { RolUsuario } from "@/types";
-import { Lock, Mail, AlertCircle, Loader2, User, Heart, ArrowRight } from "lucide-react";
+import { Lock, Mail, AlertCircle, Loader2, User, Heart, ArrowRight, Sparkles, QrCode } from "lucide-react";
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
 
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [role, setRole] = useState<RolUsuario>("novia");
   const [email, setEmail] = useState("novia@velada.app");
   const [password, setPassword] = useState("NoviaVelada2026!");
+  
+  // Campos de registro
+  const [regNombre, setRegNombre] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regRole, setRegRole] = useState<RolUsuario>("novio");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isZoomingOut, setIsZoomingOut] = useState(false);
@@ -29,7 +37,7 @@ export function LoginForm() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Por favor completa todos los campos.");
@@ -44,10 +52,40 @@ export function LoginForm() {
       setError(res.error || "No se pudo iniciar sesión. Verifica tus credenciales.");
       setLoading(false);
     } else {
-      // Activar animación de zoom out hacia el encuadre general del buzón
       setIsZoomingOut(true);
     }
   };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regNombre || !regEmail || !regPassword) {
+      setError("Por favor completa todos los campos para crear tu perfil.");
+      return;
+    }
+
+    if (regPassword.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const res = await register({
+      nombre: regNombre,
+      email: regEmail,
+      password: regPassword,
+      rol: regRole,
+    });
+
+    if (!res.success) {
+      setError(res.error || "No se pudo crear la cuenta. Intenta con otro correo.");
+      setLoading(false);
+    } else {
+      setIsZoomingOut(true);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 overflow-hidden">
@@ -223,11 +261,45 @@ export function LoginForm() {
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink tracking-tight mb-1">
             Nuestras Aventuras
           </h1>
-          <p className="text-ink-soft text-xs sm:text-sm leading-relaxed mb-6 font-normal">
+          <p className="text-ink-soft text-xs sm:text-sm leading-relaxed mb-4 font-normal">
             Diario de viajes y cartas de amor.
             <br />
-            Identifícate para revisar el buzón.
+            {mode === "login"
+              ? "Identifícate para revisar el buzón."
+              : "Crea tu cuenta para vincular tu buzón por QR."}
           </p>
+
+          {/* Selector de Modo: Iniciar Sesión / Crear Perfil */}
+          <div className="flex p-1 bg-sky-100/70 rounded-xl mb-5 border border-sky-200/70">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                mode === "login"
+                  ? "bg-white text-sky-950 shadow-xs"
+                  : "text-ink-soft hover:text-ink"
+              }`}
+            >
+              Iniciar Sesión
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                setError(null);
+              }}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                mode === "register"
+                  ? "bg-white text-sky-950 shadow-xs"
+                  : "text-ink-soft hover:text-ink"
+              }`}
+            >
+              Crear Perfil QR
+            </button>
+          </div>
 
           {error && (
             <div className="mb-5 p-3 rounded-xl bg-blush-50 border border-blush-200 text-ink text-left text-xs flex items-start gap-2 animate-fade-up">
@@ -236,101 +308,229 @@ export function LoginForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 text-left">
-            {/* Selector de Rol (Sin emojis, usando iconos limpios) */}
-            <div className="flex gap-2.5 mb-4">
-              <button
-                type="button"
-                onClick={() => handleRoleChange("novio")}
-                className={`flex-1 py-3 px-2 rounded-xl border text-xs sm:text-[13px] font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  role === "novio"
-                    ? "border-sky-400 bg-sky-100 text-sky-900 shadow-xs"
-                    : "border-line text-ink-soft hover:bg-sky-50/50"
-                }`}
-              >
-                <User size={15} className="text-sky-700" />
-                <span>Soy Samuel</span>
-              </button>
+          {mode === "login" ? (
+            <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+              {/* Selector de Rol (Sin emojis, usando iconos limpios) */}
+              <div className="flex gap-2.5 mb-4">
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("novio")}
+                  className={`flex-1 py-3 px-2 rounded-xl border text-xs sm:text-[13px] font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    role === "novio"
+                      ? "border-sky-400 bg-sky-100 text-sky-900 shadow-xs"
+                      : "border-line text-ink-soft hover:bg-sky-50/50"
+                  }`}
+                >
+                  <User size={15} className="text-sky-700" />
+                  <span>Soy Samuel</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handleRoleChange("novia")}
-                className={`flex-1 py-3 px-2 rounded-xl border text-xs sm:text-[13px] font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                  role === "novia"
-                    ? "border-blush-300 bg-blush-100 text-blush-900 shadow-xs"
-                    : "border-line text-ink-soft hover:bg-blush-50/50"
-                }`}
-              >
-                <Heart size={15} className="text-blush-500 fill-blush-400" />
-                <span>Soy Diana</span>
-              </button>
-            </div>
-
-            {/* Campo Correo */}
-            <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
-                Correo
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="correo@ejemplo.com"
-                  className="w-full py-3 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
-                />
-                <Mail
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
-                />
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("novia")}
+                  className={`flex-1 py-3 px-2 rounded-xl border text-xs sm:text-[13px] font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    role === "novia"
+                      ? "border-blush-300 bg-blush-100 text-blush-900 shadow-xs"
+                      : "border-line text-ink-soft hover:bg-blush-50/50"
+                  }`}
+                >
+                  <Heart size={15} className="text-blush-500 fill-blush-400" />
+                  <span>Soy Diana</span>
+                </button>
               </div>
-            </div>
 
-            {/* Campo Contraseña */}
-            <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
-                Contraseña
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full py-3 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
-                />
-                <Lock
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
-                />
+              {/* Campo Correo */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Correo
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="correo@ejemplo.com"
+                    className="w-full py-3 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
+                  />
+                  <Mail
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Botón de Entrada */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading || isZoomingOut}
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-sm py-3.5 px-5 rounded-xl hover:shadow-md transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Abriendo correspondencia...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Entrar al buzón</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+              {/* Campo Contraseña */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full py-3 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
+                  />
+                  <Lock
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
+                  />
+                </div>
+              </div>
+
+              {/* Botón de Entrada */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading || isZoomingOut}
+                  className="w-full bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-sm py-3.5 px-5 rounded-xl hover:shadow-md transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Abriendo correspondencia...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Entrar al buzón</span>
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleRegisterSubmit} className="space-y-4 text-left">
+              {/* Selector de Rol para Registro */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Mi Rol en la Pareja
+                </label>
+                <div className="flex gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setRegRole("novio")}
+                    className={`flex-1 py-2.5 px-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      regRole === "novio"
+                        ? "border-sky-400 bg-sky-100 text-sky-900 shadow-xs"
+                        : "border-line text-ink-soft hover:bg-sky-50/50"
+                    }`}
+                  >
+                    <User size={14} className="text-sky-700" />
+                    <span>Soy el Novio</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRegRole("novia")}
+                    className={`flex-1 py-2.5 px-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      regRole === "novia"
+                        ? "border-blush-300 bg-blush-100 text-blush-900 shadow-xs"
+                        : "border-line text-ink-soft hover:bg-blush-50/50"
+                    }`}
+                  >
+                    <Heart size={14} className="text-blush-500 fill-blush-400" />
+                    <span>Soy la Novia</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Nombre */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Tu Nombre o Apodo
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={regNombre}
+                    onChange={(e) => setRegNombre(e.target.value)}
+                    placeholder="ej. Samuel, Diana..."
+                    className="w-full py-2.5 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
+                  />
+                  <User
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
+                  />
+                </div>
+              </div>
+
+              {/* Correo */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Correo Electrónico
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="mi.amor@ejemplo.com"
+                    className="w-full py-2.5 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
+                  />
+                  <Mail
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
+                  />
+                </div>
+              </div>
+
+              {/* Contraseña */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1.5">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full py-2.5 px-3.5 pl-10 border border-sky-200/80 rounded-xl font-sans text-sm bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
+                  />
+                  <Lock
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
+                  />
+                </div>
+              </div>
+
+              {/* Botón de Registro */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading || isZoomingOut}
+                  className="w-full bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-sm py-3 px-5 rounded-xl hover:shadow-md transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Creando buzón y QR...</span>
+                    </>
+                  ) : (
+                    <>
+                      <QrCode size={16} />
+                      <span>Crear Perfil y Generar QR</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-[11px] text-ink-soft text-center leading-relaxed">
+                Al crear tu perfil se generará automáticamente tu código QR para conectar a tu pareja.
+              </p>
+            </form>
+          )}
         </div>
       </motion.div>
     </div>
   );
 }
+

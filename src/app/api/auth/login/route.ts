@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
+import { Pareja } from "@/models/Pareja";
 import { signToken } from "@/lib/jwt";
 import { seedDatabase, DEFAULT_USERS } from "@/lib/seed";
 import { memoryStore } from "@/lib/store";
@@ -46,11 +47,29 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        let estadoPareja: "esperando_pareja" | "conectados" = "esperando_pareja";
+        let nombrePareja: string | undefined = undefined;
+
+        if (user.parejaId) {
+          const pareja = await Pareja.findById(user.parejaId);
+          if (pareja) {
+            estadoPareja = pareja.estado;
+            const partnerId = user.rol === "novio" ? pareja.noviaId : pareja.novioId;
+            if (partnerId) {
+              const partner = await Usuario.findById(partnerId);
+              if (partner) {
+                nombrePareja = partner.nombre;
+              }
+            }
+          }
+        }
+
         const payload = {
           id: user._id.toString(),
           email: user.email,
           rol: user.rol,
           nombre: user.nombre,
+          parejaId: user.parejaId ? user.parejaId.toString() : null,
         };
 
         const token = signToken(payload);
@@ -63,6 +82,10 @@ export async function POST(req: NextRequest) {
             nombre: user.nombre,
             email: user.email,
             rol: user.rol,
+            parejaId: user.parejaId ? user.parejaId.toString() : null,
+            codigoVinculacion: user.codigoVinculacion,
+            estadoPareja,
+            nombrePareja,
           },
         });
 
@@ -102,11 +125,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    let estadoPareja = fallbackUser.estadoPareja || "esperando_pareja";
+    let nombrePareja = fallbackUser.nombrePareja;
+
+    if (fallbackUser.parejaId) {
+      const pareja = memoryStore.parejas.find((p) => p.id === fallbackUser.parejaId);
+      if (pareja) {
+        estadoPareja = pareja.estado;
+        const partnerId = fallbackUser.rol === "novio" ? pareja.noviaId : pareja.novioId;
+        if (partnerId) {
+          const partner = memoryStore.usuarios.find((u) => u.id === partnerId);
+          if (partner) {
+            nombrePareja = partner.nombre;
+          }
+        }
+      }
+    }
+
     const payload = {
       id: fallbackUser.id,
       email: fallbackUser.email,
       rol: fallbackUser.rol,
       nombre: fallbackUser.nombre,
+      parejaId: fallbackUser.parejaId || null,
     };
 
     const token = signToken(payload);
@@ -119,8 +160,13 @@ export async function POST(req: NextRequest) {
         nombre: fallbackUser.nombre,
         email: fallbackUser.email,
         rol: fallbackUser.rol,
+        parejaId: fallbackUser.parejaId || null,
+        codigoVinculacion: fallbackUser.codigoVinculacion,
+        estadoPareja,
+        nombrePareja,
       },
     });
+
 
     response.cookies.set({
       name: "velada_token",

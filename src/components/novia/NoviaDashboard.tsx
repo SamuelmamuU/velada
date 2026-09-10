@@ -24,14 +24,18 @@ import {
   ChevronRight,
   Mail,
   Send,
+  QrCode,
 } from "lucide-react";
+import { QrPairingModal } from "@/components/pareja/QrPairingModal";
 
 export function NoviaDashboard() {
-  const { token } = useAuth();
+  const { token, user, pareja } = useAuth();
 
   const [citas, setCitas] = useState<ICitaResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+
 
   // Overlay del buzón de cartas
   const [showMailbox, setShowMailbox] = useState(false);
@@ -313,9 +317,21 @@ export function NoviaDashboard() {
                 <h3 className="font-serif text-xl font-bold mb-2 text-ink">
                   Aún no hay cartas en tu buzón
                 </h3>
-                <p className="text-ink-soft text-sm leading-relaxed">
-                  Tu novio está preparando una nueva sorpresa escrita con todo su corazón. En cuanto la envíe, aparecerá aquí esperándote.
+                <p className="text-ink-soft text-sm leading-relaxed mb-5">
+                  {pareja?.estado === "conectados" || user?.estadoPareja === "conectados"
+                    ? `${user?.nombrePareja || "Tu novio"} está preparando una nueva sorpresa escrita con todo su corazón. En cuanto la envíe, aparecerá aquí esperándote.`
+                    : "Para comenzar a recibir las cartas de amor y citas de tu pareja, vincula sus cuentas escaneando su código QR o compartiéndole el tuyo."}
                 </p>
+
+                {pareja?.estado !== "conectados" && user?.estadoPareja !== "conectados" && (
+                  <button
+                    onClick={() => setQrModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs shadow-sm cursor-pointer transition-all"
+                  >
+                    <QrCode size={16} />
+                    <span>Vincular con mi Pareja por QR</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -340,6 +356,9 @@ export function NoviaDashboard() {
           </div>
         )}
       </div>
+
+      <QrPairingModal isOpen={qrModalOpen} onClose={() => setQrModalOpen(false)} />
     </div>
   );
 }
+

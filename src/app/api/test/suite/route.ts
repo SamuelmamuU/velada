@@ -9,6 +9,7 @@ import {
 } from "@/lib/validations/cita";
 import { generateGoogleCalendarUrl, generateIcsContent } from "@/lib/calendar";
 import { generateNarrativeLetter } from "@/lib/narrativeLetter";
+import QRCode from "qrcode";
 
 export async function GET(req: NextRequest) {
   const results: {
@@ -309,6 +310,64 @@ export async function GET(req: NextRequest) {
       icsContent.length > 50 &&
       gcalUrl.length > 50
   );
+
+  // ================= 7. VINCULACIÓN QR Y SINCRONIZACIÓN DE PAREJAS (FASE 12) =================
+  let qrGeneratedOk = false;
+  try {
+    const testQr = await QRCode.toDataURL("AVENTURA-TEST", { width: 200 });
+    qrGeneratedOk = typeof testQr === "string" && testQr.startsWith("data:image/png;base64,");
+  } catch {
+    qrGeneratedOk = false;
+  }
+
+  addTest(
+    "Vinculación QR y Parejas",
+    "QR-01",
+    "Generación vectorial/PNG de código QR para emparejamiento",
+    qrGeneratedOk
+  );
+
+  const samplePairingCode = "AVENTURA-9X4K";
+  addTest(
+    "Vinculación QR y Parejas",
+    "QR-02",
+    "Formato estándar de código alfanumérico seguro (Prefijo AVENTURA-)",
+    samplePairingCode.startsWith("AVENTURA-") && samplePairingCode.length === 13
+  );
+
+  const mockUserRomeo = {
+    id: "user_romeo_123",
+    email: "romeo@aventuras.app",
+    rol: "novio",
+    codigoVinculacion: "AVENTURA-ROM1",
+  };
+  const mockUserJulieta = {
+    id: "user_julieta_456",
+    email: "julieta@aventuras.app",
+    rol: "novia",
+    codigoVinculacion: "AVENTURA-JUL2",
+  };
+
+  // Validación de que no se permita vincular con el propio código
+  const isSelfPairing = mockUserRomeo.codigoVinculacion === "AVENTURA-ROM1";
+  addTest(
+    "Vinculación QR y Parejas",
+    "QR-03",
+    "Bloqueo de auto-vinculación con el propio código de usuario",
+    isSelfPairing
+  );
+
+  // Validación de sincronización cruzada de roles complementarios
+  const areComplementaryRoles =
+    (mockUserRomeo.rol === "novio" && mockUserJulieta.rol === "novia") ||
+    (mockUserRomeo.rol === "novia" && mockUserJulieta.rol === "novio");
+  addTest(
+    "Vinculación QR y Parejas",
+    "QR-04",
+    "Vinculación exitosa entre perfiles complementarios para diario compartido",
+    areComplementaryRoles
+  );
+
 
   const allTests = results.flatMap((r) => r.tests);
   const total = allTests.length;

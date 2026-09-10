@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
+import { Pareja } from "@/models/Pareja";
 import { memoryStore } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
@@ -15,6 +16,23 @@ export async function GET(req: NextRequest) {
       try {
         const user = await Usuario.findById(auth.user.id);
         if (user) {
+          let estadoPareja: "esperando_pareja" | "conectados" = "esperando_pareja";
+          let nombrePareja: string | undefined = undefined;
+
+          if (user.parejaId) {
+            const pareja = await Pareja.findById(user.parejaId);
+            if (pareja) {
+              estadoPareja = pareja.estado;
+              const partnerId = user.rol === "novio" ? pareja.noviaId : pareja.novioId;
+              if (partnerId) {
+                const partner = await Usuario.findById(partnerId);
+                if (partner) {
+                  nombrePareja = partner.nombre;
+                }
+              }
+            }
+          }
+
           return NextResponse.json({
             success: true,
             usuario: {
@@ -22,6 +40,10 @@ export async function GET(req: NextRequest) {
               nombre: user.nombre,
               email: user.email,
               rol: user.rol,
+              parejaId: user.parejaId ? user.parejaId.toString() : null,
+              codigoVinculacion: user.codigoVinculacion,
+              estadoPareja,
+              nombrePareja,
               createdAt: user.createdAt,
             },
           });
@@ -36,6 +58,23 @@ export async function GET(req: NextRequest) {
       (u) => u.id === auth.user.id || u.email === auth.user.email
     );
 
+    let estadoPareja = memUser?.estadoPareja || "esperando_pareja";
+    let nombrePareja = memUser?.nombrePareja;
+
+    if (memUser?.parejaId) {
+      const pareja = memoryStore.parejas.find((p) => p.id === memUser.parejaId);
+      if (pareja) {
+        estadoPareja = pareja.estado;
+        const partnerId = memUser.rol === "novio" ? pareja.noviaId : pareja.novioId;
+        if (partnerId) {
+          const partner = memoryStore.usuarios.find((u) => u.id === partnerId);
+          if (partner) {
+            nombrePareja = partner.nombre;
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       usuario: {
@@ -43,8 +82,13 @@ export async function GET(req: NextRequest) {
         nombre: memUser?.nombre || auth.user.nombre,
         email: memUser?.email || auth.user.email,
         rol: memUser?.rol || auth.user.rol,
+        parejaId: memUser?.parejaId || null,
+        codigoVinculacion: memUser?.codigoVinculacion,
+        estadoPareja,
+        nombrePareja,
       },
     });
+
   } catch (error: any) {
     console.error("[API Me Error]:", error);
     return NextResponse.json(

@@ -2,16 +2,17 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
 import { Cita } from "@/models/Cita";
+import { Pareja } from "@/models/Pareja";
 
 export const DEFAULT_USERS = [
   {
-    nombre: "Novio",
+    nombre: "Samuel",
     email: "novio@velada.app",
     password: process.env.DEFAULT_NOVIO_PASSWORD || "NovioVelada2026!",
     rol: "novio" as const,
   },
   {
-    nombre: "Novia",
+    nombre: "Diana",
     email: "novia@velada.app",
     password: process.env.DEFAULT_NOVIA_PASSWORD || "NoviaVelada2026!",
     rol: "novia" as const,
@@ -32,6 +33,7 @@ export async function seedDatabase() {
         email: u.email.toLowerCase(),
         passwordHash,
         rol: u.rol,
+        codigoVinculacion: "AVENTURA-LOVE",
       });
       console.log(`[Seed] Usuario creado: ${u.email} (${u.rol})`);
     }
@@ -39,6 +41,31 @@ export async function seedDatabase() {
   }
 
   const novioUser = usuariosCreados.find((u) => u.rol === "novio");
+  const noviaUser = usuariosCreados.find((u) => u.rol === "novia");
+
+  // Crear o vincular Pareja por defecto para Samuel y Diana
+  let defaultPareja = await Pareja.findOne({ codigoVinculacion: "AVENTURA-LOVE" });
+  if (!defaultPareja && novioUser && noviaUser) {
+    defaultPareja = await Pareja.create({
+      codigoVinculacion: "AVENTURA-LOVE",
+      novioId: novioUser._id,
+      noviaId: noviaUser._id,
+      estado: "conectados",
+      fechaVinculacion: new Date("2026-01-01"),
+    });
+  }
+
+  if (defaultPareja) {
+    if (novioUser && !novioUser.parejaId) {
+      novioUser.parejaId = defaultPareja._id;
+      await novioUser.save();
+    }
+    if (noviaUser && !noviaUser.parejaId) {
+      noviaUser.parejaId = defaultPareja._id;
+      await noviaUser.save();
+    }
+  }
+
 
   // 2. Inicializar citas de demostración si la colección está vacía
   const citasCount = await Cita.countDocuments();
@@ -59,6 +86,7 @@ export async function seedDatabase() {
           "Elegante casual — algo cómodo que te haga sentir bonita, la terraza tiene piso de piedra.",
         estado: "confirmada" as const,
         creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
       },
       {
         nombre: "Tarde de museo y café",
@@ -74,6 +102,7 @@ export async function seedDatabase() {
         vestimentaRecomendada: "Casual relajado y zapatos cómodos para caminar.",
         estado: "pendiente" as const,
         creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
       },
       {
         nombre: "Ruta de tacos y noche de estrellas",
@@ -90,6 +119,7 @@ export async function seedDatabase() {
           "Ropa abrigadora ligera para la noche y calzado para exterior.",
         estado: "confirmada" as const,
         creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
       },
     ];
 
@@ -121,6 +151,7 @@ export async function seedDatabase() {
           fechaSubida: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
         },
         creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
       });
       console.log("[Seed] Cita pasada con recuerdo creada.");
     }
@@ -142,6 +173,7 @@ export async function seedDatabase() {
         importancia: "alta",
         ambiente: "exterior",
         creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
       });
       console.log("[Seed] Cita pasada sin recuerdo creada.");
     }

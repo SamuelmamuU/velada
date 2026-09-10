@@ -51,11 +51,43 @@ export interface IRecuerdo {
   fechaSubida?: string;
 }
 
+export interface IPareja {
+  _id?: Types.ObjectId | string;
+  id?: string;
+  codigoVinculacion: string;
+  novioId?: Types.ObjectId | string | null;
+  noviaId?: Types.ObjectId | string | null;
+  estado: "esperando_pareja" | "conectados";
+  fechaVinculacion?: Date | string | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface IParejaDocument extends Omit<IPareja, "_id" | "id" | "novioId" | "noviaId">, Document {
+  _id: Types.ObjectId;
+  novioId?: Types.ObjectId | null;
+  noviaId?: Types.ObjectId | null;
+}
+
+
+export interface IParejaResponse {
+  id: string;
+  codigoVinculacion: string;
+  estado: "esperando_pareja" | "conectados";
+  parejaNombre?: string;
+  parejaEmail?: string;
+  parejaRol?: RolUsuario;
+  fechaVinculacion?: string;
+}
+
 export interface IUsuario {
   nombre: string;
   email: string;
   passwordHash: string;
   rol: RolUsuario;
+  parejaId?: Types.ObjectId | string | null;
+  codigoVinculacion?: string;
+  avatarUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -69,6 +101,10 @@ export interface IUsuarioResponse {
   nombre: string;
   email: string;
   rol: RolUsuario;
+  parejaId?: string | null;
+  codigoVinculacion?: string;
+  estadoPareja?: "esperando_pareja" | "conectados";
+  nombrePareja?: string;
   createdAt?: string;
 }
 
@@ -84,6 +120,7 @@ export interface ICita {
   importancia?: ImportanciaCita;
   ambiente?: AmbienteCita;
   esFlexible?: boolean;
+  parejaId?: Types.ObjectId | string | null;
   propuestaCambio?: {
     nuevoHorario: Date;
     motivo?: string;
@@ -113,6 +150,7 @@ export interface ICitaResponse {
   importancia?: ImportanciaCita;
   ambiente?: AmbienteCita;
   esFlexible?: boolean;
+  parejaId?: string | null;
   propuestaCambio?: IPropuestaCambio;
   recuerdo?: IRecuerdo;
   creadoPor?: {
@@ -128,6 +166,7 @@ export interface JWTPayload {
   email: string;
   rol: RolUsuario;
   nombre: string;
+  parejaId?: string | null;
   iat?: number;
   exp?: number;
 }
@@ -138,3 +177,4 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   message?: string;
 }
+
