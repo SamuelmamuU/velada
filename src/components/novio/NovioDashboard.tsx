@@ -381,6 +381,15 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                   setCurrentView("detail");
                   onViewDetail?.(c);
                 }}
+                onAddMemory={() => {
+                  const target = citas.find((c) => !c.recuerdo?.fotoUrl) || citas[0];
+                  if (target) {
+                    setSelectedCita(target);
+                    setDetailInitialSide("memory");
+                    setCurrentView("detail");
+                    onViewDetail?.(target);
+                  }
+                }}
                 partnerName={partnerName}
               />
             )}

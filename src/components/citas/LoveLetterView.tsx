@@ -89,7 +89,7 @@ export function LoveLetterView({
 
   const isDateInPast = isPast(new Date(currentCita.horario));
   const hasMemoryData = Boolean(currentCita.recuerdo?.fotoUrl);
-  const hasMemorySheet = isDateInPast || hasMemoryData;
+  const hasMemorySheet = true; // Siempre disponible como 3ra pestaña junto con carta y mapa
 
   const isPending =
     currentCita.estado === "pendiente" ||
@@ -226,16 +226,12 @@ export function LoveLetterView({
     reader.readAsDataURL(file);
   };
 
-  // Ciclo entre las hojas: carta -> mapa -> recuerdo (si aplica) -> carta
+  // Ciclo entre las 3 hojas: carta -> mapa -> foto polaroid -> carta
   const cyclePage = () => {
     if (currentSide === "letter") {
       setCurrentSide("map");
     } else if (currentSide === "map") {
-      if (hasMemorySheet) {
-        setCurrentSide("memory");
-      } else {
-        setCurrentSide("letter");
-      }
+      setCurrentSide("memory");
     } else {
       setCurrentSide("letter");
     }
@@ -298,20 +294,21 @@ export function LoveLetterView({
             <span>2. Mapa</span>
           </button>
 
-          {hasMemorySheet && (
-            <button
-              type="button"
-              onClick={() => setCurrentSide("memory")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                currentSide === "memory"
-                  ? "bg-sky-600 text-white shadow-xs"
+          <button
+            type="button"
+            onClick={() => setCurrentSide("memory")}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              currentSide === "memory"
+                ? "bg-sky-600 text-white shadow-xs"
                 : "text-ink-soft hover:text-sky-900 hover:bg-sky-50"
-              }`}
-            >
-              <Camera size={13} />
-              <span>3. Recuerdo</span>
-            </button>
-          )}
+            }`}
+          >
+            <Camera size={13} />
+            <span>3. Foto Polaroid</span>
+            {hasMemoryData && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            )}
+          </button>
         </div>
 
         {/* Botón Volver / Cerrar */}
@@ -572,23 +569,24 @@ export function LoveLetterView({
                       </span>
                     </button>
 
-                    {isDateInPast && (
-                      <button
-                        type="button"
-                        onClick={() => setShowMemoryModal(true)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 transition-colors shadow-2xs"
-                      >
-                        <Camera size={14} className="text-sky-700" />
-                        <span>
-                          {hasMemoryData ? "Editar recuerdo" : "Agregar recuerdo"}
-                        </span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentSide("memory");
+                        if (!hasMemoryData) setShowMemoryModal(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <Camera size={14} className="text-sky-700" />
+                      <span>
+                        {hasMemoryData ? "Ver Foto Polaroid" : "Agregar Foto Polaroid"}
+                      </span>
+                    </button>
                   </div>
 
                   <button
                     type="button"
-                    onClick={cyclePage}
+                    onClick={() => setCurrentSide("map")}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-sky-800 bg-sky-100 hover:bg-sky-200 transition-colors cursor-pointer"
                   >
                     <MapPin size={14} />
@@ -670,24 +668,28 @@ export function LoveLetterView({
                 </button>
               </div>
 
-              {/* Botón para avanzar al recuerdo o volver a la carta */}
-              <button
-                type="button"
-                onClick={cyclePage}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-sky-800 bg-sky-100 hover:bg-sky-200 transition-all cursor-pointer"
-              >
-                {hasMemorySheet ? (
-                  <>
-                    <Camera size={15} />
-                    <span>Ver recuerdo</span>
-                  </>
-                ) : (
-                  <>
-                    <Mail size={15} />
-                    <span>Voltear a la carta</span>
-                  </>
-                )}
-              </button>
+              {/* Botones para avanzar a la foto polaroid o volver a la carta */}
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setCurrentSide("letter")}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-ink-soft hover:text-ink hover:bg-paper transition-all cursor-pointer"
+                >
+                  <Mail size={14} />
+                  <span>Voltear a la carta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentSide("memory")}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-sky-900 bg-sky-100 hover:bg-sky-200 border border-sky-300/80 transition-all shadow-2xs cursor-pointer"
+                >
+                  <Camera size={15} className="text-sky-700" />
+                  <span>
+                    {hasMemoryData ? "Ver Foto Polaroid" : "Agregar Foto Polaroid"}
+                  </span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -782,50 +784,84 @@ export function LoveLetterView({
                   </div>
                 </div>
               ) : (
-                /* Estado vacío para citas pasadas sin recuerdo aún */
-                <div className="w-full max-w-md p-8 border-2 border-dashed border-sky-300/80 rounded-2xl bg-sky-50/50 text-center flex flex-col items-center justify-center">
-                  <div className="w-14 h-14 rounded-full bg-white border border-sky-200 flex items-center justify-center text-sky-600 shadow-xs mb-3">
-                    <Camera size={26} />
-                  </div>
-                  <h4 className="font-serif text-lg font-bold text-ink mb-1">
-                    Guarda un recuerdo de esta aventura
-                  </h4>
-                  <p className="text-xs text-ink-soft max-w-xs mb-5 leading-relaxed">
-                    Esta cita ya se celebró. Sube una fotografía especial para transformarla en una Polaroid de nuestra historia.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setShowMemoryModal(true)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                /* Marco Polaroid en blanco esperando la foto */
+                <div className="relative group max-w-sm sm:max-w-md w-full my-2">
+                  {/* Washi tape superior decorativo */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-6 bg-[#E8D9C5]/85 border-t border-b border-dashed border-[#B89B7A]/40 shadow-xs -rotate-2 z-20 pointer-events-none rounded-xs" />
+
+                  {/* Marco Polaroid con inclinación artesanal */}
+                  <div
+                    className="relative bg-white p-4 pb-7 rounded-[4px] border border-[#E7DEC8] shadow-[0_16px_35px_rgba(20,40,70,0.16)] transform -rotate-1 group-hover:rotate-0 transition-transform duration-300 ease-out"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(180deg, #FFFFFF 0%, #FAF7F0 100%)",
+                    }}
                   >
-                    <Camera size={15} />
-                    <span>Agregar foto de recuerdo</span>
-                  </button>
+                    {/* Espacio para la foto con aspecto de canvas listo para ser revelado */}
+                    <div
+                      onClick={() => setShowMemoryModal(true)}
+                      className="relative aspect-[4/3] w-full bg-gradient-to-b from-sky-50/70 to-[#FAF6EE] border-2 border-dashed border-sky-300/80 rounded-[2px] flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-sky-100/60 hover:border-sky-500 transition-all group/canvas"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-white border border-sky-200 flex items-center justify-center text-sky-600 shadow-xs mb-3 group-hover/canvas:scale-110 group-hover/canvas:bg-sky-600 group-hover/canvas:text-white transition-all">
+                        <Camera size={26} />
+                      </div>
+                      <h4 className="font-serif text-base sm:text-lg font-bold text-sky-950 mb-1">
+                        Inmortaliza esta aventura
+                      </h4>
+                      <p className="text-[11px] text-ink-soft max-w-xs mb-4 leading-relaxed">
+                        Al acabar la cita, sube aquí tu foto tipo Polaroid con una dedicatoria escrita a mano para guardarla en el diario de recuerdos.
+                      </p>
+                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-colors">
+                        <Camera size={14} />
+                        <span>Agregar foto Polaroid</span>
+                      </span>
+                    </div>
+
+                    {/* Pie de foto manuscrito en espera */}
+                    <div className="mt-4 px-2 text-center">
+                      <p className="font-handwriting text-xl sm:text-2xl text-sky-950/40 italic">
+                        &ldquo;Tu frase o dedicatoria escrita a mano aparecerá aquí...&rdquo;
+                      </p>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-sky-700/60 mt-1">
+                        Diana & Samuel · Álbum de Nuestras Aventuras
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Pie de la hoja de recuerdo */}
-            <div className="flex items-center justify-between gap-3 pt-6 border-t border-sky-100 mt-4">
+            <div className="flex items-center justify-between gap-3 pt-6 border-t border-sky-100 mt-4 flex-wrap">
               <button
                 type="button"
                 onClick={() => setShowMemoryModal(true)}
-                className="sm:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-sky-100 text-sky-900 border border-sky-300"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-300 transition-colors shadow-2xs cursor-pointer"
               >
                 <Camera size={13} />
                 <span>
-                  {hasMemoryData ? "Cambiar foto" : "Subir foto"}
+                  {hasMemoryData ? "Cambiar foto Polaroid" : "Subir foto Polaroid"}
                 </span>
               </button>
 
-              <button
-                type="button"
-                onClick={cyclePage}
-                className="ml-auto inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-sky-800 bg-sky-100 hover:bg-sky-200 transition-all cursor-pointer"
-              >
-                <Mail size={15} />
-                <span>Voltear a la carta</span>
-              </button>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setCurrentSide("map")}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-ink-soft hover:text-ink hover:bg-paper transition-all cursor-pointer"
+                >
+                  <MapPin size={14} />
+                  <span>Ver mapa</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentSide("letter")}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-sky-800 bg-sky-100 hover:bg-sky-200 transition-all cursor-pointer"
+                >
+                  <Mail size={15} />
+                  <span>Voltear a la carta</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

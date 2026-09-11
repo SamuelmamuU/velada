@@ -24,13 +24,8 @@ export function DogEarCorner({
     label = "Voltear al mapa";
     Icon = MapPin;
   } else if (currentSide === "map") {
-    if (hasMemory) {
-      label = "Voltear al recuerdo";
-      Icon = Camera;
-    } else {
-      label = "Voltear a la carta";
-      Icon = Mail;
-    }
+    label = "Voltear a la Polaroid";
+    Icon = Camera;
   } else if (currentSide === "memory") {
     label = "Voltear a la carta";
     Icon = Mail;

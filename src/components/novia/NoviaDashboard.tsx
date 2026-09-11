@@ -366,6 +366,10 @@ export function NoviaDashboard() {
               <PolaroidMemoriesGallery
                 citas={citas}
                 onSelectMemory={(c) => handleSelectCita(c, "memory")}
+                onAddMemory={() => {
+                  const target = citas.find((c) => !c.recuerdo?.fotoUrl) || citas[0];
+                  if (target) handleSelectCita(target, "memory");
+                }}
                 partnerName={user?.nombrePareja || "Samuel"}
               />
             )}

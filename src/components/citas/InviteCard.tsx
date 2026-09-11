@@ -160,15 +160,23 @@ export function InviteCard({
             </div>
           )}
 
-          {hasMemory && (
+          {hasMemory ? (
             <div
-              title="Esta aventura tiene un recuerdo fotográfico"
-              className="inline-flex items-center gap-1 bg-white/90 border border-sky-200 text-sky-800 px-2 py-0.5 rounded-full text-[10.5px] font-sans font-medium shadow-2xs"
+              title="Esta aventura tiene un recuerdo fotográfico Polaroid"
+              className="inline-flex items-center gap-1 bg-white/95 border border-sky-300 text-sky-900 px-2 py-0.5 rounded-full text-[10.5px] font-sans font-semibold shadow-2xs"
             >
               <Camera size={11} className="text-sky-600" />
-              <span>Con foto</span>
+              <span>Polaroid</span>
             </div>
-          )}
+          ) : (isDatePast || isAccepted) ? (
+            <div
+              title="Toca para abrir la carta y agregar su fotografía Polaroid"
+              className="inline-flex items-center gap-1 bg-sky-50/90 border border-sky-200/90 text-sky-700 px-2 py-0.5 rounded-full text-[10px] font-sans font-medium hover:bg-sky-100 transition-colors"
+            >
+              <Camera size={11} className="text-sky-600" />
+              <span>+ Polaroid</span>
+            </div>
+          ) : null}
         </div>
 
         {/* Timbre postal en esquina superior derecha */}
