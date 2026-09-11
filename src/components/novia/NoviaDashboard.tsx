@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { LoveLetterView } from "@/components/citas/LoveLetterView";
-import { MailboxOverlay } from "@/components/citas/MailboxOverlay";
+import { Mailbox3DExperience, MailboxStage } from "@/components/mailbox/Mailbox3DExperience";
 import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
 import {
   differenceInDays,
@@ -39,8 +39,17 @@ export function NoviaDashboard() {
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
 
-  // Overlay del buzón de cartas
-  const [showMailbox, setShowMailbox] = useState(false);
+  // Estado del Buzón 3D de Nuestras Aventuras (Flotante o Widget en la esquina)
+  const [mailboxStage, setMailboxStage] = useState<MailboxStage>(() => {
+    if (typeof window !== "undefined") {
+      const auto = sessionStorage.getItem("mailbox_auto_open");
+      if (auto === "true") {
+        sessionStorage.removeItem("mailbox_auto_open");
+        return "front_closed";
+      }
+    }
+    return "minimized_widget";
+  });
   const [hasShownAutoMailbox, setHasShownAutoMailbox] = useState(false);
 
   // Sistema de invitaciones vistas
@@ -106,7 +115,7 @@ export function NoviaDashboard() {
   // Abrir buzón automáticamente en la primera carga si hay cartas pendientes sin responder
   useEffect(() => {
     if (!loading && !hasShownAutoMailbox && pendingCitas.length > 0) {
-      setShowMailbox(true);
+      setMailboxStage("front_closed");
       setHasShownAutoMailbox(true);
     }
   }, [loading, hasShownAutoMailbox, pendingCitas.length]);
@@ -169,20 +178,13 @@ export function NoviaDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8FBFE] text-ink pb-20">
-      {/* OVERLAY DEL BUZÓN DE CARTAS (Pantalla de bienvenida interactiva) */}
-      {showMailbox && pendingCitas.length > 0 && (
-        <MailboxOverlay
-          pendingCitas={pendingCitas}
-          onClose={() => setShowMailbox(false)}
-          onCitaUpdated={(updated) => {
-            handleCitaUpdated(updated);
-            // Si ya no quedan pendientes, cerramos el buzón
-            if (pendingCitas.length <= 1) {
-              setTimeout(() => setShowMailbox(false), 1200);
-            }
-          }}
-        />
-      )}
+      {/* BUZÓN 3D DE NUESTRAS AVENTURAS (Flotante o minimizado como widget interactivo) */}
+      <Mailbox3DExperience
+        initialStage={mailboxStage}
+        pendingCitas={pendingCitas}
+        onCitaUpdated={handleCitaUpdated}
+        onCloseToDashboard={() => setMailboxStage("minimized_widget")}
+      />
 
       <div className="max-w-[1040px] mx-auto px-5 sm:px-8 py-8 sm:py-12">
         {/* Cabecera */}
@@ -226,7 +228,7 @@ export function NoviaDashboard() {
 
               <button
                 type="button"
-                onClick={() => setShowMailbox(true)}
+                onClick={() => setMailboxStage("front_closed")}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles size={15} />

@@ -214,3 +214,33 @@ Este documento está redactado para ser ejecutado por un agente de IA (ej. Claud
 
 
 **Criterio de aceptación:** Un usuario nuevo puede registrarse, generar su código QR, su pareja puede escanearlo desde su propio dispositivo y ambas cuentas quedan sincronizadas en tiempo real, compartiendo sus cartas, citas y recuerdos en su buzón común.
+
+---
+
+## Fase 13 — Buzón 3D Interactivo, Login Lateral Cinemático y Flujo de Cartas Flotantes
+
+**Objetivo:** Crear una experiencia inmersiva tridimensional (Three.js / CSS 3D y Framer Motion) donde el buzón de correos es el protagonista visual de la aplicación: el login se sitúa en su cara lateral con los nombres de Samuel & Diana en pintura hecha a mano, la cámara rota al frente tras autenticarse, la puerta se abre para liberar sobres de cartas flotantes en 3D, y al abrir/responder una carta se guarda con animación hacia el tablero mientras el buzón se repliega elegantemente a un costado.
+
+- [x] **Buzón 3D y Login en Cara Lateral**:
+  - Construir el modelo/escena del Buzón 3D con geometría detallada (cuerpo cilíndrico/abovedado pastel, puerta frontal abatible con pestillo, banderín rojo levantado, poste de madera rústico y cara lateral).
+  - Embeber el formulario interactivo de inicio de sesión/registro directamente sobre la cara lateral del buzón 3D como una placa integrada al buzón.
+  - En la parte superior de dicho costado del buzón, renderizar los nombres "Samuel & Diana" con efecto de pintura hecha a mano (brochazo rústico, trazo caligráfico artesanal y relieve de pintura sobre madera/metal).
+- [x] **Cinemática de Transición Post-Login**:
+  - Al autenticarse exitosamente (o al ingresar como novia/novio), ejecutar una animación fluida de cámara/escena: el buzón se aleja ligeramente en perspectiva y rota con suavidad desde la vista lateral hasta quedar perfectamente de frente a la cámara, encuadrando la puerta y el banderín.
+- [x] **Apertura de Puerta 3D y Cartas Flotantes**:
+  - Interacción táctil/click sobre la puerta del buzón: la puerta se abre oscilando hacia abajo con física suave y sonido/vibración visual.
+  - Al abrirse la puerta, emergen las cartas sin leer (pendientes de respuesta) en sobres tridimensionales auténticos con sello de cera.
+  - Los sobres se quedan flotando suavemente en levitación (idle floating bobbing) en el espacio frente a la puerta del buzón.
+- [x] **Apertura de Sobre y Despliegue de 3 Pestañas**:
+  - Al hacer click en cualquiera de los sobres flotantes, el sobre se abre con animación expansiva y despliega la experiencia completa de 3 hojas sobrepuestas:
+    1. **Carta**: Invitación manuscrita con dedicatoria y botones de respuesta.
+    2. **Mapa**: Ubicación geográfica con mapa interactivo y coordenadas.
+    3. **Foto Polaroid**: Recuerdo fotográfico con marco Polaroid artesanal.
+  - Soporte de esquina doblada (dog-ear) para alternar entre las 3 hojas.
+- [x] **Animación de Cierre, Guardado y Minimización del Buzón**:
+  - Al contestar o cerrar la carta, el sobre se pliega y se guarda con animación de trayectoria hacia el tablero principal.
+  - El buzón 3D se desplaza fluidamente desde el centro hacia una esquina/costado de la pantalla mientras reduce su escala a un widget miniatura interactivo.
+  - El tablero principal (con la cuadrícula de sobres y el muro de polaroids) queda visible y accesible.
+  - Al hacer click en el buzón miniatura del costado, vuelve a expandirse al centro para reabrir cartas o revisar correspondencia.
+
+**Criterio de aceptación:** El login opera sobre la cara lateral con "Samuel & Diana" pintados; tras el login, la cámara rota al frente; al tocar la puerta se abre y flotan los sobres en 3D; al abrir un sobre se accede a las 3 hojas (Carta/Mapa/Polaroid); al cerrar, la carta se archiva en el tablero y el buzón se repliega al costado como widget miniatura.

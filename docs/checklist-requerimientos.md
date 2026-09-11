@@ -37,8 +37,12 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 | **RF-27** | Creación y registro de perfiles de usuario personalizados (`novio` o `novia`). | Cumplido | Endpoint `POST /api/auth/register` y pestaña en `LoginForm` con selector de rol. |
 | **RF-28** | Generación de Código QR y clave de vinculación única para emparejamiento. | Cumplido | Librería `qrcode` en `GET /api/pareja/codigo` y modal postal `QrPairingModal`. |
 | **RF-29** | Escaneo de Código QR o ingreso manual de código para vincular pareja. | Cumplido | Componente `html5-qrcode` con lector por cámara y fallback de entrada manual en `POST /api/pareja/vincular`. |
-| **RF-30** | Sincronización instantánea y privada de citas y buzón entre pareja vinculada. | Cumplido | Aislamiento y vinculación de correspondencia por `parejaId` en `GET/POST /api/citas`. |
 | **RF-31** | Gestión del estado de conexión de la pareja (estado, datos de pareja, desvincular). | Cumplido | `PairingStatusBadge` en cabecera, consulta `GET /api/pareja/estado` y opción `POST /api/pareja/desvincular`. |
+| **RF-32** | Login integrado en cara lateral del Buzón 3D con nombres "Samuel & Diana" en pintura hecha a mano. | Cumplido | Formulario lateral embebido en buzón tridimensional con rótulo artesanal al óleo/acrílico. |
+| **RF-33** | Animación cinemática post-login: el buzón se aleja y rota de frente a la cámara mostrando puerta y banderín. | Cumplido | Transición de rotación suave 3D de 64° a 0° con retroceso y escala en perspectiva. |
+| **RF-34** | Apertura interactiva de puerta 3D y eyección de sobres de cartas flotando frente al buzón. | Cumplido | Disparo interactivo en puerta abatible con bisagra inferior, luz cálida interior y levitación de sobres 3D. |
+| **RF-35** | Apertura de sobre flotante hacia la experiencia de 3 pestañas (Carta, Mapa, Polaroid). | Cumplido | Expansión suave de sobre a LoveLetterView con las 3 pestañas completas y esquina doblada. |
+| **RF-36** | Cierre/respuesta de carta con guardado en tablero y repliegue del buzón a widget miniatura lateral. | Cumplido | Cierre de carta hacia el tablero y desplazamiento fluido del buzón a la esquina inferior como widget 3D interactivo. |
 
 ---
 
@@ -75,8 +79,7 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 ---
 
 ### Resumen Estadístico
-- **Requerimientos Funcionales Totales**: 31 / 31 (100% Cumplidos)
+- **Requerimientos Funcionales Totales**: 36 / 36 Cumplidos (100%)
 - **Requerimientos No Funcionales Cumplidos**: 15 / 15 (100%)
 - **Restricciones Cumplidas**: 3 / 3 (100%)
-- **Requerimientos Pendientes**: 0
 

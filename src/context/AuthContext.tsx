@@ -9,13 +9,20 @@ interface AuthContextType {
   loading: boolean;
   pareja: IParejaResponse | null;
   parejaLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: {
-    nombre: string;
-    email: string;
-    password: string;
-    rol: RolUsuario;
-  }) => Promise<{ success: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+    options?: { delayCommitMs?: number; onPreCommit?: () => void }
+  ) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    data: {
+      nombre: string;
+      email: string;
+      password: string;
+      rol: RolUsuario;
+    },
+    options?: { delayCommitMs?: number; onPreCommit?: () => void }
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   switchDemoRole: (role: RolUsuario) => Promise<boolean>;
   refreshPareja: () => Promise<void>;
@@ -124,7 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [fetchParejaEstado]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (
+    email: string,
+    password: string,
+    options?: { delayCommitMs?: number; onPreCommit?: () => void }
+  ) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -138,6 +149,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || "Error al iniciar sesión" };
       }
 
+      if (options?.onPreCommit) {
+        options.onPreCommit();
+      }
+      if (options?.delayCommitMs) {
+        await new Promise((resolve) => setTimeout(resolve, options.delayCommitMs));
+      }
+
       setToken(data.token);
       setUser(data.usuario);
       localStorage.setItem("velada_token", data.token);
@@ -149,12 +167,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (userData: {
-    nombre: string;
-    email: string;
-    password: string;
-    rol: RolUsuario;
-  }) => {
+  const register = async (
+    userData: {
+      nombre: string;
+      email: string;
+      password: string;
+      rol: RolUsuario;
+    },
+    options?: { delayCommitMs?: number; onPreCommit?: () => void }
+  ) => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -166,6 +187,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok || !data.success) {
         return { success: false, error: data.error || "Error al crear la cuenta" };
+      }
+
+      if (options?.onPreCommit) {
+        options.onPreCommit();
+      }
+      if (options?.delayCommitMs) {
+        await new Promise((resolve) => setTimeout(resolve, options.delayCommitMs));
       }
 
       setToken(data.token);
