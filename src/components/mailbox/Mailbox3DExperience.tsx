@@ -79,6 +79,7 @@ export function Mailbox3DExperience({
 
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isLabelDisappearing, setIsLabelDisappearing] = useState(false);
 
   // Referencias para el canvas Three.js WebGL + CSS3D
   const mountRef = useRef<HTMLDivElement>(null);
@@ -92,12 +93,14 @@ export function Mailbox3DExperience({
     targetPosX: 1.5,
     targetScale: 1,
     hasUnread: pendingCitas.length > 0,
+    showLabel: true,
   });
 
   // Actualizar targets de animación Three.js según el stage
   useEffect(() => {
     const s = animStateRef.current;
     s.hasUnread = pendingCitas.length > 0;
+    s.showLabel = stage === "lateral_login" && !isLabelDisappearing;
 
     switch (stage) {
       case "lateral_login":
@@ -145,7 +148,7 @@ export function Mailbox3DExperience({
         s.targetScale = 0.28;
         break;
     }
-  }, [stage, pendingCitas.length]);
+  }, [stage, pendingCitas.length, isLabelDisappearing]);
 
   // Selección rápida de roles
   const handleRoleChange = (selectedRole: RolUsuario) => {
@@ -170,6 +173,7 @@ export function Mailbox3DExperience({
 
     setAuthLoading(true);
     setAuthError(null);
+    setIsLabelDisappearing(true);
 
     try {
       const res = await login(email, password, {
@@ -183,12 +187,14 @@ export function Mailbox3DExperience({
         },
       });
       if (!res.success) {
+        setIsLabelDisappearing(false);
         setAuthError(res.error || "No se pudo iniciar sesión. Revisa tus credenciales.");
         setAuthLoading(false);
       } else {
         setStage("front_closed");
       }
     } catch {
+      setIsLabelDisappearing(false);
       setAuthError("Error de comunicación con el servidor.");
       setAuthLoading(false);
     }
@@ -208,6 +214,7 @@ export function Mailbox3DExperience({
 
     setAuthLoading(true);
     setAuthError(null);
+    setIsLabelDisappearing(true);
 
     try {
       const res = await register(
@@ -230,12 +237,14 @@ export function Mailbox3DExperience({
       );
 
       if (!res.success) {
+        setIsLabelDisappearing(false);
         setAuthError(res.error || "No se pudo registrar la cuenta.");
         setAuthLoading(false);
       } else {
         setStage("front_closed");
       }
     } catch {
+      setIsLabelDisappearing(false);
       setAuthError("Error al registrar perfil.");
       setAuthLoading(false);
     }
@@ -650,6 +659,10 @@ export function Mailbox3DExperience({
       doorPivot.rotation.x = currDoorRotX;
       interiorLight.intensity = currLight;
 
+      if (cssObject) {
+        cssObject.visible = s.showLabel;
+      }
+
       // Animación suave del banderín cuando hay cartas pendientes
       if (s.hasUnread) {
         flagPivot.rotation.z = Math.sin(elapsed * 2.5) * 0.05;
@@ -811,7 +824,18 @@ export function Mailbox3DExperience({
       <div style={{ display: "none" }}>
         <div
           ref={labelDomRef}
-          className="w-[370px] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-4 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text pointer-events-auto"
+          style={{
+            opacity: stage === "lateral_login" && !isLabelDisappearing ? 1 : 0,
+            transform:
+              stage === "lateral_login" && !isLabelDisappearing
+                ? "scale(1)"
+                : "scale(0.8)",
+            transition:
+              "opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+            pointerEvents:
+              stage === "lateral_login" && !isLabelDisappearing ? "auto" : "none",
+          }}
+          className="w-[370px] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-4 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text"
         >
           {/* Cabecera de la Etiqueta Postal */}
           <div className="flex items-center justify-between border-b border-[#E3D8C1] pb-1.5 mb-2.5">
