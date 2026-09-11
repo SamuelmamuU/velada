@@ -45,6 +45,51 @@ interface Mailbox3DExperienceProps {
   isLoginScreen?: boolean;
 }
 
+/**
+ * Geometría en decal curvado que abraza con precisión milimétrica la chapa
+ * metálica exterior del buzón (cilindro superior y pared plana lateral).
+ */
+function createMailboxDecalGeometry(
+  widthZ: number,
+  arcRadius: number,
+  thetaStart: number,
+  thetaEnd: number,
+  flatHeightBelow: number,
+  segmentsZ = 36,
+  segmentsArc = 36
+): THREE.BufferGeometry {
+  const geom = new THREE.PlaneGeometry(widthZ, 1, segmentsZ, segmentsArc);
+  const pos = geom.attributes.position;
+  const totalLength = flatHeightBelow + arcRadius * (thetaEnd - thetaStart);
+  const flatFrac = flatHeightBelow / totalLength;
+
+  for (let i = 0; i < pos.count; i++) {
+    // Invertir eje horizontal para orden de lectura natural de izquierda a derecha
+    // (desde la puerta en +Z hacia el fondo en -Z) y orientación correcta de normales
+    const pZ = -pos.getX(i);
+    const t = pos.getY(i) + 0.5; // 0 = abajo, 1 = arriba
+
+    let x: number;
+    let y: number;
+
+    if (t < flatFrac) {
+      const subT = t / Math.max(flatFrac, 0.0001);
+      x = arcRadius;
+      y = 5.5 - flatHeightBelow + subT * flatHeightBelow;
+    } else {
+      const subT = (t - flatFrac) / Math.max(1 - flatFrac, 0.0001);
+      const theta = thetaStart + subT * (thetaEnd - thetaStart);
+      x = arcRadius * Math.cos(theta);
+      y = 5.5 + arcRadius * Math.sin(theta);
+    }
+
+    pos.setXYZ(i, x, y, pZ);
+  }
+
+  geom.computeVertexNormals();
+  return geom;
+}
+
 export function Mailbox3DExperience({
   initialStage = "lateral_login",
   pendingCitas = [],
@@ -562,55 +607,123 @@ export function Mailbox3DExperience({
     // (Renderizado con CanvasTexture de alta resolución integrado a la chapa)
     // =========================================================================
     const paintCanvas = document.createElement("canvas");
-    paintCanvas.width = 1024;
-    paintCanvas.height = 320;
-    const pCtx = paintCanvas.getContext("2d");
-    if (pCtx) {
-      pCtx.clearRect(0, 0, 1024, 320);
+    paintCanvas.width = 2048;
+    paintCanvas.height = 1024;
 
-      // Trazo al óleo y sombra de relieve sobre el metal
-      pCtx.font = "bold 82px var(--font-caveat), 'Brush Script MT', cursive";
+    const renderPaintCanvas = () => {
+      const pCtx = paintCanvas.getContext("2d");
+      if (!pCtx) return;
+
+      pCtx.clearRect(0, 0, 2048, 1024);
+
+      // Resolución de fuentes compatibles con Canvas 2D
+      let caveatFamily = "'Caveat', 'Brush Script MT', 'Dancing Script', cursive";
+      let interFamily = "'Inter', -apple-system, sans-serif";
+      let monoFamily = "'IBM Plex Mono', monospace";
+      if (typeof window !== "undefined") {
+        try {
+          const docElem = document.documentElement;
+          const cFont = getComputedStyle(docElem).getPropertyValue("--font-caveat");
+          if (cFont && cFont.trim()) caveatFamily = `${cFont.trim()}, ${caveatFamily}`;
+          const iFont = getComputedStyle(docElem).getPropertyValue("--font-inter");
+          if (iFont && iFont.trim()) interFamily = `${iFont.trim()}, ${interFamily}`;
+          const mFont = getComputedStyle(docElem).getPropertyValue("--font-mono");
+          if (mFont && mFont.trim()) monoFamily = `${mFont.trim()}, ${monoFamily}`;
+        } catch {}
+      }
+
       pCtx.textAlign = "center";
       pCtx.textBaseline = "middle";
 
-      // Sombra profunda pintada
-      pCtx.fillStyle = "rgba(15, 35, 60, 0.75)";
-      pCtx.fillText("Samuel & Diana", 512 + 2, 110 + 3);
+      // 1. Emblema superior arqueado en la cima del domo
+      pCtx.font = `bold 32px ${monoFamily}`;
+      try {
+        (pCtx as unknown as { letterSpacing: string }).letterSpacing = "8px";
+      } catch {}
+      pCtx.fillStyle = "rgba(10, 24, 44, 0.75)";
+      pCtx.fillText("★  BUZÓN FAMILIAR  ★", 1024 + 2, 130 + 2);
+      pCtx.fillStyle = "rgba(225, 242, 255, 0.92)";
+      pCtx.fillText("★  BUZÓN FAMILIAR  ★", 1024, 130);
 
-      // Pintura blanca acrílica con textura
+      // 2. NOMBRES "Samuel & Diana" EN TAMAÑO EXTRA GRANDE (240px)
+      pCtx.font = `bold 240px ${caveatFamily}`;
+      try {
+        (pCtx as unknown as { letterSpacing: string }).letterSpacing = "2px";
+      } catch {}
+
+      // Sombra profunda de relieve de pintura sobre el metal azul
+      pCtx.fillStyle = "rgba(8, 20, 38, 0.88)";
+      pCtx.fillText("Samuel & Diana", 1024 + 5, 335 + 6);
+
+      // Sombra ambiental suave
+      pCtx.fillStyle = "rgba(15, 35, 62, 0.45)";
+      pCtx.fillText("Samuel & Diana", 1024 + 2, 335 + 3);
+
+      // Capa de pintura esmalte blanco puro
       pCtx.fillStyle = "#FFFFFF";
-      pCtx.fillText("Samuel & Diana", 512, 110);
+      pCtx.fillText("Samuel & Diana", 1024, 335);
 
-      // Subtítulo pintado en plantilla
-      pCtx.font = "600 24px var(--font-sans), sans-serif";
-      pCtx.fillStyle = "rgba(225, 240, 255, 0.95)";
-      pCtx.letterSpacing = "6px";
-      pCtx.fillText("NUESTROS VIAJES · BUZÓN FAMILIAR", 512, 190);
+      // Relieve y contorno sutil de brillo cerámico
+      pCtx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+      pCtx.lineWidth = 2.5;
+      pCtx.strokeText("Samuel & Diana", 1024, 335);
 
-      // Pincelada artesanal decorativa inferior
-      pCtx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-      pCtx.lineWidth = 5;
+      // 3. Pincelada artesanal curvada de subrayado
+      pCtx.strokeStyle = "rgba(255, 255, 255, 0.92)";
+      pCtx.lineWidth = 8;
+      pCtx.lineCap = "round";
       pCtx.beginPath();
-      pCtx.moveTo(280, 230);
-      pCtx.quadraticCurveTo(512, 215, 744, 230);
+      pCtx.moveTo(260, 465);
+      pCtx.bezierCurveTo(680, 495, 1360, 435, 1788, 465);
       pCtx.stroke();
-    }
+
+      // 4. Subtítulo tipográfico en mayúsculas
+      pCtx.font = `bold 44px ${interFamily}`;
+      try {
+        (pCtx as unknown as { letterSpacing: string }).letterSpacing = "12px";
+      } catch {}
+      pCtx.fillStyle = "rgba(8, 20, 38, 0.75)";
+      pCtx.fillText("NUESTROS VIAJES · BUZÓN DE AVENTURAS", 1024 + 2, 545 + 3);
+      pCtx.fillStyle = "rgba(235, 245, 255, 0.98)";
+      pCtx.fillText("NUESTROS VIAJES · BUZÓN DE AVENTURAS", 1024, 545);
+
+      // 5. Detalles postales vintage
+      pCtx.font = `600 24px ${monoFamily}`;
+      try {
+        (pCtx as unknown as { letterSpacing: string }).letterSpacing = "6px";
+      } catch {}
+      pCtx.fillStyle = "rgba(195, 225, 252, 0.85)";
+      pCtx.fillText("EST. 2026 · CORRESPONDENCIA PRIVADA · AMOR Y RECUERDOS", 1024, 630);
+    };
+
+    renderPaintCanvas();
 
     const paintTexture = new THREE.CanvasTexture(paintCanvas);
-    paintTexture.anisotropy = 4;
+    paintTexture.anisotropy = 16;
+    paintTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    paintTexture.magFilter = THREE.LinearFilter;
+    paintTexture.generateMipmaps = true;
+
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(() => {
+        renderPaintCanvas();
+        paintTexture.needsUpdate = true;
+      });
+    }
+
+    const paintGeom = createMailboxDecalGeometry(20.4, 7.54, 0, Math.PI * 0.40, 1.2);
     const paintPlate = new THREE.Mesh(
-      new THREE.PlaneGeometry(18, 5.6),
+      paintGeom,
       new THREE.MeshStandardMaterial({
         map: paintTexture,
         transparent: true,
-        roughness: 0.35,
-        metalness: 0.2,
+        roughness: 0.32,
+        metalness: 0.22,
         polygonOffset: true,
-        polygonOffsetFactor: -1,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
       })
     );
-    paintPlate.position.set(7.55, 7.8, 0);
-    paintPlate.rotation.y = Math.PI / 2;
     mailboxGroup.add(paintPlate);
 
     // =========================================================================
@@ -621,9 +734,9 @@ export function Mailbox3DExperience({
     if (labelDom) {
       cssObject = new CSS3DObject(labelDom);
       // Ubicar justo debajo de los nombres pintados, pegada a la chapa metálica
-      cssObject.position.set(7.58, 2.7, 0);
+      cssObject.position.set(7.58, 0.8, 0);
       cssObject.rotation.y = Math.PI / 2;
-      cssObject.scale.set(0.046, 0.046, 0.046);
+      cssObject.scale.set(0.040, 0.040, 0.040);
       mailboxGroup.add(cssObject);
     }
 
@@ -713,6 +826,7 @@ export function Mailbox3DExperience({
       shadowPlane.geometry.dispose();
       metalMaterial.dispose();
       brassMaterial.dispose();
+      paintGeom.dispose();
       paintTexture.dispose();
       shadowTex.dispose();
       webglRenderer.dispose();
@@ -835,7 +949,7 @@ export function Mailbox3DExperience({
             pointerEvents:
               stage === "lateral_login" && !isLabelDisappearing ? "auto" : "none",
           }}
-          className="w-[370px] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-4 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text"
+          className="w-[350px] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-3.5 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text"
         >
           {/* Cabecera de la Etiqueta Postal */}
           <div className="flex items-center justify-between border-b border-[#E3D8C1] pb-1.5 mb-2.5">
