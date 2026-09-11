@@ -7,7 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Mailbox3DParticles } from "@/components/mailbox/Mailbox3DParticles";
 import { LoveLetterView } from "@/components/citas/LoveLetterView";
 import { Seal } from "@/components/ui/Seal";
-import { AppLogo } from "@/components/ui/AppLogo";
 import {
   Lock,
   Mail,
@@ -22,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Compass,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -64,13 +64,13 @@ export function Mailbox3DExperience({
     }
   }, [initialStage]);
 
-  // Estados del formulario en la cara lateral
+  // Estados del formulario en la etiqueta adhesiva lateral
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [role, setRole] = useState<RolUsuario>("novia");
   const [email, setEmail] = useState("novia@velada.app");
   const [password, setPassword] = useState("NoviaVelada2026!");
 
-  // Registro en la cara lateral
+  // Registro en la etiqueta adhesiva
   const [regNombre, setRegNombre] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
@@ -79,7 +79,7 @@ export function Mailbox3DExperience({
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Actualizar rol y credenciales de prueba
+  // Selector rápido de credenciales de prueba
   const handleRoleChange = (selectedRole: RolUsuario) => {
     setRole(selectedRole);
     setAuthError(null);
@@ -92,7 +92,7 @@ export function Mailbox3DExperience({
     }
   };
 
-  // Manejar Login en la cara lateral del Buzón 3D
+  // Enviar login desde la etiqueta adhesiva del costado del buzón
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -105,9 +105,9 @@ export function Mailbox3DExperience({
 
     try {
       const res = await login(email, password, {
-        delayCommitMs: 1350,
+        delayCommitMs: 1400,
         onPreCommit: () => {
-          // Iniciar animación: el buzón se aleja un poco y rota de perfil hacia el frente
+          // El buzón se aleja un poco y rota de perfil hacia el frente de la cámara
           setStage("rotating_to_front");
           try {
             sessionStorage.setItem("mailbox_auto_open", "true");
@@ -127,7 +127,7 @@ export function Mailbox3DExperience({
     }
   };
 
-  // Manejar Registro en la cara lateral
+  // Enviar registro desde la etiqueta adhesiva
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regNombre || !regEmail || !regPassword) {
@@ -151,7 +151,7 @@ export function Mailbox3DExperience({
           rol: regRole,
         },
         {
-          delayCommitMs: 1350,
+          delayCommitMs: 1400,
           onPreCommit: () => {
             setStage("rotating_to_front");
             try {
@@ -174,7 +174,7 @@ export function Mailbox3DExperience({
     }
   };
 
-  // Al hacer click en la puerta del buzón
+  // Clic en la puerta frontal del buzón
   const handleDoorClick = () => {
     if (stage === "front_closed") {
       setStage("door_opening");
@@ -186,57 +186,60 @@ export function Mailbox3DExperience({
     }
   };
 
-  // Al hacer click en un sobre flotante
+  // Clic en un sobre flotante
   const handleEnvelopeClick = (cita: ICitaResponse) => {
     setSelectedLetter(cita);
     setStage("letter_expanded");
   };
 
-  // Al cerrar o contestar la carta
+  // Cerrar o contestar carta: repliegue y guardado hacia el tablero
   const handleCloseExpandedLetter = () => {
     setSelectedLetter(null);
     setStage("docking");
     setTimeout(() => {
       setStage("minimized_widget");
       onCloseToDashboard?.();
-    }, 900);
+    }, 950);
   };
 
-  // Restaurar buzón desde el widget minimizado
+  // Restaurar buzón al centro desde el widget miniatura
   const handleRestoreFromWidget = () => {
     setStage("front_closed");
   };
 
-  // Transformación 3D según el stage
+  // Transformación 3D del Buzón según la etapa
   const getMailbox3DTransform = () => {
     switch (stage) {
       case "lateral_login":
-        // Vista lateral 3D enfocada en la cara del login
+        // Vista lateral 3D enfocada directamente en la cara del buzón con la etiqueta
         return {
-          rotateY: 64,
+          rotateY: -72,
           rotateX: 3,
-          scale: 1,
-          translateZ: 0,
-          x: 0,
+          rotateZ: 0,
+          scale: 0.98,
+          translateZ: 20,
+          x: 40,
           y: 0,
         };
       case "rotating_to_front":
-        // Se aleja un poco y se pone de frente a la cámara
+        // Se aleja en perspectiva y rota con suavidad hacia el frente
         return {
           rotateY: 0,
-          rotateX: 0,
-          scale: 0.92,
-          translateZ: -90,
+          rotateX: 2,
+          rotateZ: 0,
+          scale: 0.88,
+          translateZ: -110,
           x: 0,
           y: 0,
         };
       case "front_closed":
       case "door_opening":
       case "letters_floating":
-        // De frente a la cámara viendo la puerta
+        // Frente a la cámara viendo la puerta y banderín
         return {
           rotateY: 0,
-          rotateX: 2,
+          rotateX: 3,
+          rotateZ: 0,
           scale: 1,
           translateZ: 0,
           x: 0,
@@ -245,26 +248,29 @@ export function Mailbox3DExperience({
       case "letter_expanded":
         return {
           rotateY: -6,
-          rotateX: 0,
-          scale: 0.85,
-          translateZ: -120,
+          rotateX: 1,
+          rotateZ: 0,
+          scale: 0.82,
+          translateZ: -140,
           x: 0,
           y: 0,
         };
       case "docking":
         return {
-          rotateY: 15,
-          rotateX: 5,
-          scale: 0.28,
+          rotateY: 18,
+          rotateX: 6,
+          rotateZ: 0,
+          scale: 0.26,
           translateZ: 0,
-          x: "36vw",
+          x: "38vw",
           y: "36vh",
         };
       case "minimized_widget":
         return {
-          rotateY: 15,
-          rotateX: 5,
-          scale: 0.28,
+          rotateY: 18,
+          rotateX: 6,
+          rotateZ: 0,
+          scale: 0.26,
           translateZ: 0,
           x: 0,
           y: 0,
@@ -273,6 +279,7 @@ export function Mailbox3DExperience({
         return {
           rotateY: 0,
           rotateX: 0,
+          rotateZ: 0,
           scale: 1,
           translateZ: 0,
           x: 0,
@@ -288,7 +295,7 @@ export function Mailbox3DExperience({
 
   const hasUnreadLetters = pendingCitas.length > 0;
 
-  // Si está minimizado como widget interactivo en la esquina
+  // Si está minimizado como widget interactivo en la esquina inferior derecha
   if (stage === "minimized_widget") {
     return (
       <div className="fixed bottom-6 right-6 z-50 animate-fade-up select-none">
@@ -300,7 +307,7 @@ export function Mailbox3DExperience({
           className="group relative flex items-center gap-3 bg-white/95 backdrop-blur-md p-2.5 pr-4 rounded-2xl shadow-letter border border-sky-200/90 text-left cursor-pointer transition-all hover:shadow-xl hover:border-sky-300"
           title="Abrir Buzón 3D de Nuestras Aventuras"
         >
-          {/* Miniatura del buzón con banderín y resplandor */}
+          {/* Miniatura 3D del buzón */}
           <div className="relative w-12 h-12 flex-shrink-0 bg-sky-100/70 rounded-xl flex items-center justify-center overflow-hidden border border-sky-200">
             <svg viewBox="0 0 100 100" className="w-10 h-10 drop-shadow-xs">
               <rect x="46" y="60" width="8" height="35" rx="2" fill="#8A6B53" />
@@ -349,18 +356,18 @@ export function Mailbox3DExperience({
     <div
       className={
         isLoginScreen
-          ? "relative w-full min-h-[90vh] flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden"
+          ? "relative w-full min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden"
           : `fixed inset-0 z-50 flex flex-col items-center justify-center p-3 sm:p-6 overflow-hidden transition-all duration-700 ${
               stage === "docking"
                 ? "bg-transparent backdrop-blur-none pointer-events-none"
-                : "bg-[#132233]/70 backdrop-blur-md"
+                : "bg-[#101D2B]/75 backdrop-blur-md"
             }`
       }
     >
       {/* Three.js Canvas de partículas ambientales en el fondo */}
-      <Mailbox3DParticles count={45} className="opacity-90" />
+      <Mailbox3DParticles count={40} className="opacity-90" />
 
-      {/* Botón superior de cerrar / saltar al dashboard si no es login */}
+      {/* Botón superior de cerrar hacia el dashboard */}
       {!isLoginScreen && stage !== "lateral_login" && (
         <button
           type="button"
@@ -379,17 +386,17 @@ export function Mailbox3DExperience({
       )}
 
       {/* ========================================================================= */}
-      {/* ESCENA 3D PRINCIPAL (CSS 3D TRANSFORMS + THREE.JS STARS) */}
+      {/* ESCENA 3D PRINCIPAL CON VOLUMEN FÍSICO REAL (CSS 3D PRESERVE-3D) */}
       {/* ========================================================================= */}
       <div
         className="relative w-full max-w-5xl flex items-center justify-center select-none"
-        style={{ perspective: "1400px" }}
+        style={{ perspective: "1500px" }}
       >
-        {/* Contenedor del Buzón en el Espacio 3D */}
+        {/* Contenedor del Buzón 3D Volumétrico */}
         <motion.div
           animate={getMailbox3DTransform()}
           transition={{
-            duration: stage === "rotating_to_front" ? 1.25 : 0.8,
+            duration: stage === "rotating_to_front" ? 1.35 : 0.85,
             ease: [0.16, 1, 0.3, 1],
           }}
           style={{
@@ -397,50 +404,119 @@ export function Mailbox3DExperience({
           }}
           className="relative flex items-center justify-center"
         >
-          {/* Sombra de contacto suave en el piso */}
+          {/* Sombra de contacto volumétrica en el suelo */}
           <div
-            className="absolute -bottom-24 w-80 h-16 bg-sky-950/15 rounded-full blur-xl pointer-events-none -z-20"
+            className="absolute -bottom-32 w-[480px] h-28 bg-[#091522]/35 rounded-full blur-2xl pointer-events-none -z-30"
             style={{
-              transform: "rotateX(75deg) translateZ(-80px)",
+              transform: "rotateX(85deg) translateZ(-90px)",
             }}
           />
 
           {/* ===================================================================== */}
-          {/* CUERPO DEL BUZÓN 3D (Arquitrave, Poste, Domo, Puerta y Banderín) */}
+          {/* ESTRUCTURA VOLUMÉTRICA 3D DEL BUZÓN POSTAL */}
+          {/* Ancho Frontal: 310px | Alto: 230px | Profundidad Z: 440px */}
           {/* ===================================================================== */}
           <div
-            className="relative w-[340px] sm:w-[400px] h-[340px] flex items-center justify-center"
+            className="relative w-[310px] h-[230px]"
             style={{ transformStyle: "preserve-3d" }}
           >
-            {/* Poste de Madera Rústica Inferior */}
+            {/* POSTE DE MADERA 3D (4 Caras con veta y sombra) */}
             <div
-              className="absolute -bottom-28 w-10 h-36 bg-[#8A6B53] rounded-sm shadow-md flex flex-col justify-between"
-              style={{
-                transform: "translateZ(-40px)",
-                backgroundImage:
-                  "linear-gradient(90deg, #6E523D 0%, #8A6B53 30%, #9B795F 70%, #5C4432 100%)",
-              }}
+              className="absolute left-1/2 -translate-x-1/2 top-[190px] w-12 h-48 pointer-events-none"
+              style={{ transformStyle: "preserve-3d" }}
             >
-              <div className="w-full h-3 bg-[#5C4432]/40" />
-              <div className="w-full h-3 bg-[#5C4432]/40" />
+              {/* Cara Frontal del Poste */}
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-[#7A5A41] via-[#654731] to-[#4F3624] border-x border-[#553C29] shadow-md"
+                style={{ transform: "translateZ(6px)" }}
+              />
+              {/* Cara Lateral Derecha del Poste */}
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-[#654731] to-[#3D291B]"
+                style={{
+                  transform: "rotateY(90deg) translateZ(6px)",
+                  width: "12px",
+                }}
+              />
+              {/* Cara Lateral Izquierda del Poste */}
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-[#8C684C] to-[#553C29]"
+                style={{
+                  transform: "rotateY(-90deg) translateZ(6px)",
+                  width: "12px",
+                }}
+              />
+              {/* Soporte transversal bajo el buzón */}
+              <div
+                className="absolute -top-3 -left-12 w-36 h-4 bg-[#553C29] rounded-xs shadow-sm border border-[#3D291B]"
+                style={{ transform: "translateZ(6px)" }}
+              />
             </div>
 
-            {/* Soporte transversal */}
+            {/* BASE INFERIOR DE CHAPA METÁLICA (Piso del Buzón) */}
             <div
-              className="absolute -bottom-4 w-44 h-4 bg-[#5C4432] rounded-xs shadow-sm"
-              style={{ transform: "translateZ(-35px)" }}
+              className="absolute left-0 top-[115px] w-[310px] h-[440px] pointer-events-none"
+              style={{
+                transform: "rotateX(-90deg) translateZ(115px)",
+                background:
+                  "linear-gradient(180deg, #2A435A 0%, #1D3245 60%, #152433 100%)",
+                boxShadow: "inset 0 0 20px rgba(0,0,0,0.6)",
+              }}
             />
 
-            {/* Banderín Postal Rojo/Coral en el costado derecho */}
+            {/* PARED TRASERA DEL BUZÓN (Fondo ciego con remates) */}
+            <div
+              className="absolute inset-0 rounded-t-[155px] pointer-events-none border-t border-sky-300/40"
+              style={{
+                transform: "rotateY(180deg) translateZ(220px)",
+                background:
+                  "linear-gradient(180deg, #6B9BC9 0%, #5280AD 60%, #3B648C 100%)",
+                boxShadow: "inset 0 10px 30px rgba(0,0,0,0.3)",
+              }}
+            />
+
+            {/* DOMO CILÍNDRICO CURVO 3D (Lamas continuas longitudinales) */}
+            {/* Slat 1 - Arista Izquierda */}
+            <div
+              className="absolute -left-1 -top-1 w-[80px] h-[440px] origin-top-left pointer-events-none"
+              style={{
+                transform:
+                  "rotateY(90deg) rotateX(-50deg) translateX(-220px) translateY(-25px)",
+                background:
+                  "linear-gradient(90deg, #4A77A1 0%, #6896C2 60%, #7EA8D4 100%)",
+              }}
+            />
+            {/* Slat 2 - Corona Superior con Brillo Especular de Metal */}
+            <div
+              className="absolute left-0 -top-[35px] w-[310px] h-[440px] pointer-events-none"
+              style={{
+                transform: "rotateX(-90deg) translateZ(-35px)",
+                background:
+                  "linear-gradient(90deg, #6292BE 0%, #8EB6E0 25%, #C2DCF7 50%, #8EB6E0 75%, #5887B3 100%)",
+                boxShadow: "0 0 25px rgba(255,255,255,0.25)",
+              }}
+            />
+            {/* Slat 3 - Arista Derecha */}
+            <div
+              className="absolute -right-1 -top-1 w-[80px] h-[440px] origin-top-right pointer-events-none"
+              style={{
+                transform:
+                  "rotateY(-90deg) rotateX(-50deg) translateX(220px) translateY(-25px)",
+                background:
+                  "linear-gradient(90deg, #7EA8D4 0%, #6896C2 40%, #4A77A1 100%)",
+              }}
+            />
+
+            {/* BANDERÍN POSTAL ROJO EN EL COSTADO DERECHO */}
             <motion.div
               animate={{
                 rotate: hasUnreadLetters ? [0, -3, 0] : 85,
                 y: hasUnreadLetters ? [0, -2, 0] : 10,
               }}
-              transition={{ repeat: Infinity, duration: 2.6, ease: "easeInOut" }}
-              className="absolute top-14 -right-10 origin-bottom-left z-20 cursor-pointer pointer-events-auto"
+              transition={{ repeat: Infinity, duration: 2.8, ease: "easeInOut" }}
+              className="absolute top-10 -right-4 origin-bottom-left z-30 pointer-events-auto cursor-pointer"
               style={{
-                transform: "translateZ(-20px)",
+                transform: "translateZ(90px)",
               }}
               title={
                 hasUnreadLetters
@@ -448,98 +524,385 @@ export function Mailbox3DExperience({
                   : "Sin cartas nuevas"
               }
             >
-              <div className="w-2.5 h-24 bg-[#B54A60] rounded-full shadow-md flex flex-col justify-between items-center py-1">
-                <div className="w-3.5 h-3.5 rounded-full bg-[#E5BE73] border border-[#B54A60] shadow-xs mt-auto mb-1" />
+              {/* Mástil de metal esmaltado */}
+              <div className="w-2.5 h-28 bg-[#C24157] rounded-full shadow-md flex flex-col justify-between items-center py-1 border border-[#9E2A3E]">
+                <div className="w-4 h-4 rounded-full bg-gradient-to-b from-[#F3D188] to-[#BA882F] border border-[#FFE19E] shadow-xs mt-auto mb-0.5" />
               </div>
-              <div className="absolute top-0 right-0 w-12 h-8 bg-gradient-to-r from-[#D8586E] to-[#C7455B] rounded-r-md shadow-md flex items-center justify-center text-white">
-                <Heart size={12} className="fill-white" />
+              {/* Bandera con flecha clásica postal */}
+              <div className="absolute top-0 right-0 w-14 h-9 bg-gradient-to-r from-[#E04D65] to-[#C9334D] rounded-r-md shadow-lg flex items-center justify-center text-white border-y border-r border-[#F07A8F]">
+                <Heart size={14} className="fill-white drop-shadow-xs" />
               </div>
             </motion.div>
 
-            {/* Túnel / Cascarón del Buzón 3D */}
+            {/* ================================================================= */}
+            {/* COSTADO LATERAL IZQUIERDO DEL BUZÓN (Cara Opuesta) */}
+            {/* ================================================================= */}
             <div
-              className="relative w-full h-[240px] rounded-t-[120px] rounded-b-[20px] shadow-2xl overflow-hidden border-2 border-sky-300/60"
+              className="absolute top-0 left-0 w-[440px] h-[230px] rounded-tl-[155px] pointer-events-none border-t border-sky-300/50"
               style={{
+                transform: "rotateY(-90deg) translateZ(155px)",
                 background:
-                  "linear-gradient(145deg, #A8CDEF 0%, #89B8E6 45%, #6B9BC9 100%)",
+                  "linear-gradient(180deg, #72A0CC 0%, #5C8BB8 45%, #46739E 100%)",
+                boxShadow: "inset 0 15px 30px rgba(255,255,255,0.2)",
+              }}
+            />
+
+            {/* ================================================================= */}
+            {/* COSTADO LATERAL DERECHO DEL BUZÓN 3D */}
+            {/* AQUÍ ESTÁN LITERALMENTE ESCRITOS "SAMUEL Y DIANA" EN LA PINTURA */}
+            {/* Y LA ETIQUETA ADHESIVA DE ACCESO PEGADA DIRECTAMENTE AL METAL */}
+            {/* ================================================================= */}
+            <div
+              className="absolute top-0 left-0 w-[440px] h-[230px] rounded-tr-[155px] border-t border-sky-200/60 flex flex-col justify-between p-3 select-text"
+              style={{
+                transform: "rotateY(90deg) translateZ(155px)",
+                background:
+                  "linear-gradient(180deg, #8EB8E2 0%, #76A3D1 25%, #5F8EC0 65%, #4774A3 100%)",
                 boxShadow:
-                  "inset 0 10px 25px rgba(255,255,255,0.4), 0 25px 40px rgba(20,50,90,0.3)",
+                  "inset 0 15px 30px rgba(255,255,255,0.35), inset 0 -15px 25px rgba(15,35,60,0.35)",
               }}
             >
-              {/* Brillo curvo del domo metálico */}
-              <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-white/35 to-transparent rounded-t-[120px]" />
+              {/* Textura metálica y remaches en las esquinas */}
+              <div className="absolute top-3 left-4 w-2 h-2 rounded-full bg-[#E8C27B] border border-[#8C6F35] shadow-xs pointer-events-none" />
+              <div className="absolute top-3 right-4 w-2 h-2 rounded-full bg-[#E8C27B] border border-[#8C6F35] shadow-xs pointer-events-none" />
 
-              {/* Interior del Buzón */}
-              <div
-                className={`absolute inset-4 rounded-t-[105px] rounded-b-[12px] bg-gradient-to-b from-[#1E334D] via-[#152538] to-[#0D1824] border border-sky-900/60 flex flex-col items-center justify-center transition-all duration-700 ${
-                  isDoorOpen ? "opacity-100 shadow-inner" : "opacity-0"
-                }`}
-              >
-                <div className="absolute inset-0 bg-radial from-amber-200/25 via-sky-300/10 to-transparent blur-md" />
-
-                <div className="relative z-10 flex flex-col items-center justify-center">
-                  <Mail size={32} className="text-amber-200/80 animate-pulse mb-1" />
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-amber-200/70">
-                    {pendingCitas.length > 0
-                      ? `${pendingCitas.length} Correspondencia(s)`
-                      : "Buzón vacío"}
-                  </span>
+              {/* =============================================================== */}
+              {/* LITERALMENTE ESCRITO EN LA PINTURA DEL BUZÓN: SAMUEL Y DIANA */}
+              {/* =============================================================== */}
+              <div className="relative z-10 pt-2 pb-1 text-center select-none">
+                <div className="inline-block">
+                  <h1
+                    className="font-handwriting text-4xl sm:text-5xl text-white font-bold tracking-wide leading-none"
+                    style={{
+                      transform: "rotate(-1.2deg)",
+                      textShadow:
+                        "0 2px 4px rgba(10,30,55,0.7), 0 0 12px rgba(255,255,255,0.5), -1px -1px 0 rgba(220,240,255,0.8)",
+                    }}
+                  >
+                    Samuel & Diana
+                  </h1>
+                  <p
+                    className="font-mono text-[9.5px] uppercase tracking-[0.26em] text-sky-100 font-bold mt-1"
+                    style={{ textShadow: "0 1px 2px rgba(10,30,55,0.8)" }}
+                  >
+                    Nuestras Aventuras · Buzón del Hogar
+                  </p>
+                  {/* Trazo de brocha al óleo pintado sobre el metal */}
+                  <svg
+                    className="w-44 h-2.5 mx-auto mt-0.5 text-white/80 fill-current"
+                    viewBox="0 0 180 10"
+                  >
+                    <path d="M 4 5 Q 50 1 90 5 Q 130 9 176 5 Q 130 7 90 4 Q 50 2 4 5 Z" />
+                  </svg>
                 </div>
               </div>
 
-              {/* ================================================================= */}
-              {/* PUERTA FRONTAL BASCULANTE */}
-              {/* ================================================================= */}
-              <motion.div
-                onClick={handleDoorClick}
-                animate={{
-                  rotateX: isDoorOpen ? -118 : 0,
-                  y: isDoorOpen ? 12 : 0,
-                }}
-                transition={{
-                  duration: 0.75,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                style={{
-                  transformOrigin: "bottom center",
-                  transformStyle: "preserve-3d",
-                }}
-                className={`absolute inset-0 rounded-t-[120px] rounded-b-[20px] flex flex-col items-center justify-center cursor-pointer border-2 border-sky-200/80 transition-colors ${
-                  stage === "front_closed"
-                    ? "hover:brightness-105 active:scale-[0.99]"
-                    : ""
-                }`}
-              >
-                <div
-                  className="absolute inset-0 rounded-t-[118px] rounded-b-[18px]"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #99C5F0 0%, #7EAAD9 60%, #6392C2 100%)",
-                  }}
-                />
-
-                {/* Ranura de cartas superior */}
-                <div className="relative z-10 w-44 h-4 bg-[#4A79A6] rounded-full border border-sky-900/30 shadow-inner flex items-center justify-center mb-8">
-                  <div className="w-36 h-1 bg-sky-950/40 rounded-full" />
-                </div>
-
-                {/* Manija / Pestillo redondo dorado */}
-                <div className="relative z-10 flex flex-col items-center group">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-b from-[#F2D18B] to-[#C99C44] p-1 shadow-lg border border-[#FFE7A8] flex items-center justify-center transition-transform group-hover:scale-105">
-                    <div className="w-11 h-11 rounded-full bg-[#E5BE73] shadow-inner flex items-center justify-center">
-                      <Heart size={18} className="fill-white text-white drop-shadow-xs" />
-                    </div>
+              {/* =============================================================== */}
+              {/* LA ETIQUETA ADHESIVA DE ACCESO PEGADA AL COSTADO DEL BUZÓN */}
+              {/* =============================================================== */}
+              <div className="relative z-20 mx-1 mb-1 bg-gradient-to-b from-[#FFFDF7] to-[#F5EEDC] rounded-xl p-3.5 sm:p-4 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)]">
+                {/* Cabecera de la Etiqueta Postal */}
+                <div className="flex items-center justify-between border-b border-[#E3D8C1] pb-1.5 mb-2.5">
+                  <div className="flex items-center gap-1.5 text-left">
+                    <Compass size={13} className="text-[#9A7D46]" />
+                    <span className="font-mono text-[8.5px] uppercase tracking-wider font-bold text-[#8A6C35]">
+                      Etiqueta Postal de Acceso
+                    </span>
                   </div>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/90 font-bold mt-2 drop-shadow-xs">
-                    {isDoorOpen ? "Cerrar" : "Tocar para abrir"}
+                  <span className="font-mono text-[8px] text-[#A68F63] font-bold">
+                    FOLIO: NA-2026
                   </span>
                 </div>
 
-                <div className="absolute inset-2 rounded-t-[110px] rounded-b-[14px] border border-white/30 pointer-events-none" />
-              </motion.div>
+                {/* Selector de modo Login / Registro en la etiqueta */}
+                <div className="flex p-0.5 bg-[#ECE3CE] rounded-lg mb-2.5 border border-[#D9CEB5]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("login");
+                      setAuthError(null);
+                    }}
+                    className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                      authMode === "login"
+                        ? "bg-white text-sky-950 shadow-xs"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    Identificarme
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("register");
+                      setAuthError(null);
+                    }}
+                    className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                      authMode === "register"
+                        ? "bg-white text-sky-950 shadow-xs"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    Crear Perfil QR
+                  </button>
+                </div>
+
+                {authError && (
+                  <div className="mb-2.5 p-2 rounded-lg bg-blush-100/90 border border-blush-300 text-ink text-left text-[10.5px] flex items-start gap-1.5">
+                    <AlertCircle size={13} className="text-blush-600 flex-shrink-0 mt-0.5" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                {authMode === "login" ? (
+                  <form onSubmit={handleLoginSubmit} className="space-y-2 text-left">
+                    {/* Sellos de selección de destinatario (Samuel / Diana) */}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleRoleChange("novio")}
+                        className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          role === "novio"
+                            ? "border-sky-500 bg-sky-100 text-sky-950 shadow-xs"
+                            : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-sky-50/50"
+                        }`}
+                      >
+                        <User size={12} className="text-sky-700" />
+                        <span>Samuel</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRoleChange("novia")}
+                        className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          role === "novia"
+                            ? "border-blush-400 bg-blush-100 text-blush-950 shadow-xs"
+                            : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-blush-50/50"
+                        }`}
+                      >
+                        <Heart size={12} className="text-blush-500 fill-blush-400" />
+                        <span>Diana</span>
+                      </button>
+                    </div>
+
+                    {/* Campo Correo estilo formulario postal */}
+                    <div>
+                      <label className="block text-[9.5px] font-bold uppercase tracking-wider text-ink-soft mb-0.5">
+                        Correo Postal
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="correo@ejemplo.com"
+                          className="w-full py-1.5 px-2.5 pl-8 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
+                        />
+                        <Mail
+                          size={13}
+                          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sky-700 opacity-75"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Campo Contraseña */}
+                    <div>
+                      <label className="block text-[9.5px] font-bold uppercase tracking-wider text-ink-soft mb-0.5">
+                        Contraseña Secreta
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full py-1.5 px-2.5 pl-8 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
+                        />
+                        <Lock
+                          size={13}
+                          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sky-700 opacity-75"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botón de Entrada estilo Sello */}
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={authLoading}
+                        className="w-full bg-sky-700 hover:bg-sky-800 text-white font-sans font-bold text-xs py-2.5 px-4 rounded-xl hover:shadow-md transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {authLoading ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin" />
+                            <span>Abriendo cerrojo...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Timbrar y Entrar al Buzón</span>
+                            <ArrowRight size={13} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegisterSubmit} className="space-y-2 text-left">
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase text-ink-soft mb-0.5">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={regNombre}
+                        onChange={(e) => setRegNombre(e.target.value)}
+                        placeholder="ej. Samuel, Diana..."
+                        className="w-full py-1.5 px-2.5 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase text-ink-soft mb-0.5">
+                        Correo
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="correo@ejemplo.com"
+                        className="w-full py-1.5 px-2.5 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase text-ink-soft mb-0.5">
+                        Contraseña
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                        className="w-full py-1.5 px-2.5 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
+                      />
+                    </div>
+
+                    <div className="pt-1">
+                      <button
+                        type="submit"
+                        disabled={authLoading}
+                        className="w-full bg-sky-700 hover:bg-sky-800 text-white font-sans font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {authLoading ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <>
+                            <QrCode size={13} />
+                            <span>Crear Buzón y Generar QR</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
 
-            {/* Hint flotante de invitación a tocar la puerta */}
+            {/* ================================================================= */}
+            {/* MARCO FRONTAL Y CAVIDAD INTERIOR ILUMINADA DEL BUZÓN */}
+            {/* ================================================================= */}
+            <div
+              className="absolute inset-0 rounded-t-[155px] pointer-events-none border-2 border-sky-300/80 shadow-2xl"
+              style={{
+                transform: "translateZ(219px)",
+                background:
+                  "linear-gradient(180deg, #A2C8EE 0%, #82B0DD 40%, #6899CA 100%)",
+              }}
+            >
+              {/* Cavidad interior del túnel (Visible al abrir la puerta) */}
+              <div
+                className={`absolute inset-3 rounded-t-[142px] bg-gradient-to-b from-[#182C40] via-[#101E2B] to-[#0A131C] border border-sky-900/80 flex flex-col items-center justify-center transition-all duration-700 ${
+                  isDoorOpen ? "opacity-100 shadow-inner" : "opacity-0"
+                }`}
+              >
+                {/* Haz de luz cálida interior */}
+                <div className="absolute inset-0 bg-radial from-amber-200/35 via-sky-300/10 to-transparent blur-md" />
+
+                <div className="relative z-10 flex flex-col items-center justify-center">
+                  <Mail size={36} className="text-amber-200/90 animate-pulse mb-1" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-amber-200/80 font-bold">
+                    {pendingCitas.length > 0
+                      ? `${pendingCitas.length} Correspondencia(s)`
+                      : "Buzón al día"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ================================================================= */}
+            {/* PUERTA FRONTAL BASCULANTE REALISTA (Bisagra inferior) */}
+            {/* ================================================================= */}
+            <motion.div
+              onClick={handleDoorClick}
+              animate={{
+                rotateX: isDoorOpen ? -118 : 0,
+                y: isDoorOpen ? 14 : 0,
+              }}
+              transition={{
+                duration: 0.8,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              style={{
+                transformOrigin: "bottom center",
+                transformStyle: "preserve-3d",
+                transform: "translateZ(221px)",
+              }}
+              className={`absolute inset-0 rounded-t-[155px] flex flex-col items-center justify-center cursor-pointer border-2 border-sky-200/90 transition-all ${
+                stage === "front_closed"
+                  ? "hover:brightness-105 active:scale-[0.99]"
+                  : ""
+              }`}
+            >
+              {/* Esmalte azul de la puerta */}
+              <div
+                className="absolute inset-0 rounded-t-[153px]"
+                style={{
+                  background:
+                    "linear-gradient(145deg, #9DC6EE 0%, #7EABE0 40%, #5E8FBF 100%)",
+                }}
+              />
+
+              {/* Bisagras de latón en la base */}
+              <div className="absolute -bottom-1 left-8 w-6 h-3 bg-[#D4AA55] rounded-xs shadow-xs border border-[#8C6B25]" />
+              <div className="absolute -bottom-1 right-8 w-6 h-3 bg-[#D4AA55] rounded-xs shadow-xs border border-[#8C6B25]" />
+
+              {/* Ranura de correspondencia superior */}
+              <div className="relative z-10 w-44 h-4 bg-[#3E6D99] rounded-full border border-sky-950/40 shadow-inner flex items-center justify-center mb-8">
+                <div className="w-36 h-1 bg-sky-950/60 rounded-full" />
+              </div>
+
+              {/* Manija de apertura redonda dorada */}
+              <div className="relative z-10 flex flex-col items-center group">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-b from-[#F7DA99] via-[#E2B75A] to-[#B3852C] p-1 shadow-lg border border-[#FFEAB3] flex items-center justify-center transition-transform group-hover:scale-105">
+                  <div className="w-11 h-11 rounded-full bg-[#E5BE73] shadow-inner flex items-center justify-center border border-[#CA9B3B]">
+                    <Heart size={18} className="fill-white text-white drop-shadow-xs" />
+                  </div>
+                </div>
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/95 font-bold mt-2 drop-shadow-xs">
+                  {isDoorOpen ? "Cerrar" : "Tocar para abrir"}
+                </span>
+              </div>
+
+              {/* Borde metálico de cierre hermético */}
+              <div className="absolute inset-2 rounded-t-[145px] border border-white/35 pointer-events-none" />
+            </motion.div>
+
+            {/* Hint flotante cuando está de frente y cerrada */}
             {stage === "front_closed" && (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
@@ -553,261 +916,6 @@ export function Mailbox3DExperience({
                 </div>
               </motion.div>
             )}
-          </div>
-
-          {/* ===================================================================== */}
-          {/* CARA LATERAL DEL BUZÓN 3D: LOGIN + NOMBRES PINTADOS SAMUEL Y DIANA */}
-          {/* ===================================================================== */}
-          <div
-            className={`absolute z-30 transition-all duration-700 ${
-              stage === "lateral_login"
-                ? "opacity-100 pointer-events-auto"
-                : "opacity-0 pointer-events-none"
-            }`}
-            style={{
-              transform:
-                "translateX(180px) translateZ(120px) rotateY(-40deg)",
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <div className="w-[340px] sm:w-[390px] flex flex-col items-center select-text">
-              {/* PLACA SUPERIOR: NOMBRES PINTADOS A MANO "SAMUEL Y DIANA" */}
-              <div className="relative mb-3 flex flex-col items-center select-none w-full">
-                <svg
-                  className="absolute -inset-x-6 -inset-y-3 w-[calc(100%+48px)] h-[calc(100%+24px)] text-white/95 drop-shadow-md -z-10"
-                  viewBox="0 0 280 60"
-                  fill="currentColor"
-                  preserveAspectRatio="none"
-                >
-                  <path d="M 12 18 Q 80 4 140 10 Q 210 5 268 16 Q 275 35 260 48 Q 180 56 120 50 Q 50 55 10 42 Q 4 28 12 18 Z" />
-                </svg>
-
-                <div className="px-6 py-1.5 text-center">
-                  <span
-                    className="font-handwriting text-3xl sm:text-4xl text-sky-950 font-bold tracking-wide block drop-shadow-[0_1px_1px_rgba(40,75,110,0.25)]"
-                    style={{
-                      transform: "rotate(-1.5deg)",
-                      textShadow:
-                        "1px 1px 0 rgba(255,255,255,0.8), -1px -1px 0 rgba(100,150,200,0.15)",
-                    }}
-                  >
-                    Samuel & Diana
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-sky-700/80 block mt-0.5 font-bold">
-                    Cara Lateral · Buzón de Nuestras Aventuras
-                  </span>
-                </div>
-              </div>
-
-              {/* FORMULARIO DE LOGIN INTEGRADO A LA CARA LATERAL */}
-              <div className="w-full bg-white/95 backdrop-blur-md rounded-[24px] shadow-letter p-6 sm:p-7 text-center border border-sky-200/90 animate-fade-up">
-                <div className="flex justify-center mb-2">
-                  <AppLogo size="lg" />
-                </div>
-
-                <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-tight mb-1">
-                  {authMode === "login" ? "Acceso al Buzón" : "Crear Perfil"}
-                </h2>
-                <p className="text-ink-soft text-xs mb-4 font-normal">
-                  {authMode === "login"
-                    ? "Inicia sesión para revisar tus cartas."
-                    : "Crea tu cuenta y conéctate por código QR."}
-                </p>
-
-                {/* Selector Modo Login / Registro */}
-                <div className="flex p-1 bg-sky-100/70 rounded-xl mb-4 border border-sky-200/70">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("login");
-                      setAuthError(null);
-                    }}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      authMode === "login"
-                        ? "bg-white text-sky-950 shadow-xs"
-                        : "text-ink-soft hover:text-ink"
-                    }`}
-                  >
-                    Iniciar Sesión
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAuthMode("register");
-                      setAuthError(null);
-                    }}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      authMode === "register"
-                        ? "bg-white text-sky-950 shadow-xs"
-                        : "text-ink-soft hover:text-ink"
-                    }`}
-                  >
-                    Crear Perfil QR
-                  </button>
-                </div>
-
-                {authError && (
-                  <div className="mb-4 p-2.5 rounded-xl bg-blush-50 border border-blush-200 text-ink text-left text-xs flex items-start gap-2">
-                    <AlertCircle size={15} className="text-blush-500 flex-shrink-0 mt-0.5" />
-                    <span>{authError}</span>
-                  </div>
-                )}
-
-                {authMode === "login" ? (
-                  <form onSubmit={handleLoginSubmit} className="space-y-3.5 text-left">
-                    <div className="flex gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => handleRoleChange("novio")}
-                        className={`flex-1 py-2 px-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                          role === "novio"
-                            ? "border-sky-400 bg-sky-100 text-sky-900 shadow-xs"
-                            : "border-line text-ink-soft hover:bg-sky-50/50"
-                        }`}
-                      >
-                        <User size={13} className="text-sky-700" />
-                        <span>Samuel</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleRoleChange("novia")}
-                        className={`flex-1 py-2 px-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                          role === "novia"
-                            ? "border-blush-300 bg-blush-100 text-blush-900 shadow-xs"
-                            : "border-line text-ink-soft hover:bg-blush-50/50"
-                        }`}
-                      >
-                        <Heart size={13} className="text-blush-500 fill-blush-400" />
-                        <span>Diana</span>
-                      </button>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1">
-                        Correo
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="correo@ejemplo.com"
-                          className="w-full py-2.5 px-3 pl-9 border border-sky-200/80 rounded-xl font-sans text-xs bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
-                        />
-                        <Mail
-                          size={14}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1">
-                        Contraseña
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          required
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full py-2.5 px-3 pl-9 border border-sky-200/80 rounded-xl font-sans text-xs bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 transition-all"
-                        />
-                        <Lock
-                          size={14}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-600 opacity-70"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-1">
-                      <button
-                        type="submit"
-                        disabled={authLoading}
-                        className="w-full bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs py-3 px-4 rounded-xl hover:shadow-md transition-all duration-150 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        {authLoading ? (
-                          <>
-                            <Loader2 size={14} className="animate-spin" />
-                            <span>Entrando al buzón...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Entrar al buzón</span>
-                            <ArrowRight size={14} />
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleRegisterSubmit} className="space-y-3 text-left">
-                    <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1">
-                        Nombre
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={regNombre}
-                        onChange={(e) => setRegNombre(e.target.value)}
-                        placeholder="ej. Samuel, Diana..."
-                        className="w-full py-2 px-3 border border-sky-200/80 rounded-xl font-sans text-xs bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1">
-                        Correo
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        placeholder="correo@ejemplo.com"
-                        className="w-full py-2 px-3 border border-sky-200/80 rounded-xl font-sans text-xs bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-semibold uppercase tracking-[0.06em] text-ink-soft mb-1">
-                        Contraseña
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        minLength={6}
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="Mínimo 6 caracteres"
-                        className="w-full py-2 px-3 border border-sky-200/80 rounded-xl font-sans text-xs bg-sky-50/30 text-ink focus:outline-none focus:border-sky-400"
-                      />
-                    </div>
-
-                    <div className="pt-1">
-                      <button
-                        type="submit"
-                        disabled={authLoading}
-                        className="w-full bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        {authLoading ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : (
-                          <>
-                            <QrCode size={14} />
-                            <span>Crear Buzón y Código QR</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
           </div>
         </motion.div>
 
@@ -886,7 +994,7 @@ export function Mailbox3DExperience({
 
                         <div className="flex items-start justify-between">
                           <div>
-                            <span className="font-mono text-[9px] uppercase tracking-widest text-[#9A8150] block">
+                            <span className="font-mono text-[9px] uppercase tracking-widest text-[#9A8150] block font-bold">
                               Correspondencia Especial
                             </span>
                             <span className="font-serif italic text-xs text-ink-soft">
