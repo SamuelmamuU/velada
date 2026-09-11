@@ -14,8 +14,16 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   const { user, loading } = useAuth();
+  const [timeoutExpired, setTimeoutExpired] = React.useState(false);
 
-  if (loading) {
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimeoutExpired(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading && !timeoutExpired) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-ivory p-6">
         <Seal size="lg" className="animate-pulse mb-4" />
