@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
 import { Pareja } from "@/models/Pareja";
 import { memoryStore } from "@/lib/store";
+import { generateUniquePairingCode } from "@/lib/pairing";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,6 +17,10 @@ export async function GET(req: NextRequest) {
       try {
         const user = await Usuario.findById(auth.user.id);
         if (user) {
+          if (!user.codigoVinculacion || user.codigoVinculacion === "AVENTURA-LOVE") {
+            user.codigoVinculacion = await generateUniquePairingCode(true);
+            await user.save();
+          }
           let estadoPareja: "esperando_pareja" | "conectados" = "esperando_pareja";
           let nombrePareja: string | undefined = undefined;
 
@@ -57,6 +62,10 @@ export async function GET(req: NextRequest) {
     const memUser = memoryStore.usuarios.find(
       (u) => u.id === auth.user.id || u.email === auth.user.email
     );
+
+    if (memUser && (!memUser.codigoVinculacion || memUser.codigoVinculacion === "AVENTURA-LOVE")) {
+      memUser.codigoVinculacion = await generateUniquePairingCode(false);
+    }
 
     let estadoPareja = memUser?.estadoPareja || "esperando_pareja";
     let nombrePareja = memUser?.nombrePareja;

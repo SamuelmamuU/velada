@@ -175,10 +175,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res.success;
   };
 
-  const refreshPareja = async () => {
+  const refreshPareja = useCallback(async () => {
     await fetchParejaEstado();
-    // También refrescar datos del usuario (nombre de pareja, etc.)
-    const currentToken = token || localStorage.getItem("velada_token");
+    const currentToken = token || (typeof window !== "undefined" ? localStorage.getItem("velada_token") : null);
     if (currentToken) {
       const res = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${currentToken}` },
@@ -190,10 +189,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-  };
+  }, [fetchParejaEstado, token]);
 
-  const vincularPareja = async (codigo: string) => {
-    const currentToken = token || localStorage.getItem("velada_token");
+  const vincularPareja = useCallback(async (codigo: string) => {
+    const currentToken = token || (typeof window !== "undefined" ? localStorage.getItem("velada_token") : null);
     if (!currentToken) {
       return { success: false, error: "No hay sesión activa" };
     }
@@ -218,10 +217,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       return { success: false, error: err.message || "Error al conectar con el servidor" };
     }
-  };
+  }, [token, refreshPareja]);
 
-  const desvincularPareja = async () => {
-    const currentToken = token || localStorage.getItem("velada_token");
+  const desvincularPareja = useCallback(async () => {
+    const currentToken = token || (typeof window !== "undefined" ? localStorage.getItem("velada_token") : null);
     if (!currentToken) return { success: false, error: "No hay sesión activa" };
 
     try {
@@ -242,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err: any) {
       return { success: false, error: err.message || "Error al conectar con el servidor" };
     }
-  };
+  }, [token, refreshPareja]);
 
   return (
     <AuthContext.Provider

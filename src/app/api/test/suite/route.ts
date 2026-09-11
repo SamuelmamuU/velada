@@ -9,6 +9,7 @@ import {
 } from "@/lib/validations/cita";
 import { generateGoogleCalendarUrl, generateIcsContent } from "@/lib/calendar";
 import { generateNarrativeLetter } from "@/lib/narrativeLetter";
+import { generateRandomCode } from "@/lib/pairing";
 import QRCode from "qrcode";
 
 export async function GET(req: NextRequest) {
@@ -327,12 +328,16 @@ export async function GET(req: NextRequest) {
     qrGeneratedOk
   );
 
-  const samplePairingCode = "AVENTURA-9X4K";
+  const samplePairingCode1 = generateRandomCode();
+  const samplePairingCode2 = generateRandomCode();
   addTest(
     "Vinculación QR y Parejas",
     "QR-02",
-    "Formato estándar de código alfanumérico seguro (Prefijo AVENTURA-)",
-    samplePairingCode.startsWith("AVENTURA-") && samplePairingCode.length === 13
+    "Formato estándar de código alfanumérico aleatorio y no repetitivo (Prefijo AVENTURA-)",
+    samplePairingCode1.startsWith("AVENTURA-") &&
+      samplePairingCode2.startsWith("AVENTURA-") &&
+      samplePairingCode1 !== samplePairingCode2 &&
+      samplePairingCode1.length >= 13
   );
 
   const mockUserRomeo = {

@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
 import { Pareja } from "@/models/Pareja";
 import { memoryStore } from "@/lib/store";
+import { generateUniquePairingCode } from "@/lib/pairing";
 
 export async function GET(req: NextRequest) {
   try {
@@ -73,11 +74,15 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (memUser && (!memUser.codigoVinculacion || memUser.codigoVinculacion === "AVENTURA-LOVE")) {
+      memUser.codigoVinculacion = await generateUniquePairingCode(false);
+    }
+
     return NextResponse.json({
       success: true,
       data: {
         id: "",
-        codigoVinculacion: memUser?.codigoVinculacion || "AVENTURA-LOVE",
+        codigoVinculacion: memUser?.codigoVinculacion || (await generateUniquePairingCode(false)),
         estado: "esperando_pareja",
         parejaNombre: undefined,
         fechaVinculacion: undefined,

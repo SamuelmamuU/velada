@@ -8,14 +8,7 @@ import { signToken } from "@/lib/jwt";
 import { memoryStore } from "@/lib/store";
 import { RolUsuario } from "@/types";
 
-function generatePairingCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let randomStr = "";
-  for (let i = 0; i < 4; i++) {
-    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `AVENTURA-${randomStr}`;
-}
+import { generateUniquePairingCode } from "@/lib/pairing";
 
 export async function POST(req: NextRequest) {
   try {
@@ -75,13 +68,8 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        // Generar código de vinculación único
-        let codigo = generatePairingCode();
-        let codeExists = await Pareja.findOne({ codigoVinculacion: codigo });
-        while (codeExists) {
-          codigo = generatePairingCode();
-          codeExists = await Pareja.findOne({ codigoVinculacion: codigo });
-        }
+        // Generar código de vinculación único aleatorio de alta entropía
+        const codigo = await generateUniquePairingCode(true);
 
         // Crear usuario
         const nuevoUsuario = await Usuario.create({
@@ -160,10 +148,8 @@ export async function POST(req: NextRequest) {
       memoryStore.parejas = [];
     }
 
-    let codigoMem = generatePairingCode();
-    while (memoryStore.parejas.some((p) => p.codigoVinculacion === codigoMem)) {
-      codigoMem = generatePairingCode();
-    }
+    // Generar código de vinculación único aleatorio de alta entropía
+    const codigoMem = await generateUniquePairingCode(false);
 
 
     const userId = "mem_u_" + crypto.randomBytes(6).toString("hex");

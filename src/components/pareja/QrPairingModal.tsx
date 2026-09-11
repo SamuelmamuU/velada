@@ -21,6 +21,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
+import QRCode from "qrcode";
 
 interface QrPairingModalProps {
   isOpen: boolean;
@@ -48,41 +49,72 @@ export function QrPairingModal({ isOpen, onClose }: QrPairingModalProps) {
   const qrScannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerId = "qr-reader-container";
 
-  // Cargar QR propio al abrir
+  // Cargar QR propio al abrir de forma instantánea y sincronizar con backend
   useEffect(() => {
     if (!isOpen) return;
 
     let isMounted = true;
-    const loadQr = async () => {
-      try {
+
+    const initQr = async () => {
+      // 1. Si el usuario ya tiene su código en memoria/sesión, renderizar QR al instante en cliente (<5ms)
+      const initialCode = user?.codigoVinculacion;
+      if (initialCode) {
+        setCodigoPropio(initialCode);
+        try {
+          const clientQr = await QRCode.toDataURL(initialCode, {
+            width: 320,
+            margin: 2,
+            color: { dark: "#1e3a5f", light: "#ffffff" },
+          });
+          if (isMounted && clientQr) {
+            setQrDataUrl(clientQr);
+          }
+        } catch (e) {
+          console.warn("Generación QR local falló, consultando servidor...", e);
+        }
+      } else {
         setLoadingQr(true);
+      }
+
+      // 2. Consultar al backend para validar y sincronizar código único garantizado
+      try {
         const savedToken = localStorage.getItem("velada_token");
         const res = await fetch("/api/pareja/codigo", {
-          headers: {
-            Authorization: `Bearer ${savedToken}`,
-          },
+          headers: savedToken ? { Authorization: `Bearer ${savedToken}` } : {},
+          credentials: "include",
         });
+
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data && isMounted) {
-            setQrDataUrl(json.data.qrDataUrl);
-            setCodigoPropio(json.data.codigo);
+            const serverCode = json.data.codigo;
+            setCodigoPropio(serverCode);
+
+            if (json.data.qrDataUrl) {
+              setQrDataUrl(json.data.qrDataUrl);
+            } else if (serverCode) {
+              const url = await QRCode.toDataURL(serverCode, {
+                width: 320,
+                margin: 2,
+                color: { dark: "#1e3a5f", light: "#ffffff" },
+              });
+              if (isMounted) setQrDataUrl(url);
+            }
           }
         }
       } catch (err) {
-        console.error("Error al cargar QR:", err);
+        console.error("Error al sincronizar QR con servidor:", err);
       } finally {
         if (isMounted) setLoadingQr(false);
       }
     };
 
-    loadQr();
-    refreshPareja();
+    initQr();
 
     return () => {
       isMounted = false;
     };
-  }, [isOpen, refreshPareja]);
+  }, [isOpen, user?.codigoVinculacion]);
 
   // Manejador para iniciar la cámara
   const startScanner = async () => {
@@ -342,7 +374,7 @@ export function QrPairingModal({ isOpen, onClose }: QrPairingModalProps) {
                       Código de Invitación
                     </span>
                     <span className="font-mono text-base font-bold text-sky-950 tracking-wider">
-                      {codigoPropio || "AVENTURA-LOVE"}
+                      {codigoPropio || user?.codigoVinculacion || "Generando..."}
                     </span>
                   </div>
 

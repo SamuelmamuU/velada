@@ -6,6 +6,7 @@ import { Pareja } from "@/models/Pareja";
 import { signToken } from "@/lib/jwt";
 import { seedDatabase, DEFAULT_USERS } from "@/lib/seed";
 import { memoryStore } from "@/lib/store";
+import { generateUniquePairingCode } from "@/lib/pairing";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +46,11 @@ export async function POST(req: NextRequest) {
             { success: false, error: "Credenciales inválidas. Contraseña incorrecta." },
             { status: 401 }
           );
+        }
+
+        if (!user.codigoVinculacion || user.codigoVinculacion === "AVENTURA-LOVE") {
+          user.codigoVinculacion = await generateUniquePairingCode(true);
+          await user.save();
         }
 
         let estadoPareja: "esperando_pareja" | "conectados" = "esperando_pareja";
@@ -123,6 +129,10 @@ export async function POST(req: NextRequest) {
         { success: false, error: "Credenciales inválidas." },
         { status: 401 }
       );
+    }
+
+    if (!fallbackUser.codigoVinculacion || fallbackUser.codigoVinculacion === "AVENTURA-LOVE") {
+      fallbackUser.codigoVinculacion = await generateUniquePairingCode(false);
     }
 
     let estadoPareja = fallbackUser.estadoPareja || "esperando_pareja";

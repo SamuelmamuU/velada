@@ -28,14 +28,15 @@ export async function seedDatabase() {
     let user = await Usuario.findOne({ email: u.email.toLowerCase() });
     if (!user) {
       const passwordHash = await bcrypt.hash(u.password, 10);
+      const userCode = u.rol === "novio" ? "AVENTURA-S4M9X2" : "AVENTURA-D7N8T5";
       user = await Usuario.create({
         nombre: u.nombre,
         email: u.email.toLowerCase(),
         passwordHash,
         rol: u.rol,
-        codigoVinculacion: "AVENTURA-LOVE",
+        codigoVinculacion: userCode,
       });
-      console.log(`[Seed] Usuario creado: ${u.email} (${u.rol})`);
+      console.log(`[Seed] Usuario creado: ${u.email} (${u.rol}) con código ${userCode}`);
     }
     usuariosCreados.push(user);
   }
@@ -44,10 +45,12 @@ export async function seedDatabase() {
   const noviaUser = usuariosCreados.find((u) => u.rol === "novia");
 
   // Crear o vincular Pareja por defecto para Samuel y Diana
-  let defaultPareja = await Pareja.findOne({ codigoVinculacion: "AVENTURA-LOVE" });
+  let defaultPareja = await Pareja.findOne({
+    $or: [{ codigoVinculacion: "AVENTURA-S4M9X2" }, { codigoVinculacion: "AVENTURA-LOVE" }],
+  });
   if (!defaultPareja && novioUser && noviaUser) {
     defaultPareja = await Pareja.create({
-      codigoVinculacion: "AVENTURA-LOVE",
+      codigoVinculacion: "AVENTURA-S4M9X2",
       novioId: novioUser._id,
       noviaId: noviaUser._id,
       estado: "conectados",

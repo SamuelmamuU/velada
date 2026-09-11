@@ -18,7 +18,7 @@ if (!globalStore.__velada_mem_db) {
         email: "novio@velada.app",
         rol: "novio",
         parejaId: "pareja_default_samuel_diana",
-        codigoVinculacion: "AVENTURA-LOVE",
+        codigoVinculacion: "AVENTURA-S4M9X2",
         estadoPareja: "conectados",
         nombrePareja: "Diana",
         passwordHash: "$2a$10$7rO0y4.t03rC70wA0e0Hqu8p9KqY6z0cR0Y0e0Hqu8p9KqY6z0cRe", // NovioVelada2026!
@@ -29,7 +29,7 @@ if (!globalStore.__velada_mem_db) {
         email: "novia@velada.app",
         rol: "novia",
         parejaId: "pareja_default_samuel_diana",
-        codigoVinculacion: "AVENTURA-LOVE",
+        codigoVinculacion: "AVENTURA-D7N8T5",
         estadoPareja: "conectados",
         nombrePareja: "Samuel",
         passwordHash: "$2a$10$7rO0y4.t03rC70wA0e0Hqu8p9KqY6z0cR0Y0e0Hqu8p9KqY6z0cRe", // NoviaVelada2026!
@@ -38,7 +38,7 @@ if (!globalStore.__velada_mem_db) {
     parejas: [
       {
         id: "pareja_default_samuel_diana",
-        codigoVinculacion: "AVENTURA-LOVE",
+        codigoVinculacion: "AVENTURA-S4M9X2",
         novioId: "64f1a2b3c4d5e6f7a8b9c001",
         noviaId: "64f1a2b3c4d5e6f7a8b9c002",
         estado: "conectados",
@@ -241,19 +241,35 @@ if (!globalStore.__velada_mem_db) {
   };
 }
 
-if (globalStore.__velada_mem_db && !Array.isArray(globalStore.__velada_mem_db.parejas)) {
-  globalStore.__velada_mem_db.parejas = [
-    {
-      id: "pareja_default_samuel_diana",
-      codigoVinculacion: "AVENTURA-LOVE",
-      novioId: "64f1a2b3c4d5e6f7a8b9c001",
-      noviaId: "64f1a2b3c4d5e6f7a8b9c002",
-      estado: "conectados",
-      fechaVinculacion: "2026-01-01T00:00:00.000Z",
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z",
-    },
-  ];
+if (globalStore.__velada_mem_db) {
+  if (!Array.isArray(globalStore.__velada_mem_db.parejas)) {
+    globalStore.__velada_mem_db.parejas = [
+      {
+        id: "pareja_default_samuel_diana",
+        codigoVinculacion: "AVENTURA-S4M9X2",
+        novioId: "64f1a2b3c4d5e6f7a8b9c001",
+        noviaId: "64f1a2b3c4d5e6f7a8b9c002",
+        estado: "conectados",
+        fechaVinculacion: "2026-01-01T00:00:00.000Z",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ];
+  } else {
+    // Si quedó "AVENTURA-LOVE" por hot reload, actualizar a códigos individuales
+    const sam = globalStore.__velada_mem_db.usuarios?.find((u) => u.email === "novio@velada.app");
+    if (sam && (!sam.codigoVinculacion || sam.codigoVinculacion === "AVENTURA-LOVE")) {
+      sam.codigoVinculacion = "AVENTURA-S4M9X2";
+    }
+    const dia = globalStore.__velada_mem_db.usuarios?.find((u) => u.email === "novia@velada.app");
+    if (dia && (!dia.codigoVinculacion || dia.codigoVinculacion === "AVENTURA-LOVE")) {
+      dia.codigoVinculacion = "AVENTURA-D7N8T5";
+    }
+    const par = globalStore.__velada_mem_db.parejas?.find((p) => p.id === "pareja_default_samuel_diana");
+    if (par && (!par.codigoVinculacion || par.codigoVinculacion === "AVENTURA-LOVE")) {
+      par.codigoVinculacion = "AVENTURA-S4M9X2";
+    }
+  }
 }
 
 export const memoryStore = globalStore.__velada_mem_db!;

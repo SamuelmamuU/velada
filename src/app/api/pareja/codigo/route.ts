@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Usuario } from "@/models/Usuario";
 import { Pareja } from "@/models/Pareja";
 import { memoryStore } from "@/lib/store";
+import { generateUniquePairingCode } from "@/lib/pairing";
 import QRCode from "qrcode";
 
 export async function GET(req: NextRequest) {
@@ -22,14 +23,17 @@ export async function GET(req: NextRequest) {
       try {
         const user = await Usuario.findById(auth.user.id);
         if (user) {
-          codigo = user.codigoVinculacion || "";
+          if (!user.codigoVinculacion || user.codigoVinculacion === "AVENTURA-LOVE") {
+            user.codigoVinculacion = await generateUniquePairingCode(true);
+            await user.save();
+          }
+          codigo = user.codigoVinculacion;
           parejaId = user.parejaId ? user.parejaId.toString() : null;
 
           if (user.parejaId) {
             const pareja = await Pareja.findById(user.parejaId);
             if (pareja) {
               estado = pareja.estado;
-              codigo = codigo || pareja.codigoVinculacion;
               const partnerId = user.rol === "novio" ? pareja.noviaId : pareja.novioId;
               if (partnerId) {
                 const partner = await Usuario.findById(partnerId);
@@ -49,7 +53,10 @@ export async function GET(req: NextRequest) {
         (u) => u.id === auth.user.id || u.email === auth.user.email
       );
       if (memUser) {
-        codigo = memUser.codigoVinculacion || "AVENTURA-LOVE";
+        if (!memUser.codigoVinculacion || memUser.codigoVinculacion === "AVENTURA-LOVE") {
+          memUser.codigoVinculacion = await generateUniquePairingCode(false);
+        }
+        codigo = memUser.codigoVinculacion;
         parejaId = memUser.parejaId || null;
         if (memUser.parejaId) {
           const pareja = memoryStore.parejas.find((p) => p.id === memUser.parejaId);
@@ -63,7 +70,7 @@ export async function GET(req: NextRequest) {
           }
         }
       } else {
-        codigo = "AVENTURA-LOVE";
+        codigo = await generateUniquePairingCode(false);
       }
     }
 
