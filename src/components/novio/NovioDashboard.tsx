@@ -20,6 +20,7 @@ import {
   QrCode,
 } from "lucide-react";
 import { QrPairingModal } from "@/components/pareja/QrPairingModal";
+import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
 
 interface NovioDashboardProps {
   onViewDetail?: (cita: ICitaResponse) => void;
@@ -34,6 +35,9 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     "list" | "create" | "edit" | "detail"
   >("list");
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
+  const [detailInitialSide, setDetailInitialSide] = useState<
+    "letter" | "map" | "memory"
+  >("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
   const partnerName = user?.nombrePareja || "Diana";
@@ -186,6 +190,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
 
             <CitaDetailView
               cita={selectedCita}
+              initialSide={detailInitialSide}
               onBack={() => {
                 setCurrentView("list");
                 setSelectedCita(null);
@@ -352,6 +357,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                     isNovio={true}
                     onSelect={(c) => {
                       setSelectedCita(c);
+                      setDetailInitialSide("letter");
                       setCurrentView("detail");
                       onViewDetail?.(c);
                     }}
@@ -363,6 +369,20 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                   />
                 ))}
               </div>
+            )}
+
+            {/* Muro de Recuerdos Polaroid de Nuestras Aventuras */}
+            {!loading && citas.length > 0 && (
+              <PolaroidMemoriesGallery
+                citas={citas}
+                onSelectMemory={(c) => {
+                  setSelectedCita(c);
+                  setDetailInitialSide("memory");
+                  setCurrentView("detail");
+                  onViewDetail?.(c);
+                }}
+                partnerName={partnerName}
+              />
             )}
 
             {/* Botón Flotante FAB */}

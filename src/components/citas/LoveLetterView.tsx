@@ -33,6 +33,7 @@ import {
 
 interface LoveLetterViewProps {
   cita: ICitaResponse;
+  initialSide?: "letter" | "map" | "memory";
   onClose?: () => void;
   onCitaUpdated?: (updatedCita: ICitaResponse) => void;
   showCloseButton?: boolean;
@@ -49,6 +50,7 @@ const PRESET_MEMORIES = [
 
 export function LoveLetterView({
   cita,
+  initialSide = "letter",
   onClose,
   onCitaUpdated,
   showCloseButton = true,
@@ -58,7 +60,7 @@ export function LoveLetterView({
 
   const [currentCita, setCurrentCita] = useState<ICitaResponse>(cita);
   const [currentSide, setCurrentSide] = useState<"letter" | "map" | "memory">(
-    "letter"
+    initialSide
   );
   const [responding, setResponding] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);

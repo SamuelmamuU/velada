@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { LoveLetterView } from "@/components/citas/LoveLetterView";
 import { MailboxOverlay } from "@/components/citas/MailboxOverlay";
+import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
 import {
   differenceInDays,
   differenceInHours,
@@ -34,6 +35,7 @@ export function NoviaDashboard() {
   const [citas, setCitas] = useState<ICitaResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
+  const [letterInitialSide, setLetterInitialSide] = useState<"letter" | "map" | "memory">("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
 
@@ -149,8 +151,12 @@ export function NoviaDashboard() {
     }
   }
 
-  const handleSelectCita = (cita: ICitaResponse) => {
+  const handleSelectCita = (
+    cita: ICitaResponse,
+    side: "letter" | "map" | "memory" = "letter"
+  ) => {
     markCitaAsViewed(cita.id);
+    setLetterInitialSide(side);
     setSelectedCita(cita);
   };
 
@@ -191,6 +197,7 @@ export function NoviaDashboard() {
           <div className="animate-fade-up">
             <LoveLetterView
               cita={selectedCita}
+              initialSide={letterInitialSide}
               onClose={() => setSelectedCita(null)}
               onCitaUpdated={handleCitaUpdated}
               showCloseButton={true}
@@ -352,6 +359,15 @@ export function NoviaDashboard() {
                   );
                 })}
               </div>
+            )}
+
+            {/* Muro de Recuerdos Polaroid de Nuestras Aventuras */}
+            {!loading && citas.length > 0 && (
+              <PolaroidMemoriesGallery
+                citas={citas}
+                onSelectMemory={(c) => handleSelectCita(c, "memory")}
+                partnerName={user?.nombrePareja || "Samuel"}
+              />
             )}
           </div>
         )}

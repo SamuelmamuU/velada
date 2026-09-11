@@ -175,10 +175,118 @@ export async function seedDatabase() {
         estado: "confirmada",
         importancia: "alta",
         ambiente: "exterior",
+        recuerdo: {
+          fotoUrl: "/polaroids/SANTALUCIA.jpg",
+          pieDeFoto: "Navegando bajo las luces de la noche",
+          fechaSubida: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+        },
         creadoPor: novioUser._id,
         parejaId: defaultPareja?._id,
       });
-      console.log("[Seed] Cita pasada sin recuerdo creada.");
+    }
+
+    const aniversarioExist = await Cita.findOne({ nombre: "Cena de nuestro aniversario" });
+    if (!aniversarioExist) {
+      await Cita.create({
+        nombre: "Cena de nuestro aniversario",
+        descripcion: "Nuestra velada más especial del año, recordando cada aventura vivida.",
+        horario: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Restaurante La Casona, San Pedro Garza García, N.L.",
+          lat: 25.6565,
+          lng: -100.4011,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Elegante formal para noche de aniversario.",
+        estado: "confirmada",
+        importancia: "especial",
+        ambiente: "interior",
+        recuerdo: {
+          fotoUrl: "/polaroids/ANIVERSARIO.jpg",
+          pieDeFoto: "Celebrando nuestro aniversario con vino y sonrisas",
+          fechaSubida: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000),
+        },
+        creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
+      });
+    }
+
+    const arcadeExist = await Cita.findOne({ nombre: "Tarde de juegos y arcade retro" });
+    if (!arcadeExist) {
+      await Cita.create({
+        nombre: "Tarde de juegos y arcade retro",
+        descripcion: "Torneo de maquinitas, risas sin parar y una nieve al final de la tarde.",
+        horario: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Arcade Vintage Club, Barrio Antiguo, Monterrey",
+          lat: 25.6669,
+          lng: -100.3065,
+        },
+        tematica: "Diversión",
+        vestimentaRecomendada: "Jeans cómodos y tenis para jugar.",
+        estado: "confirmada",
+        importancia: "media",
+        ambiente: "interior",
+        recuerdo: {
+          fotoUrl: "/polaroids/ARCADE.jpg",
+          pieDeFoto: "Tarde de maquinitas retro donde me ganaste en todo",
+          fechaSubida: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000),
+        },
+        creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
+      });
+    }
+
+    const graduacionExist = await Cita.findOne({ nombre: "Celebración de graduación" });
+    if (!graduacionExist) {
+      await Cita.create({
+        nombre: "Celebración de graduación",
+        descripcion: "Festejando una meta enorme juntos, flores y orgullo inmenso.",
+        horario: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Jardines del Museo MARCO, Centro, Monterrey",
+          lat: 25.6665,
+          lng: -100.3096,
+        },
+        tematica: "Especial",
+        vestimentaRecomendada: "Formal elegante de graduación.",
+        estado: "confirmada",
+        importancia: "especial",
+        ambiente: "mixto",
+        recuerdo: {
+          fotoUrl: "/polaroids/GRADUACION.jpg",
+          pieDeFoto: "Orgulloso de cada uno de tus pasos y metas cumplidas",
+          fechaSubida: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000),
+        },
+        creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
+      });
+    }
+
+    const voluntariosExist = await Cita.findOne({ nombre: "Día de voluntariado juntos" });
+    if (!voluntariosExist) {
+      await Cita.create({
+        nombre: "Día de voluntariado juntos",
+        descripcion: "Una mañana sembrando arbolitos en la montaña y compartiendo un pícnic.",
+        horario: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000),
+        lugar: {
+          direccion: "Parque Ecológico Chipinque, San Pedro Garza García",
+          lat: 25.6171,
+          lng: -100.3592,
+        },
+        tematica: "Aventura",
+        vestimentaRecomendada: "Ropa deportiva cómoda y botas de senderismo.",
+        estado: "confirmada",
+        importancia: "media",
+        ambiente: "exterior",
+        recuerdo: {
+          fotoUrl: "/polaroids/VOLUNTARIOS.jpg",
+          pieDeFoto: "Sembrando recuerdos y cuidando el bosque de tu mano",
+          fechaSubida: new Date(Date.now() - 73 * 24 * 60 * 60 * 1000),
+        },
+        creadoPor: novioUser._id,
+        parejaId: defaultPareja?._id,
+      });
     }
   }
 

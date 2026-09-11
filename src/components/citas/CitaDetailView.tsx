@@ -16,12 +16,14 @@ import {
 
 interface CitaDetailViewProps {
   cita: ICitaResponse;
+  initialSide?: "letter" | "map" | "memory";
   onBack: () => void;
   onCitaUpdated?: (updatedCita: ICitaResponse) => void;
 }
 
 export function CitaDetailView({
   cita,
+  initialSide,
   onBack,
   onCitaUpdated,
 }: CitaDetailViewProps) {
@@ -151,6 +153,7 @@ export function CitaDetailView({
       {/* Componente principal de la carta manuscrita con dog-ear y flip a mapa */}
       <LoveLetterView
         cita={currentCita}
+        initialSide={initialSide}
         onClose={onBack}
         onCitaUpdated={(updated) => {
           setCurrentCita(updated);

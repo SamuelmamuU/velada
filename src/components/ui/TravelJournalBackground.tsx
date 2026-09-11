@@ -8,44 +8,44 @@ export function TravelJournalBackground() {
     {
       src: "/polaroids/ANIVERSARIO.jpg",
       caption: "Nuestro Aniversario",
-      className: "top-16 -left-8 sm:left-4 rotate-[-7deg] hidden lg:block",
-      width: 140,
-      height: 140,
+      className: "top-8 sm:top-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-6deg] block",
+      width: 135,
+      height: 135,
     },
     {
       src: "/polaroids/SANTALUCIA.jpg",
       caption: "Paseo Santa Lucía",
-      className: "top-32 -right-8 sm:right-6 rotate-[6deg] hidden lg:block",
-      width: 140,
-      height: 140,
+      className: "top-8 sm:top-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[6deg] block",
+      width: 135,
+      height: 135,
     },
     {
       src: "/polaroids/CABANA.jpg",
       caption: "Nuestra Cabaña",
-      className: "bottom-36 -left-6 sm:left-6 rotate-[5deg] hidden xl:block",
+      className: "top-[40%] left-1 sm:left-3 lg:left-5 xl:left-8 rotate-[5deg] hidden sm:block",
       width: 130,
       height: 130,
     },
     {
       src: "/polaroids/ARCADE.jpg",
       caption: "Tarde de juegos",
-      className: "bottom-24 -right-6 sm:right-8 rotate-[-5deg] hidden xl:block",
+      className: "top-[42%] right-1 sm:right-3 lg:right-5 xl:right-8 rotate-[-5deg] hidden sm:block",
       width: 130,
       height: 130,
     },
     {
       src: "/polaroids/GRADUACION.jpg",
       caption: "Un gran logro",
-      className: "top-[48%] -left-10 sm:left-2 rotate-[-4deg] hidden 2xl:block",
-      width: 125,
-      height: 125,
+      className: "bottom-8 sm:bottom-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-4deg] hidden sm:block",
+      width: 130,
+      height: 130,
     },
     {
       src: "/polaroids/VOLUNTARIOS.jpg",
       caption: "Juntos siempre",
-      className: "top-[52%] -right-10 sm:right-4 rotate-[7deg] hidden 2xl:block",
-      width: 125,
-      height: 125,
+      className: "bottom-8 sm:bottom-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[7deg] hidden sm:block",
+      width: 130,
+      height: 130,
     },
   ];
 
@@ -234,7 +234,7 @@ export function TravelJournalBackground() {
       {polaroids.map((item, idx) => (
         <div
           key={idx}
-          className={`absolute ${item.className} opacity-30 hover:opacity-85 transition-opacity duration-300 drop-shadow-md`}
+          className={`absolute ${item.className} opacity-65 hover:opacity-100 transition-opacity duration-300 drop-shadow-md`}
         >
           {/* Trozo de cinta adhesiva washi tape en la parte superior */}
           <div

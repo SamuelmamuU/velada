@@ -229,12 +229,156 @@ if (!globalStore.__velada_mem_db) {
         ambiente: "exterior",
         esFlexible: true,
         parejaId: "pareja_default_samuel_diana",
-        // Sin foto aún para probar botón Agregar Recuerdos!
+        recuerdo: {
+          fotoUrl: "/polaroids/SANTALUCIA.jpg",
+          pieDeFoto: "Navegando bajo las luces de la noche",
+          fechaSubida: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        },
         creadoPor: {
           id: "64f1a2b3c4d5e6f7a8b9c001",
           nombre: "Novio",
         },
         createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c107",
+        nombre: "Cena de nuestro aniversario",
+        descripcion:
+          "Nuestra velada más especial del año, recordando cada aventura vivida y brindando por todas las que vienen.",
+        horario: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Restaurante La Casona, San Pedro Garza García, N.L.",
+          lat: 25.6565,
+          lng: -100.4011,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Elegante formal para noche de aniversario.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "especial",
+        ambiente: "interior",
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/ANIVERSARIO.jpg",
+          pieDeFoto: "Celebrando nuestro aniversario con vino y sonrisas",
+          fechaSubida: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c108",
+        nombre: "Tarde de juegos y arcade retro",
+        descripcion:
+          "Torneo de maquinitas, risas sin parar y una nieve al final de la tarde.",
+        horario: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Arcade Vintage Club, Barrio Antiguo, Monterrey",
+          lat: 25.6669,
+          lng: -100.3065,
+        },
+        tematica: "Diversión",
+        vestimentaRecomendada: "Jeans cómodos y tenis para jugar.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "media",
+        ambiente: "interior",
+        esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/ARCADE.jpg",
+          pieDeFoto: "Tarde de maquinitas retro donde me ganaste en todo",
+          fechaSubida: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c109",
+        nombre: "Celebración de graduación",
+        descripcion:
+          "Festejando una meta enorme juntos, flores, abrazos y el orgullo más grande en el pecho.",
+        horario: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Jardines del Museo MARCO, Centro, Monterrey",
+          lat: 25.6665,
+          lng: -100.3096,
+        },
+        tematica: "Especial",
+        vestimentaRecomendada: "Formal elegante de graduación.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: true,
+        },
+        importancia: "especial",
+        ambiente: "mixto",
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/GRADUACION.jpg",
+          pieDeFoto: "Orgulloso de cada uno de tus pasos y metas cumplidas",
+          fechaSubida: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c110",
+        nombre: "Día de voluntariado juntos",
+        descripcion:
+          "Una mañana sembrando arbolitos en la montaña, llenándonos de tierra y compartiendo un pícnic fresco.",
+        horario: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Parque Ecológico Chipinque, San Pedro Garza García",
+          lat: 25.6171,
+          lng: -100.3592,
+        },
+        tematica: "Aventura",
+        vestimentaRecomendada: "Ropa deportiva cómoda y botas de senderismo.",
+        estado: "aceptada",
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja",
+          hayFamilia: false,
+        },
+        importancia: "media",
+        ambiente: "exterior",
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/VOLUNTARIOS.jpg",
+          pieDeFoto: "Sembrando recuerdos y cuidando el bosque de tu mano",
+          fechaSubida: new Date(Date.now() - 73 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000).toISOString(),
         updatedAt: new Date().toISOString(),
       },
     ],
@@ -268,6 +412,168 @@ if (globalStore.__velada_mem_db) {
     const par = globalStore.__velada_mem_db.parejas?.find((p) => p.id === "pareja_default_samuel_diana");
     if (par && (!par.codigoVinculacion || par.codigoVinculacion === "AVENTURA-LOVE")) {
       par.codigoVinculacion = "AVENTURA-S4M9X2";
+    }
+
+    // Sincronizar recuerdos fotográficos en citas si faltan por hot reload
+    const c106 = globalStore.__velada_mem_db.citas?.find((c) => c.id === "64f1a2b3c4d5e6f7a8b9c106");
+    if (c106 && !c106.recuerdo?.fotoUrl) {
+      c106.recuerdo = {
+        fotoUrl: "/polaroids/SANTALUCIA.jpg",
+        pieDeFoto: "Navegando bajo las luces de la noche",
+        fechaSubida: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+    }
+
+    const existingIds = new Set(globalStore.__velada_mem_db.citas?.map((c) => c.id) || []);
+    const polaroidCitasToAdd = [
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c107",
+        nombre: "Cena de nuestro aniversario",
+        descripcion:
+          "Nuestra velada más especial del año, recordando cada aventura vivida y brindando por todas las que vienen.",
+        horario: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Restaurante La Casona, San Pedro Garza García, N.L.",
+          lat: 25.6565,
+          lng: -100.4011,
+        },
+        tematica: "Romántico",
+        vestimentaRecomendada: "Elegante formal para noche de aniversario.",
+        estado: "aceptada" as const,
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja" as const,
+          hayFamilia: false,
+        },
+        importancia: "especial" as const,
+        ambiente: "interior" as const,
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/ANIVERSARIO.jpg",
+          pieDeFoto: "Celebrando nuestro aniversario con vino y sonrisas",
+          fechaSubida: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c108",
+        nombre: "Tarde de juegos y arcade retro",
+        descripcion:
+          "Torneo de maquinitas, risas sin parar y una nieve al final de la tarde.",
+        horario: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Arcade Vintage Club, Barrio Antiguo, Monterrey",
+          lat: 25.6669,
+          lng: -100.3065,
+        },
+        tematica: "Diversión",
+        vestimentaRecomendada: "Jeans cómodos y tenis para jugar.",
+        estado: "aceptada" as const,
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja" as const,
+          hayFamilia: false,
+        },
+        importancia: "media" as const,
+        ambiente: "interior" as const,
+        esFlexible: true,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/ARCADE.jpg",
+          pieDeFoto: "Tarde de maquinitas retro donde me ganaste en todo",
+          fechaSubida: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c109",
+        nombre: "Celebración de graduación",
+        descripcion:
+          "Festejando una meta enorme juntos, flores, abrazos y el orgullo más grande en el pecho.",
+        horario: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Jardines del Museo MARCO, Centro, Monterrey",
+          lat: 25.6665,
+          lng: -100.3096,
+        },
+        tematica: "Especial",
+        vestimentaRecomendada: "Formal elegante de graduación.",
+        estado: "aceptada" as const,
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja" as const,
+          hayFamilia: true,
+        },
+        importancia: "especial" as const,
+        ambiente: "mixto" as const,
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/GRADUACION.jpg",
+          pieDeFoto: "Orgulloso de cada uno de tus pasos y metas cumplidas",
+          fechaSubida: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 70 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "64f1a2b3c4d5e6f7a8b9c110",
+        nombre: "Día de voluntariado juntos",
+        descripcion:
+          "Una mañana sembrando arbolitos en la montaña, llenándonos de tierra y compartiendo un pícnic fresco.",
+        horario: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000).toISOString(),
+        lugar: {
+          direccion: "Parque Ecológico Chipinque, San Pedro Garza García",
+          lat: 25.6171,
+          lng: -100.3592,
+        },
+        tematica: "Aventura",
+        vestimentaRecomendada: "Ropa deportiva cómoda y botas de senderismo.",
+        estado: "aceptada" as const,
+        asistencia: {
+          cantidadPersonas: 2,
+          tipoAcompanantes: "solo_pareja" as const,
+          hayFamilia: false,
+        },
+        importancia: "media" as const,
+        ambiente: "exterior" as const,
+        esFlexible: false,
+        parejaId: "pareja_default_samuel_diana",
+        recuerdo: {
+          fotoUrl: "/polaroids/VOLUNTARIOS.jpg",
+          pieDeFoto: "Sembrando recuerdos y cuidando el bosque de tu mano",
+          fechaSubida: new Date(Date.now() - 73 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        creadoPor: {
+          id: "64f1a2b3c4d5e6f7a8b9c001",
+          nombre: "Novio",
+        },
+        createdAt: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    if (Array.isArray(globalStore.__velada_mem_db.citas)) {
+      for (const pCita of polaroidCitasToAdd) {
+        if (!existingIds.has(pCita.id)) {
+          globalStore.__velada_mem_db.citas.push(pCita);
+        }
+      }
     }
   }
 }
