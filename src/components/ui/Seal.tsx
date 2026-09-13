@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Heart } from "lucide-react";
 
 interface SealProps {
   letter?: string;
@@ -10,7 +11,7 @@ interface SealProps {
 }
 
 export function Seal({
-  letter = "P",
+  letter,
   size = "md",
   variant = "blue",
   className = "",
@@ -20,6 +21,13 @@ export function Seal({
     md: "w-10 h-10 text-sm",
     lg: "w-12 h-12 text-base",
     xl: "w-14 h-14 text-lg",
+  };
+
+  const heartSizes = {
+    sm: 14,
+    md: 18,
+    lg: 22,
+    xl: 26,
   };
 
   const variantGradients = {
@@ -42,7 +50,14 @@ export function Seal({
       }}
     >
       <div className="absolute inset-[-3px] rounded-full border border-dashed border-white/40 pointer-events-none" />
-      <span className="relative z-10 drop-shadow-sm">{letter}</span>
+      {letter && letter !== "P" ? (
+        <span className="relative z-10 drop-shadow-sm">{letter}</span>
+      ) : (
+        <Heart
+          size={heartSizes[size]}
+          className="fill-white text-white drop-shadow-sm relative z-10"
+        />
+      )}
     </div>
   );
 }

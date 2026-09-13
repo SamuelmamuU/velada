@@ -62,6 +62,15 @@ export async function GET(req: NextRequest) {
                 estado: cita.propuestaCambio.estado,
               }
             : undefined,
+          recuerdo: cita.recuerdo
+            ? {
+                fotoUrl: cita.recuerdo.fotoUrl,
+                pieDeFoto: cita.recuerdo.pieDeFoto,
+                fechaSubida: cita.recuerdo.fechaSubida?.toISOString
+                  ? cita.recuerdo.fechaSubida.toISOString()
+                  : cita.recuerdo.fechaSubida,
+              }
+            : undefined,
           creadoPor:
             cita.creadoPor && typeof cita.creadoPor === "object" && cita.creadoPor.nombre
               ? {

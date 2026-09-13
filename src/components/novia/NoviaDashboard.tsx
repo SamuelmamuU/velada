@@ -115,7 +115,32 @@ export function NoviaDashboard() {
         });
         const data = await res.json();
         if (data.success && Array.isArray(data.citas)) {
-          const fetchedCitas: ICitaResponse[] = data.citas;
+          let localRecuerdos: Record<string, any> = {};
+          try {
+            localRecuerdos = JSON.parse(
+              localStorage.getItem("velada_recuerdos") || "{}"
+            );
+          } catch {}
+
+          const fetchedCitas: ICitaResponse[] = data.citas.map(
+            (c: ICitaResponse) => {
+              if (!c.recuerdo && localRecuerdos[c.id]) {
+                return { ...c, recuerdo: localRecuerdos[c.id] };
+              }
+              if (c.recuerdo) {
+                localRecuerdos[c.id] = c.recuerdo;
+              }
+              return c;
+            }
+          );
+
+          try {
+            localStorage.setItem(
+              "velada_recuerdos",
+              JSON.stringify(localRecuerdos)
+            );
+          } catch {}
+
           setCitas(fetchedCitas);
 
           // Inicializar cartas conocidas en la primera carga si no había historial
@@ -330,33 +355,35 @@ export function NoviaDashboard() {
 
             {/* Recordatorio de Próxima Cita Aceptada */}
             {!loading && proximaCita && (
-              <div className="bg-white rounded-[22px] border border-sky-200/70 p-6 shadow-sm animate-fade-up">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-700 flex-shrink-0">
-                      <Heart size={24} className="fill-sky-400 text-sky-500" />
+              <div className="w-full overflow-hidden bg-white rounded-[22px] border border-sky-200/70 p-4 sm:p-6 shadow-sm animate-fade-up">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-700 shrink-0">
+                      <Heart size={22} className="fill-sky-400 text-sky-500" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono text-[11px] uppercase tracking-wider text-sky-800 font-bold">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-mono text-[10.5px] uppercase tracking-wider text-sky-800 font-bold">
                           Próxima velada confirmada
                         </span>
                         {countdownBadge && (
-                          <span className="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          <span className="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
                             {countdownBadge}
                           </span>
                         )}
                       </div>
-                      <h2 className="font-serif text-2xl font-bold text-ink">
+                      <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink break-words leading-tight">
                         {proximaCita.nombre}
                       </h2>
-                      <p className="text-xs text-ink-soft mt-1 line-clamp-1 max-w-xl">
-                        {proximaCita.descripcion}
-                      </p>
+                      {proximaCita.descripcion && (
+                        <p className="text-xs text-ink-soft mt-1 line-clamp-2 break-words max-w-xl">
+                          {proximaCita.descripcion}
+                        </p>
+                      )}
 
-                      <div className="flex items-center gap-4 mt-3 flex-wrap text-xs text-ink-soft">
-                        <div className="flex items-center gap-1.5 font-medium text-ink">
-                          <Clock size={14} className="text-sky-700" />
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-xs text-ink-soft">
+                        <div className="flex items-center gap-1.5 font-medium text-ink shrink-0">
+                          <Clock size={14} className="text-sky-700 shrink-0" />
                           <span>
                             {format(
                               new Date(proximaCita.horario),
@@ -365,19 +392,21 @@ export function NoviaDashboard() {
                             )}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <MapPin size={14} className="text-blush-400" />
-                          <span className="truncate">
-                            {proximaCita.lugar.direccion}
-                          </span>
-                        </div>
+                        {proximaCita.lugar?.direccion && (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <MapPin size={14} className="text-blush-400 shrink-0" />
+                            <span className="truncate block">
+                              {proximaCita.lugar.direccion}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <button
                     onClick={() => handleSelectCita(proximaCita)}
-                    className="inline-flex items-center gap-2 bg-sky-600 text-white hover:bg-sky-700 font-semibold text-xs py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 bg-sky-600 text-white hover:bg-sky-700 active:scale-[0.98] font-semibold text-xs py-3 px-4 rounded-xl shadow-xs transition-all cursor-pointer shrink-0 w-full sm:w-auto"
                   >
                     <span>Ver carta y mapa</span>
                     <ChevronRight size={14} />

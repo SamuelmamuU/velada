@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
             codigoVinculacion: user.codigoVinculacion,
             estadoPareja,
             nombrePareja,
+            avatarUrl: user.avatarUrl || undefined,
           },
         });
 
@@ -174,6 +175,7 @@ export async function POST(req: NextRequest) {
         codigoVinculacion: fallbackUser.codigoVinculacion,
         estadoPareja,
         nombrePareja,
+        avatarUrl: fallbackUser.avatarUrl || undefined,
       },
     });
 

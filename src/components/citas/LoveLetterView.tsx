@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ICitaResponse } from "@/types";
 import { useAuth } from "@/context/AuthContext";
@@ -92,6 +92,26 @@ export function LoveLetterView({
   );
   const [submittingMemory, setSubmittingMemory] = useState(false);
   const [memoryError, setMemoryError] = useState<string | null>(null);
+
+  // Sincronizar recuerdos con localStorage para persistencia absoluta
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const localRecuerdos = JSON.parse(
+          localStorage.getItem("velada_recuerdos") || "{}"
+        );
+        const cached = localRecuerdos[currentCita.id];
+        if (cached?.fotoUrl && !currentCita.recuerdo?.fotoUrl) {
+          setCurrentCita((prev) => ({ ...prev, recuerdo: cached }));
+          setMemoryPhotoUrl(cached.fotoUrl);
+          setMemoryCaption(cached.pieDeFoto || "");
+        } else if (currentCita.recuerdo?.fotoUrl) {
+          setMemoryPhotoUrl(currentCita.recuerdo.fotoUrl);
+          setMemoryCaption(currentCita.recuerdo.pieDeFoto || "");
+        }
+      } catch {}
+    }
+  }, [currentCita.id, currentCita.recuerdo]);
 
   const narrative = generateNarrativeLetter(currentCita);
 
@@ -196,6 +216,24 @@ export function LoveLetterView({
     }
     setSubmittingMemory(true);
     setMemoryError(null);
+
+    const memoryObj = {
+      fotoUrl: memoryPhotoUrl,
+      pieDeFoto: memoryCaption.trim(),
+      fechaSubida: new Date().toISOString(),
+    };
+
+    // Guardar inmediatamente en caché local
+    try {
+      const localRecuerdos = JSON.parse(
+        localStorage.getItem("velada_recuerdos") || "{}"
+      );
+      localRecuerdos[currentCita.id] = memoryObj;
+      localStorage.setItem("velada_recuerdos", JSON.stringify(localRecuerdos));
+    } catch (e) {
+      console.warn("Error guardando en localStorage:", e);
+    }
+
     try {
       const res = await fetch(`/api/citas/${currentCita.id}/recuerdo`, {
         method: "POST",
@@ -216,10 +254,21 @@ export function LoveLetterView({
         setFeedback("Fotografía de recuerdo agregada con éxito.");
         setCurrentSide("memory");
       } else {
-        setMemoryError(data.error || "Error al guardar el recuerdo.");
+        // Aún si la API remota da error o reinicia, conservar localmente
+        const localUpdated = { ...currentCita, recuerdo: memoryObj };
+        setCurrentCita(localUpdated);
+        onCitaUpdated?.(localUpdated);
+        setShowMemoryModal(false);
+        setFeedback("Fotografía guardada con éxito en tu dispositivo.");
+        setCurrentSide("memory");
       }
     } catch {
-      setMemoryError("Error de conexión al guardar el recuerdo.");
+      const localUpdated = { ...currentCita, recuerdo: memoryObj };
+      setCurrentCita(localUpdated);
+      onCitaUpdated?.(localUpdated);
+      setShowMemoryModal(false);
+      setFeedback("Fotografía guardada localmente.");
+      setCurrentSide("memory");
     } finally {
       setSubmittingMemory(false);
     }

@@ -45,7 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       try {
         const cached = localStorage.getItem("velada_user");
-        if (cached) return JSON.parse(cached);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && !parsed.avatarUrl && parsed.id) {
+            const avatar = localStorage.getItem("velada_avatar_" + parsed.id);
+            if (avatar) parsed.avatarUrl = avatar;
+          }
+          return parsed;
+        }
       } catch (e) {
         console.debug("Error leyendo velada_user inicial:", e);
       }
@@ -92,6 +99,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (newToken: string, newUser: IUsuarioResponse, newPareja?: IParejaResponse | null) => {
       if (typeof window !== "undefined") {
         localStorage.setItem("velada_token", newToken);
+        if (newUser.avatarUrl) {
+          try {
+            localStorage.setItem("velada_avatar_" + newUser.id, newUser.avatarUrl);
+          } catch {}
+        }
         localStorage.setItem("velada_user", JSON.stringify(newUser));
         if (newPareja) {
           localStorage.setItem("velada_pareja", JSON.stringify(newPareja));
@@ -187,8 +199,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (res.ok) {
             const data = await res.json();
             if (isMounted && data.success && data.usuario) {
-              setUser(data.usuario);
-              saveSession(savedToken, data.usuario);
+              const cachedAvatar =
+                typeof window !== "undefined"
+                  ? localStorage.getItem("velada_avatar_" + data.usuario.id)
+                  : null;
+              const mergedUser: IUsuarioResponse = {
+                ...data.usuario,
+                avatarUrl: data.usuario.avatarUrl || cachedAvatar || user?.avatarUrl || undefined,
+              };
+              setUser(mergedUser);
+              saveSession(savedToken, mergedUser);
               fetchParejaEstado(savedToken);
             }
           } else if (res.status === 401 || res.status === 403) {
@@ -318,11 +338,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.usuario) {
-          setUser(json.usuario);
+          const cachedAvatar =
+            typeof window !== "undefined"
+              ? localStorage.getItem("velada_avatar_" + json.usuario.id)
+              : null;
+          const mergedUser: IUsuarioResponse = {
+            ...json.usuario,
+            avatarUrl: json.usuario.avatarUrl || cachedAvatar || user?.avatarUrl || undefined,
+          };
+          setUser(mergedUser);
+          saveSession(currentToken, mergedUser);
         }
       }
     }
-  }, [fetchParejaEstado, token]);
+  }, [fetchParejaEstado, token, user?.avatarUrl, saveSession]);
 
   const vincularPareja = useCallback(async (codigo: string) => {
     const currentToken = token || (typeof window !== "undefined" ? localStorage.getItem("velada_token") : null);
@@ -417,8 +446,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (resData.usuario) {
-          setUser(resData.usuario);
-          saveSession(currentToken, resData.usuario);
+          const updatedUser: IUsuarioResponse = {
+            ...resData.usuario,
+            avatarUrl: resData.usuario.avatarUrl || data.avatarUrl || user?.avatarUrl || undefined,
+          };
+          if (updatedUser.avatarUrl) {
+            try {
+              localStorage.setItem("velada_avatar_" + updatedUser.id, updatedUser.avatarUrl);
+            } catch {}
+          }
+          setUser(updatedUser);
+          saveSession(currentToken, updatedUser);
         }
 
         return {

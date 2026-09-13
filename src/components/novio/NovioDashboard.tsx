@@ -79,7 +79,32 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
         });
         const data = await res.json();
         if (data.success && Array.isArray(data.citas)) {
-          const fetchedCitas: ICitaResponse[] = data.citas;
+          let localRecuerdos: Record<string, any> = {};
+          try {
+            localRecuerdos = JSON.parse(
+              localStorage.getItem("velada_recuerdos") || "{}"
+            );
+          } catch {}
+
+          const fetchedCitas: ICitaResponse[] = data.citas.map(
+            (c: ICitaResponse) => {
+              if (!c.recuerdo && localRecuerdos[c.id]) {
+                return { ...c, recuerdo: localRecuerdos[c.id] };
+              }
+              if (c.recuerdo) {
+                localRecuerdos[c.id] = c.recuerdo;
+              }
+              return c;
+            }
+          );
+
+          try {
+            localStorage.setItem(
+              "velada_recuerdos",
+              JSON.stringify(localRecuerdos)
+            );
+          } catch {}
+
           setCitas(fetchedCitas);
 
           if (isFirstFetchNovioRef.current) {
