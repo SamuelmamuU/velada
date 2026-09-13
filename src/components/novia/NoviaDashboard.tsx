@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ICitaResponse } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { sendImmediateNotification } from "@/lib/mobileNative";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { LoveLetterView } from "@/components/citas/LoveLetterView";
@@ -84,26 +85,109 @@ export function NoviaDashboard() {
     }
   };
 
-  const fetchCitas = useCallback(async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const res = await fetch("/api/citas", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.citas)) {
-        setCitas(data.citas);
-      }
-    } catch (err) {
-      console.error("Error al cargar cartas de la novia:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const knownLetterIdsRef = useRef<Set<string>>(new Set());
+  const isFirstFetchNoviaRef = useRef(true);
 
+  // Cargar registro de cartas conocidas desde localStorage
   useEffect(() => {
-    fetchCitas();
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("velada_novia_known_citas");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            knownLetterIdsRef.current = new Set(parsed);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const fetchCitas = useCallback(
+    async (isPolling = false) => {
+      if (!token) return;
+      try {
+        if (!isPolling) setLoading(true);
+        const res = await fetch("/api/citas", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.citas)) {
+          const fetchedCitas: ICitaResponse[] = data.citas;
+          setCitas(fetchedCitas);
+
+          // Inicializar cartas conocidas en la primera carga si no había historial
+          if (isFirstFetchNoviaRef.current) {
+            isFirstFetchNoviaRef.current = false;
+            if (knownLetterIdsRef.current.size === 0) {
+              fetchedCitas.forEach((c) => knownLetterIdsRef.current.add(c.id));
+              try {
+                localStorage.setItem(
+                  "velada_novia_known_citas",
+                  JSON.stringify(Array.from(knownLetterIdsRef.current))
+                );
+              } catch {}
+            }
+          }
+
+          // Detectar si han llegado cartas nuevas que no estaban registradas
+          const newLetters = fetchedCitas.filter(
+            (c) => !knownLetterIdsRef.current.has(c.id)
+          );
+
+          if (newLetters.length > 0) {
+            const author = pareja?.parejaNombre || user?.nombrePareja || "Tu novio";
+            for (const newLetter of newLetters) {
+              sendImmediateNotification({
+                title: "💌 ¡Tienes una nueva carta de amor!",
+                body: `${author} te ha enviado una invitación: "${newLetter.nombre}". ¡Abre tu buzón para desplegarla!`,
+                extra: { citaId: newLetter.id, type: "new_letter" },
+              });
+              knownLetterIdsRef.current.add(newLetter.id);
+            }
+
+            try {
+              localStorage.setItem(
+                "velada_novia_known_citas",
+                JSON.stringify(Array.from(knownLetterIdsRef.current))
+              );
+            } catch {}
+
+            // Abrir buzón 3D automáticamente ante una nueva carta
+            setMailboxStage("door_opening");
+            setMailboxOpenTrigger((prev) => prev + 1);
+          }
+        }
+      } catch (err) {
+        console.error("Error al cargar cartas de la novia:", err);
+      } finally {
+        if (!isPolling) setLoading(false);
+      }
+    },
+    [token, pareja, user]
+  );
+
+  // Carga inicial y sondeo periódico de nuevas cartas cada 8 segundos
+  useEffect(() => {
+    fetchCitas(false);
+
+    const interval = setInterval(() => {
+      fetchCitas(true);
+    }, 8000);
+
+    const handleSync = () => {
+      fetchCitas(true);
+    };
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
   }, [fetchCitas]);
 
   // Identificar citas pendientes de respuesta

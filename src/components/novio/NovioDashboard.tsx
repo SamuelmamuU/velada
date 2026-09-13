@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ICitaResponse } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { sendImmediateNotification } from "@/lib/mobileNative";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { NovioForm } from "@/components/novio/NovioForm";
@@ -48,26 +49,125 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   const [deleting, setDeleting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const fetchCitas = React.useCallback(async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const res = await fetch("/api/citas", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success && Array.isArray(data.citas)) {
-        setCitas(data.citas);
-      }
-    } catch (err) {
-      console.error("Error al cargar citas:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const prevCitasStatusMapRef = useRef<Map<string, string>>(new Map());
+  const isFirstFetchNovioRef = useRef(true);
 
+  // Inicializar estado previo de citas desde localStorage
   useEffect(() => {
-    fetchCitas();
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("velada_novio_citas_status");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && typeof parsed === "object") {
+            prevCitasStatusMapRef.current = new Map(Object.entries(parsed));
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const fetchCitas = React.useCallback(
+    async (isPolling = false) => {
+      if (!token) return;
+      try {
+        if (!isPolling) setLoading(true);
+        const res = await fetch("/api/citas", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.citas)) {
+          const fetchedCitas: ICitaResponse[] = data.citas;
+          setCitas(fetchedCitas);
+
+          if (isFirstFetchNovioRef.current) {
+            isFirstFetchNovioRef.current = false;
+            if (prevCitasStatusMapRef.current.size === 0) {
+              fetchedCitas.forEach((c) => {
+                prevCitasStatusMapRef.current.set(c.id, c.estado);
+              });
+              try {
+                const obj = Object.fromEntries(prevCitasStatusMapRef.current);
+                localStorage.setItem("velada_novio_citas_status", JSON.stringify(obj));
+              } catch {}
+            }
+          }
+
+          // Detectar si la novia ha respondido aceptando o rechazando alguna cita
+          for (const cita of fetchedCitas) {
+            const prevStatus = prevCitasStatusMapRef.current.get(cita.id);
+            if (prevStatus && prevStatus !== cita.estado) {
+              const partner = partnerName || "Tu novia";
+
+              if (cita.estado === "aceptada" || cita.estado === "confirmada") {
+                sendImmediateNotification({
+                  title: "💖 ¡Tu cita fue aceptada!",
+                  body: `¡${partner} ha aceptado tu invitación: "${cita.nombre}"! Todo listo para su velada.`,
+                  extra: { citaId: cita.id, type: "cita_aceptada" },
+                });
+              } else if (cita.estado === "rechazada") {
+                sendImmediateNotification({
+                  title: "💌 Respuesta a tu invitación",
+                  body: `${partner} ha declinado la cita: "${cita.nombre}". Puedes proponerle otra fecha con cariño.`,
+                  extra: { citaId: cita.id, type: "cita_rechazada" },
+                });
+              }
+            }
+
+            // También detectar si la novia envió una propuesta de cambio de horario
+            const hadPendingProposal = prevCitasStatusMapRef.current.get(`${cita.id}_propuesta`) === "pendiente";
+            const nowHasPendingProposal = cita.propuestaCambio?.estado === "pendiente";
+            if (!hadPendingProposal && nowHasPendingProposal) {
+              sendImmediateNotification({
+                title: "📅 ¡Nueva propuesta de horario!",
+                body: `${partnerName} ha sugerido un nuevo horario para la cita: "${cita.nombre}".`,
+                extra: { citaId: cita.id, type: "nueva_propuesta" },
+              });
+            }
+            if (nowHasPendingProposal) {
+              prevCitasStatusMapRef.current.set(`${cita.id}_propuesta`, "pendiente");
+            } else {
+              prevCitasStatusMapRef.current.delete(`${cita.id}_propuesta`);
+            }
+
+            prevCitasStatusMapRef.current.set(cita.id, cita.estado);
+          }
+
+          try {
+            const obj = Object.fromEntries(prevCitasStatusMapRef.current);
+            localStorage.setItem("velada_novio_citas_status", JSON.stringify(obj));
+          } catch {}
+        }
+      } catch (err) {
+        console.error("Error al cargar citas:", err);
+      } finally {
+        if (!isPolling) setLoading(false);
+      }
+    },
+    [token, partnerName]
+  );
+
+  // Carga inicial y sondeo periódico de respuestas cada 8 segundos
+  useEffect(() => {
+    fetchCitas(false);
+
+    const interval = setInterval(() => {
+      fetchCitas(true);
+    }, 8000);
+
+    const handleSync = () => {
+      fetchCitas(true);
+    };
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
   }, [fetchCitas]);
 
   const showToast = (msg: string) => {

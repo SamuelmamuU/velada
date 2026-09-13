@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { IUsuarioResponse, IParejaResponse, RolUsuario } from "@/types";
+import { sendImmediateNotification } from "@/lib/mobileNative";
 
 interface AuthContextType {
   user: IUsuarioResponse | null;
@@ -79,6 +80,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [parejaLoading, setParejaLoading] = useState<boolean>(false);
+  const prevParejaEstadoRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pareja?.estado) {
+      prevParejaEstadoRef.current = pareja.estado;
+    }
+  }, [pareja]);
 
   const saveSession = useCallback(
     (newToken: string, newUser: IUsuarioResponse, newPareja?: IParejaResponse | null) => {
@@ -125,9 +133,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
-          setPareja(json.data);
+          const newPareja: IParejaResponse = json.data;
+          const prevEstado = prevParejaEstadoRef.current;
+
+          // Si antes no estaba conectado y ahora sí está conectado, notificar al usuario que esperaba
+          if (
+            prevEstado &&
+            prevEstado !== "conectados" &&
+            newPareja.estado === "conectados"
+          ) {
+            const partnerName = newPareja.parejaNombre || "Tu pareja";
+            sendImmediateNotification({
+              title: "💞 ¡Cuentas vinculadas con éxito!",
+              body: `¡${partnerName} se ha vinculado contigo! Ahora comparten su diario y buzón de aventuras.`,
+              extra: { type: "pairing_success" },
+            });
+          }
+
+          prevParejaEstadoRef.current = newPareja.estado;
+          setPareja(newPareja);
           if (typeof window !== "undefined") {
-            localStorage.setItem("velada_pareja", JSON.stringify(json.data));
+            localStorage.setItem("velada_pareja", JSON.stringify(newPareja));
           }
         }
       }
@@ -320,6 +346,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       await refreshPareja();
+      sendImmediateNotification({
+        title: "💞 ¡Cuentas vinculadas con éxito!",
+        body: `¡Te has vinculado exitosamente con tu pareja! Ahora comparten su diario y cartas de amor.`,
+        extra: { type: "pairing_success" },
+      });
       return { success: true, message: data.message };
     } catch (err: any) {
       return { success: false, error: err.message || "Error al conectar con el servidor" };
@@ -403,6 +434,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [token, saveSession]
   );
+
+  // Sondeo periódico del estado de vinculación si la cuenta aún no está conectada
+  useEffect(() => {
+    if (!token || (pareja && pareja.estado === "conectados")) return;
+
+    const interval = setInterval(() => {
+      fetchParejaEstado();
+    }, 6000);
+
+    const handleSync = () => {
+      fetchParejaEstado();
+    };
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
+  }, [token, pareja, fetchParejaEstado]);
 
   return (
     <AuthContext.Provider

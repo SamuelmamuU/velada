@@ -60,6 +60,132 @@ export const triggerHaptic = async (
 };
 
 /**
+ * Solicita y asegura los permisos de notificaciones locales nativas en Android
+ * y crea el canal de alta prioridad para avisos de cartas y citas.
+ */
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (isNativeAndroid()) {
+    try {
+      // 1. Crear canal de notificación de alta importancia para Android 8.0+
+      try {
+        await LocalNotifications.createChannel({
+          id: "velada_citas",
+          name: "Aventuras y Cartas",
+          description: "Notificaciones de cartas, citas y vinculación de pareja",
+          importance: 5,
+          visibility: 1,
+          sound: "beep.wav",
+          vibration: true,
+          lights: true,
+          lightColor: "#38bdf8",
+        });
+      } catch (channelErr) {
+        console.debug("[MobileNative] Canal ya creado o no soportado:", channelErr);
+      }
+
+      // 2. Verificar y solicitar permisos
+      const permStatus = await LocalNotifications.checkPermissions();
+      if (permStatus.display !== "granted") {
+        const req = await LocalNotifications.requestPermissions();
+        return req.display === "granted";
+      }
+      return true;
+    } catch (e) {
+      console.warn("[MobileNative] Error solicitando permisos de notificación nativos:", e);
+      return false;
+    }
+  }
+
+  // Soporte en navegador web estándar
+  if (typeof window !== "undefined" && "Notification" in window) {
+    try {
+      if (Notification.permission === "default") {
+        const perm = await Notification.requestPermission();
+        return perm === "granted";
+      }
+      return Notification.permission === "granted";
+    } catch (e) {
+      console.debug("[WebNotification] Error en permisos web:", e);
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Dispara una notificación inmediata en la barra de estado de Android
+ * y emite vibración háptica. Con fallback a Web Notification API.
+ */
+export const sendImmediateNotification = async ({
+  title,
+  body,
+  id,
+  extra,
+}: {
+  title: string;
+  body: string;
+  id?: number;
+  extra?: Record<string, any>;
+}): Promise<boolean> => {
+  const notifId = id ?? Math.floor(Math.random() * 899999) + 100000;
+
+  // 1. Entorno Nativo Android (Capacitor)
+  if (isNativeAndroid()) {
+    try {
+      await requestNotificationPermission();
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title,
+            body,
+            id: notifId,
+            schedule: { at: new Date(Date.now() + 150) },
+            channelId: "velada_citas",
+            sound: "beep.wav",
+            extra,
+          },
+        ],
+      });
+
+      await triggerHaptic("success");
+      return true;
+    } catch (err) {
+      console.warn("[MobileNative] Error emitiendo notificación inmediata:", err);
+      return false;
+    }
+  }
+
+  // 2. Entorno Web estándar
+  if (typeof window !== "undefined" && "Notification" in window) {
+    try {
+      if (Notification.permission === "granted") {
+        new Notification(title, {
+          body,
+          icon: "/NuestrasAventurasLG.png",
+          badge: "/NuestrasAventurasLG.png",
+        });
+        return true;
+      } else if (Notification.permission === "default") {
+        const perm = await Notification.requestPermission();
+        if (perm === "granted") {
+          new Notification(title, {
+            body,
+            icon: "/NuestrasAventurasLG.png",
+            badge: "/NuestrasAventurasLG.png",
+          });
+          return true;
+        }
+      }
+    } catch (e) {
+      console.debug("[WebNotification] Fallback web no disponible:", e);
+    }
+  }
+
+  return false;
+};
+
+/**
  * Programa recordatorios locales nativos en el sistema operativo Android
  * para una cita agendada (24 horas antes y 2 horas antes).
  */

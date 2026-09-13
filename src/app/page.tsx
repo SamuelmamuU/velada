@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { initializeMobileStatusBar } from "@/lib/mobileNative";
+import { initializeMobileStatusBar, requestNotificationPermission } from "@/lib/mobileNative";
 
 import { NovioDashboard } from "@/components/novio/NovioDashboard";
 import { NoviaDashboard } from "@/components/novia/NoviaDashboard";
@@ -13,6 +13,7 @@ function DashboardContent() {
 
   useEffect(() => {
     initializeMobileStatusBar();
+    requestNotificationPermission();
   }, []);
 
   const isNovio = user?.rol === "novio";
