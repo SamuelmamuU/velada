@@ -23,6 +23,8 @@ import {
   ChevronRight,
   Maximize2,
   Compass,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,6 +41,7 @@ export type MailboxStage =
 
 interface Mailbox3DExperienceProps {
   initialStage?: MailboxStage;
+  openTrigger?: number;
   pendingCitas?: ICitaResponse[];
   onCitaUpdated?: (updatedCita: ICitaResponse) => void;
   onCloseToDashboard?: () => void;
@@ -92,6 +95,7 @@ function createMailboxDecalGeometry(
 
 export function Mailbox3DExperience({
   initialStage = "lateral_login",
+  openTrigger = 0,
   pendingCitas = [],
   onCitaUpdated,
   onCloseToDashboard,
@@ -110,16 +114,32 @@ export function Mailbox3DExperience({
     }
   }, [initialStage]);
 
+  useEffect(() => {
+    if (openTrigger && openTrigger > 0) {
+      setStage("door_opening");
+    }
+  }, [openTrigger]);
+
+  useEffect(() => {
+    if (stage === "door_opening") {
+      const timer = setTimeout(() => {
+        setStage("letters_floating");
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [stage]);
+
   // Estados del formulario en la etiqueta adhesiva lateral
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [role, setRole] = useState<RolUsuario>("novia");
-  const [email, setEmail] = useState("novia@velada.app");
-  const [password, setPassword] = useState("NoviaVelada2026!");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Registro en la etiqueta adhesiva
   const [regNombre, setRegNombre] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [regRole, setRegRole] = useState<RolUsuario>("novia");
 
   const [authLoading, setAuthLoading] = useState(false);
@@ -132,10 +152,10 @@ export function Mailbox3DExperience({
 
   // Referencias para el bucle de animación de Three.js
   const animStateRef = useRef({
-    targetRotY: -Math.PI * 0.42,
+    targetRotY: -Math.PI * 0.5,
     targetDoorRotX: 0,
     targetLightIntensity: 0,
-    targetPosX: 1.5,
+    targetPosX: 0,
     targetScale: 1,
     hasUnread: pendingCitas.length > 0,
     showLabel: true,
@@ -149,10 +169,10 @@ export function Mailbox3DExperience({
 
     switch (stage) {
       case "lateral_login":
-        s.targetRotY = -Math.PI * 0.42; // -75°: cara lateral de frente al usuario
+        s.targetRotY = -Math.PI * 0.5; // Cara lateral de frente exacto a la cámara
         s.targetDoorRotX = 0;
         s.targetLightIntensity = 0;
-        s.targetPosX = 1.2;
+        s.targetPosX = 0; // Centrado en pantalla
         s.targetScale = 1;
         break;
       case "rotating_to_front":
@@ -194,19 +214,6 @@ export function Mailbox3DExperience({
         break;
     }
   }, [stage, pendingCitas.length, isLabelDisappearing]);
-
-  // Selección rápida de roles
-  const handleRoleChange = (selectedRole: RolUsuario) => {
-    setRole(selectedRole);
-    setAuthError(null);
-    if (selectedRole === "novio") {
-      setEmail("novio@velada.app");
-      setPassword("NovioVelada2026!");
-    } else {
-      setEmail("novia@velada.app");
-      setPassword("NoviaVelada2026!");
-    }
-  };
 
   // Login en la etiqueta postal lateral
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -339,13 +346,14 @@ export function Mailbox3DExperience({
     let height = container.clientHeight || window.innerHeight;
 
     // 1. Escena y Cámara en Perspectiva
+    const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
+    const cameraZ = isMobileDevice ? 44 : 38;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 4, 38);
-    camera.lookAt(0, 3, 0);
+    camera.position.set(0, 3.2, cameraZ);
+    camera.lookAt(0, 2.2, 0);
 
     // 2. Renderizador WebGL con Antialiasing y optimización de DPR para GPU móvil
-    const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
     const maxDpr = isMobileDevice ? 1.75 : 2;
 
     const webglRenderer = new THREE.WebGLRenderer({
@@ -730,16 +738,18 @@ export function Mailbox3DExperience({
     mailboxGroup.add(paintPlate);
 
     // =========================================================================
-    // ETIQUETA ADHESIVA DE LOGIN PEGADA AL COSTADO (CSS3DObject en X = +7.55)
+    // ETIQUETA ADHESIVA DE LOGIN PEGADA AL COSTADO (CSS3DObject en X = +7.58)
     // =========================================================================
     const labelDom = labelDomRef.current;
     let cssObject: CSS3DObject | null = null;
     if (labelDom) {
       cssObject = new CSS3DObject(labelDom);
-      // Ubicar justo debajo de los nombres pintados, pegada a la chapa metálica
+      // Ubicar centrado pegado a la chapa metálica
+      const isMobile = width < 768;
+      const stickerScale = isMobile ? 0.035 : 0.038;
       cssObject.position.set(7.58, 0.8, 0);
       cssObject.rotation.y = Math.PI / 2;
-      cssObject.scale.set(0.040, 0.040, 0.040);
+      cssObject.scale.set(stickerScale, stickerScale, stickerScale);
       mailboxGroup.add(cssObject);
     }
 
@@ -816,6 +826,8 @@ export function Mailbox3DExperience({
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
 
+      const isMobileNow = width < 768;
+      camera.position.z = isMobileNow ? 44 : 38;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
 
@@ -950,7 +962,7 @@ export function Mailbox3DExperience({
             handleDoorClick();
           }
         }}
-        className={`relative w-full h-[620px] sm:h-[680px] flex items-center justify-center select-none ${
+        className={`relative w-full ${isLoginScreen ? "h-screen min-h-[620px]" : "h-[620px] sm:h-[680px]"} flex items-center justify-center select-none ${
           stage === "front_closed" ? "cursor-pointer" : ""
         }`}
       />
@@ -972,7 +984,7 @@ export function Mailbox3DExperience({
             pointerEvents:
               stage === "lateral_login" && !isLabelDisappearing ? "auto" : "none",
           }}
-          className="w-[350px] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-3.5 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text"
+          className="w-[340px] max-w-[92vw] bg-gradient-to-b from-[#FAF8EE] to-[#F1E9D2] rounded-xl p-3.5 text-center border-2 border-dashed border-[#D2C5A7] shadow-[0_10px_25px_rgba(10,25,50,0.35)] select-text"
         >
           {/* Cabecera de la Etiqueta Postal */}
           <div className="flex items-center justify-between border-b border-[#E3D8C1] pb-1.5 mb-2.5">
@@ -1027,36 +1039,7 @@ export function Mailbox3DExperience({
           )}
 
           {authMode === "login" ? (
-            <form onSubmit={handleLoginSubmit} className="space-y-2 text-left">
-              {/* Sellos de selección de destinatario */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange("novio")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    role === "novio"
-                      ? "border-sky-500 bg-sky-100 text-sky-950 shadow-xs"
-                      : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-sky-50/50"
-                  }`}
-                >
-                  <User size={12} className="text-sky-700" />
-                  <span>Samuel</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange("novia")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    role === "novia"
-                      ? "border-blush-400 bg-blush-100 text-blush-950 shadow-xs"
-                      : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-blush-50/50"
-                  }`}
-                >
-                  <Heart size={12} className="text-blush-500 fill-blush-400" />
-                  <span>Diana</span>
-                </button>
-              </div>
-
+            <form onSubmit={handleLoginSubmit} className="space-y-2.5 text-left">
               {/* Campo Correo */}
               <div>
                 <label className="block text-[9.5px] font-bold uppercase tracking-wider text-ink-soft mb-0.5">
@@ -1069,7 +1052,7 @@ export function Mailbox3DExperience({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="correo@ejemplo.com"
-                    className="w-full py-1.5 px-2.5 pl-8 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
+                    className="w-full py-2 px-2.5 pl-8 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/95 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
                   />
                   <Mail
                     size={13}
@@ -1078,24 +1061,33 @@ export function Mailbox3DExperience({
                 </div>
               </div>
 
-              {/* Campo Contraseña */}
+              {/* Campo Contraseña con Botón de Ojo */}
               <div>
                 <label className="block text-[9.5px] font-bold uppercase tracking-wider text-ink-soft mb-0.5">
                   Contraseña Secreta
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showLoginPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full py-1.5 px-2.5 pl-8 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
+                    className="w-full py-2 px-2.5 pl-8 pr-9 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/95 text-ink focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-200"
                   />
                   <Lock
                     size={13}
                     className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sky-700 opacity-75"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    tabIndex={-1}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors p-0.5 cursor-pointer"
+                    title={showLoginPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                  >
+                    {showLoginPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
                 </div>
               </div>
 
@@ -1122,6 +1114,40 @@ export function Mailbox3DExperience({
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-2 text-left">
+              {/* Selección de tipo de perfil a crear (Novio / Novia) */}
+              <div>
+                <label className="block text-[9.5px] font-bold uppercase tracking-wider text-ink-soft mb-1">
+                  Tipo de perfil a crear
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRegRole("novio")}
+                    className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      regRole === "novio"
+                        ? "border-sky-500 bg-sky-100 text-sky-950 shadow-xs ring-1 ring-sky-400 font-extrabold"
+                        : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-sky-50/50"
+                    }`}
+                  >
+                    <User size={12} className="text-sky-700" />
+                    <span>Novio</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRegRole("novia")}
+                    className={`flex-1 py-1.5 px-2 rounded-lg border text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      regRole === "novia"
+                        ? "border-blush-400 bg-blush-100 text-blush-950 shadow-xs ring-1 ring-blush-300 font-extrabold"
+                        : "border-[#D9CEB5] bg-white/70 text-ink-soft hover:bg-blush-50/50"
+                    }`}
+                  >
+                    <Heart size={12} className="text-blush-500 fill-blush-400" />
+                    <span>Novia</span>
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[9px] font-bold uppercase text-ink-soft mb-0.5">
                   Nombre
@@ -1154,15 +1180,26 @@ export function Mailbox3DExperience({
                 <label className="block text-[9px] font-bold uppercase text-ink-soft mb-0.5">
                   Contraseña
                 </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  className="w-full py-1.5 px-2.5 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showRegPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full py-1.5 px-2.5 pr-9 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                    tabIndex={-1}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink transition-colors p-0.5 cursor-pointer"
+                    title={showRegPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                  >
+                    {showRegPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-1">

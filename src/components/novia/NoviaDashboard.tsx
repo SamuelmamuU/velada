@@ -45,11 +45,12 @@ export function NoviaDashboard() {
       const auto = sessionStorage.getItem("mailbox_auto_open");
       if (auto === "true") {
         sessionStorage.removeItem("mailbox_auto_open");
-        return "front_closed";
+        return "door_opening";
       }
     }
     return "minimized_widget";
   });
+  const [mailboxOpenTrigger, setMailboxOpenTrigger] = useState(0);
   const [hasShownAutoMailbox, setHasShownAutoMailbox] = useState(false);
 
   // Sistema de invitaciones vistas
@@ -115,7 +116,8 @@ export function NoviaDashboard() {
   // Abrir buzón automáticamente en la primera carga si hay cartas pendientes sin responder
   useEffect(() => {
     if (!loading && !hasShownAutoMailbox && pendingCitas.length > 0) {
-      setMailboxStage("front_closed");
+      setMailboxStage("door_opening");
+      setMailboxOpenTrigger((prev) => prev + 1);
       setHasShownAutoMailbox(true);
     }
   }, [loading, hasShownAutoMailbox, pendingCitas.length]);
@@ -176,11 +178,17 @@ export function NoviaDashboard() {
     }
   };
 
+  const handleOpenMailbox = () => {
+    setMailboxStage("door_opening");
+    setMailboxOpenTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FBFE] text-ink pb-20">
       {/* BUZÓN 3D DE NUESTRAS AVENTURAS (Flotante o minimizado como widget interactivo) */}
       <Mailbox3DExperience
         initialStage={mailboxStage}
+        openTrigger={mailboxOpenTrigger}
         pendingCitas={pendingCitas}
         onCitaUpdated={handleCitaUpdated}
         onCloseToDashboard={() => setMailboxStage("minimized_widget")}
@@ -228,7 +236,7 @@ export function NoviaDashboard() {
 
               <button
                 type="button"
-                onClick={() => setMailboxStage("front_closed")}
+                onClick={handleOpenMailbox}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-sans font-bold text-xs sm:text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles size={15} />

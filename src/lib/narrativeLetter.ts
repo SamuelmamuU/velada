@@ -63,13 +63,13 @@ export function generateNarrativeLetter(cita: ICitaResponse): NarrativeParts {
   const saludo =
     cita.importancia === "especial"
       ? "Para el gran amor de mi vida,"
-      : "Mi niña hermosa,";
+      : "Mi cielo,";
 
   // Introducción según temática
   const introduccion =
     cita.importancia === "especial"
-      ? `Hay momentos que merecen detener el tiempo y celebrarnos. He preparado con toda mi ilusión una cita muy especial llamada «${cita.nombre}».`
-      : `He estado pensando mucho en ti y quise preparar algo lindo para nosotros: «${cita.nombre}».`;
+      ? `Hay momentos que merecen detener el tiempo y celebrarnos. He preparado con toda mi ilusión una cita muy especial llamada ${cita.nombre}.`
+      : `He estado pensando mucho en ti y quise preparar algo lindo para nosotros: ${cita.nombre}.`;
 
   const descripcion = cita.descripcion;
   const lugarTexto = cita.lugar?.direccion || "Un lugar sorpresa";
