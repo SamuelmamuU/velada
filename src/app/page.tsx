@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { Sparkles, Calendar, PlusCircle, Heart } from "lucide-react";
+import { initializeMobileStatusBar } from "@/lib/mobileNative";
 
 import { NovioDashboard } from "@/components/novio/NovioDashboard";
 import { NoviaDashboard } from "@/components/novia/NoviaDashboard";
@@ -12,6 +13,11 @@ import { TestRunnerModal } from "@/components/ui/TestRunnerModal";
 
 function DashboardContent() {
   const { user, switchDemoRole } = useAuth();
+
+  useEffect(() => {
+    initializeMobileStatusBar();
+  }, []);
+
   const isNovio = user?.rol === "novio";
   const isDemoAccount =
     user?.email === "novio@velada.app" || user?.email === "novia@velada.app";
@@ -23,7 +29,7 @@ function DashboardContent() {
     return (
       <div>
         {/* Barra de control rápido de roles para prototipo */}
-        <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
+        <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 pt-safe bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
           <div className="flex items-center gap-2">
             <span className="text-white/60 uppercase tracking-widest text-[11px]">
               Nuestras Aventuras ·
@@ -57,7 +63,7 @@ function DashboardContent() {
   return (
     <div>
       {/* Barra de control rápido de roles */}
-      <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
+      <div className="sticky top-0 z-50 flex items-center justify-between gap-3 flex-wrap px-4 py-2 pt-safe bg-[#162738]/95 backdrop-blur text-white text-xs font-mono border-b border-white/10">
         <div className="flex items-center gap-2">
           <span className="text-white/60 uppercase tracking-widest text-[11px]">
             Nuestras Aventuras ·

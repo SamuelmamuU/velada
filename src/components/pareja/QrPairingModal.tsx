@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import QRCode from "qrcode";
+import { triggerHaptic } from "@/lib/mobileNative";
 
 interface QrPairingModalProps {
   isOpen: boolean;
@@ -222,9 +223,11 @@ export function QrPairingModal({ isOpen, onClose }: QrPairingModalProps) {
 
     const res = await vincularPareja(cleanCode);
     if (!res.success) {
+      triggerHaptic("warning");
       setErrorVinculacion(res.error || "No se pudo vincular la cuenta.");
       setVincularLoading(false);
     } else {
+      triggerHaptic("success");
       setMensajeExito(res.message || "¡Conexión establecida con éxito!");
       setVincularLoading(false);
       setCodigoManual("");

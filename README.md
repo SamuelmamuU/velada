@@ -73,6 +73,18 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 - `npm run start`: Inicia el servidor compilado de producción.
 - `npm run lint`: Ejecuta el análisis de linter ESLint.
 - `npm run format`: Formatea el código fuente con Prettier.
+- `npm run android:build`: Compila automáticamente el archivo instalable `NuestrasAventuras-v1.0.apk` en la raíz.
+- `npm run android:sync`: Sincroniza los cambios de frontend y plugins con la carpeta nativa `android/`.
+- `npm run android:open`: Abre el proyecto Android nativo en Android Studio.
+
+---
+
+## 📱 Aplicación Móvil Android (APK)
+
+La aplicación web cuenta con su versión nativa para Android empaquetada con **Capacitor 6/7 y Gradle** ($0 de costo, sin pagos de Google Play Console):
+- **Archivo instalable listo para usar**: `NuestrasAventuras-v1.0.apk` en la raíz del proyecto.
+- **Guía de instalación paso a paso en el celular**: Consulta [docs/guia-instalacion-android.md](docs/guia-instalacion-android.md).
+- **Especificación técnica y requerimientos móviles**: Consulta [05-plan-app-movil-android.md](05-plan-app-movil-android.md).
 
 ---
 
@@ -90,3 +102,4 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 - [x] **Fase 9**: Pruebas automatizadas unitarias, de integración y UI test runner.
 - [x] **Fase 10**: Despliegue en producción (Vercel + MongoDB Atlas en plan gratuito $0). Ver [docs/despliegue.md](docs/despliegue.md).
 - [x] **Fase 11**: Pulido final, checklist de requerimientos y entrega. Ver [docs/checklist-requerimientos.md](docs/checklist-requerimientos.md) y [docs/guia-de-uso.md](docs/guia-de-uso.md).
+- [x] **Fase Móvil (Android)**: Contenedor nativo Capacitor ($0), integración con cámara nativa para QR, notificaciones locales en barra de estado, optimizaciones WebGL/Three.js y compilación del APK instalable (`NuestrasAventuras-v1.0.apk`).

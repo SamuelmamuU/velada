@@ -20,6 +20,7 @@ import {
   Clock,
   Flame,
 } from "lucide-react";
+import { triggerHaptic, scheduleCitaReminders } from "@/lib/mobileNative";
 
 interface NovioFormProps {
   initialCita?: ICitaResponse | null;
@@ -167,8 +168,15 @@ export function NovioForm({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        triggerHaptic("warning");
         throw new Error(data.error || "No se pudo guardar la cita");
       }
+
+      triggerHaptic("success");
+      // Programar notificaciones locales en Android
+      scheduleCitaReminders(data.cita).catch((e) =>
+        console.debug("Error programando recordatorios:", e)
+      );
 
       onSuccess(data.cita);
     } catch (err: any) {

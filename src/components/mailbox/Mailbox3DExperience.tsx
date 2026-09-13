@@ -344,14 +344,17 @@ export function Mailbox3DExperience({
     camera.position.set(0, 4, 38);
     camera.lookAt(0, 3, 0);
 
-    // 2. Renderizador WebGL con Antialiasing y Fondo Transparente
+    // 2. Renderizador WebGL con Antialiasing y optimización de DPR para GPU móvil
+    const isMobileDevice = typeof window !== "undefined" && window.innerWidth < 768;
+    const maxDpr = isMobileDevice ? 1.75 : 2;
+
     const webglRenderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
       powerPreference: "high-performance",
     });
     webglRenderer.setSize(width, height);
-    webglRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    webglRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
     webglRenderer.shadowMap.enabled = true;
     webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
     webglRenderer.domElement.style.position = "absolute";
@@ -751,7 +754,9 @@ export function Mailbox3DExperience({
     let currScale = 1;
     const clock = new THREE.Clock();
 
+    let isRunning = true;
     const animate = () => {
+      if (!isRunning) return;
       animId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
@@ -789,6 +794,22 @@ export function Mailbox3DExperience({
 
     animate();
 
+    // Manejo de visibilidad (Ahorro de batería móvil cuando la app pasa a segundo plano)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        isRunning = false;
+        cancelAnimationFrame(animId);
+      } else {
+        if (!isRunning) {
+          isRunning = true;
+          clock.getDelta(); // Descartar delta acumulado mientras estuvo suspendida
+          animate();
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // Manejo de redimensionado de ventana
     const handleResize = () => {
       if (!container) return;
@@ -805,7 +826,9 @@ export function Mailbox3DExperience({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", handleResize);
+      isRunning = false;
       cancelAnimationFrame(animId);
 
       if (container.contains(webglRenderer.domElement)) {

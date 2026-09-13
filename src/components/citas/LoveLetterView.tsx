@@ -30,6 +30,11 @@ import {
   ChevronRight,
   Check,
 } from "lucide-react";
+import {
+  triggerHaptic,
+  scheduleCitaReminders,
+  openNativeLocation,
+} from "@/lib/mobileNative";
 
 interface LoveLetterViewProps {
   cita: ICitaResponse;
@@ -116,12 +121,21 @@ export function LoveLetterView({
       if (data.success && data.cita) {
         setCurrentCita(data.cita);
         onCitaUpdated?.(data.cita);
+        if (respuesta === "aceptada") {
+          triggerHaptic("success");
+          scheduleCitaReminders(data.cita).catch((e) =>
+            console.debug("Error programando recordatorio:", e)
+          );
+        } else {
+          triggerHaptic("medium");
+        }
         setFeedback(
           respuesta === "aceptada"
             ? "Invitación aceptada con todo el amor del mundo."
             : "Has declinado esta invitación con cariño."
         );
       } else {
+        triggerHaptic("warning");
         setFeedback(data.error || "No se pudo actualizar la respuesta.");
       }
     } catch (e) {

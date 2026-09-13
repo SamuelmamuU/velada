@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nuestras Aventuras</string>
+    <string name="title_activity_main">Nuestras Aventuras</string>
+    <string name="package_name">app.velada.citas</string>
+    <string name="custom_url_scheme">app.velada.citas</string>
+</resources>

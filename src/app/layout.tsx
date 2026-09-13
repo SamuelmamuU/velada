@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, Caveat, IBM_Plex_Mono } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
@@ -29,6 +29,15 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 import { TravelJournalBackground } from "@/components/ui/TravelJournalBackground";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#162738",
+};
 
 export const metadata: Metadata = {
   title: "Nuestras Aventuras",

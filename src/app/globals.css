@@ -18,6 +18,30 @@
   --blush-pastel: #FCEEF1;
   --line: rgba(45, 80, 120, 0.12);
   --shadow: 0 18px 45px -15px rgba(28, 55, 88, 0.16);
+
+  /* Soporte de zonas seguras de pantalla móvil (Notch y barra gestual Android) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+.pl-safe {
+  padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+}
+.pr-safe {
+  padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+}
+
+/* Prevenir selección accidental durante toques rápidos en el móvil */
+.touch-callout-none {
+  -webkit-touch-callout: none;
 }
 
 * {
