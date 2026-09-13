@@ -85,17 +85,17 @@ Este documento audita el 100% de los requerimientos funcionales, no funcionales 
 | ID | Requerimiento Móvil | Estado | Detalle de Implementación |
 |---|---|:---:|---|
 | **RFM-01 a 09** | Paridad 100% de funcionalidades web (Buzón 3D, cartas, mapas Leaflet, QR, calendario). | Cumplido | Código compartido y optimizado bajo Capacitor 6/7. |
-| **RFM-10** | Generación de APK autónomo e instalable por sideloading sin costos ($0). | Cumplido | Archivo binario `NuestrasAventuras-v1.0.apk` compilado con Gradle y SDK de Android Studio. |
+| **RFM-10** | Generación de APK autónomo e instalable por sideloading sin costos ($0). | Cumplido | Binario `NuestrasAventuras-v1.1.apk` (v1.1, versionCode 2) compilado con Gradle y Android SDK. |
 | **RFM-11** | Declaración y solicitud de permisos nativos en tiempo de ejecución (Cámara, Notificaciones, Vibración). | Cumplido | Configurados en `android/app/src/main/AndroidManifest.xml` con aceleración de hardware. |
 | **RFM-12** | Programación de notificaciones locales nativas en el sistema Android (24h y 2h antes de citas). | Cumplido | Módulo `src/lib/mobileNative.ts` con `@capacitor/local-notifications`. |
 | **RFM-13** | Integración nativa con intents de Calendario y Google Maps (`geo:`). | Cumplido | Soporte para intents Android nativos en `openNativeLocation` y exportación `.ics`. |
-| **RFM-14** | Identidad visual Android (Adaptive Icons, tema artesanal y SplashScreen). | Cumplido | `colors.xml`, `styles.xml` y configuración de tema en `capacitor.config.ts`. |
-| **RFM-15** | Persistencia segura de sesión JWT sin pérdida al cerrar la app. | Cumplido | Almacenamiento persistente en Android WebView y sincronización de estado en `AuthContext`. |
+| **RFM-14** | Identidad visual Android con el logo oficial de la web como icono y SplashScreen. | Cumplido | Generados `ic_launcher.png`, `ic_launcher_round.png` y adaptativo en 5 densidades (mdpi a xxxhdpi) + `splash.png`. |
+| **RFM-15** | Recordar usuario y sesión permanente (sin tener que loguearse cada vez). | Cumplido | Inicialización síncrona en `AuthContext` desde `localStorage`, tokens JWT de 10 años y validación resiliente. |
 | **RNFM-01** | Optimización de Three.js para GPU móvil (límite de DPR a 1.75). | Cumplido | DPR acotado dinámicamente en `Mailbox3DExperience.tsx`. |
 | **RNFM-02** | Zonas seguras (*Safe Areas*, *Notch* y barra gestual Android). | Cumplido | Utilidades CSS `.pt-safe`, `viewportFit: "cover"` y metatags en `layout.tsx` y `globals.css`. |
 | **RNFM-03** | Ahorro de batería y suspensión de bucle 3D en segundo plano. | Cumplido | Event listener `visibilitychange` para pausar `requestAnimationFrame` cuando se minimiza la app. |
 | **RNFM-04** | Compatibilidad desde Android 8.0 (API 24/26) hasta Android 15/16 (API 36). | Cumplido | Parametrizado en `android/variables.gradle` (`minSdkVersion = 24`, `targetSdkVersion = 36`). |
-| **RNFM-05** | Tamaño ligero del paquete APK (< 25 MB). | Cumplido | Tamaño final del APK: **3.99 MB**. |
+| **RNFM-05** | Tamaño ligero del paquete APK (< 25 MB). | Cumplido | Tamaño final del APK v1.1: **4.33 MB**. |
 | **RNFM-06** | Scripts automatizados de desarrollo y compilación ($0). | Cumplido | `npm run android:build`, `npm run android:sync`, `npm run android:open`. |
 
 ---

@@ -32,10 +32,11 @@ try {
 
 # 4. Copiar APK a la raiz del proyecto para facil acceso
 $apkSource = "android\app\build\outputs\apk\debug\app-debug.apk"
-$apkDest = "NuestrasAventuras-v1.0.apk"
+$apkDest = "NuestrasAventuras-v1.1.apk"
 
 if (Test-Path $apkSource) {
     Copy-Item $apkSource -Destination $apkDest -Force
+    Copy-Item $apkSource -Destination "NuestrasAventuras-v1.0.apk" -Force
     $fileItem = Get-Item $apkDest
     $sizeMb = [math]::Round(($fileItem.Length / 1MB), 2)
     Write-Host ""

@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "velada_default_jwt_secret_dev_key"
 
 export function signToken(payload: Omit<JWTPayload, "iat" | "exp">): string {
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "30d",
+    expiresIn: "3650d",
   });
 }
 

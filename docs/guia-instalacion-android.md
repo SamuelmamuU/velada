@@ -1,8 +1,9 @@
 # 📱 Guía de Instalación y Uso — Aplicación Android (APK)
 ## *Nuestras Aventuras (Planesito de Vida 💌)*
 
-> **Archivo APK generado:** `NuestrasAventuras-v1.0.apk` (Tamaño: ~4.0 MB)  
-> **Ubicación en tu equipo:** `C:\Users\samue\Desktop\Citas\NuestrasAventuras-v1.0.apk`  
+> **Versión:** **v1.1** (Lanzamiento con Icono Oficial y Recordar Sesión Permanente)  
+> **Archivo APK generado:** `NuestrasAventuras-v1.1.apk` (Tamaño: ~4.3 MB)  
+> **Ubicación en tu equipo:** `C:\Users\samue\Desktop\Citas\NuestrasAventuras-v1.1.apk`  
 > **Costo:** **$0.00 USD (Sin pagar cuentas de Google Play Store)**
 
 ---

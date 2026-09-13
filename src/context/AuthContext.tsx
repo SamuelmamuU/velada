@@ -33,11 +33,70 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<IUsuarioResponse | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [pareja, setPareja] = useState<IParejaResponse | null>(null);
+  // Inicialización síncrona inmediata desde almacenamiento local (cero parpadeo de login)
+  const [user, setUser] = useState<IUsuarioResponse | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("velada_user");
+        if (cached) return JSON.parse(cached);
+      } catch (e) {
+        console.debug("Error leyendo velada_user inicial:", e);
+      }
+    }
+    return null;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("velada_token") || null;
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return !localStorage.getItem("velada_token");
+    }
+    return true;
+  });
+
+  const [pareja, setPareja] = useState<IParejaResponse | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("velada_pareja");
+        if (cached) return JSON.parse(cached);
+      } catch (e) {
+        console.debug("Error leyendo velada_pareja inicial:", e);
+      }
+    }
+    return null;
+  });
+
   const [parejaLoading, setParejaLoading] = useState<boolean>(false);
+
+  const saveSession = useCallback(
+    (newToken: string, newUser: IUsuarioResponse, newPareja?: IParejaResponse | null) => {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("velada_token", newToken);
+        localStorage.setItem("velada_user", JSON.stringify(newUser));
+        if (newPareja) {
+          localStorage.setItem("velada_pareja", JSON.stringify(newPareja));
+        }
+      }
+    },
+    []
+  );
+
+  const clearSession = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("velada_token");
+      localStorage.removeItem("velada_user");
+      localStorage.removeItem("velada_pareja");
+    }
+    setUser(null);
+    setToken(null);
+    setPareja(null);
+  }, []);
 
   const fetchParejaEstado = useCallback(async (authToken?: string) => {
     const currentToken =
@@ -61,6 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const json = await res.json();
         if (json.success && json.data) {
           setPareja(json.data);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("velada_pareja", JSON.stringify(json.data));
+          }
         }
       }
     } catch (err) {
@@ -70,16 +132,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Restaurar sesión al cargar la página
+  // Restaurar y validar sesión con el servidor en segundo plano
   useEffect(() => {
     let isMounted = true;
-
-    // Temporizador de seguridad: nunca quedarse en loading más de 3 segundos
-    const fallbackTimer = setTimeout(() => {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }, 3000);
 
     const initAuth = async () => {
       try {
@@ -87,36 +142,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           typeof window !== "undefined"
             ? localStorage.getItem("velada_token")
             : null;
+
         if (savedToken) {
           setToken(savedToken);
-          // Verificar token con el backend
+          // Consulta silenciosa al servidor para refrescar datos
           const res = await fetch("/api/auth/me", {
             headers: {
               Authorization: `Bearer ${savedToken}`,
             },
           });
+
           if (res.ok) {
             const data = await res.json();
             if (isMounted && data.success && data.usuario) {
               setUser(data.usuario);
+              saveSession(savedToken, data.usuario);
               fetchParejaEstado(savedToken);
-            } else if (isMounted) {
-              localStorage.removeItem("velada_token");
-              setToken(null);
-              setUser(null);
-              setPareja(null);
             }
-          } else if (isMounted) {
-            localStorage.removeItem("velada_token");
-            setToken(null);
-            setUser(null);
-            setPareja(null);
+          } else if (res.status === 401 || res.status === 403) {
+            // Solo si el servidor rechaza explícitamente el token por inválido se borra
+            if (isMounted) {
+              clearSession();
+            }
           }
+          // NOTA: Si hay fallo de red u offline, NO se borra la sesión guardada
         }
       } catch (err) {
-        console.error("Error al restaurar sesión:", err);
+        console.debug("Modo sin conexión o retraso de red al verificar sesión:", err);
       } finally {
-        clearTimeout(fallbackTimer);
         if (isMounted) {
           setLoading(false);
         }
@@ -127,9 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
-      clearTimeout(fallbackTimer);
     };
-  }, [fetchParejaEstado]);
+  }, [fetchParejaEstado, saveSession, clearSession]);
 
   const login = async (
     email: string,
@@ -158,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setToken(data.token);
       setUser(data.usuario);
-      localStorage.setItem("velada_token", data.token);
+      saveSession(data.token, data.usuario);
       fetchParejaEstado(data.token);
 
       return { success: true };
@@ -198,7 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setToken(data.token);
       setUser(data.usuario);
-      localStorage.setItem("velada_token", data.token);
+      saveSession(data.token, data.usuario);
       fetchParejaEstado(data.token);
 
       return { success: true };
@@ -213,10 +265,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error(e);
     } finally {
-      setUser(null);
-      setToken(null);
-      setPareja(null);
-      localStorage.removeItem("velada_token");
+      clearSession();
     }
   };
 
