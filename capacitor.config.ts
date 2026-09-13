@@ -7,8 +7,8 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
     cleartext: true,
-    // Permite apuntar dinámicamente a la URL del backend/web si se especifica
-    url: process.env.CAPACITOR_SERVER_URL || undefined,
+    // Apunta directamente a la versión desplegada en producción en Vercel
+    url: process.env.CAPACITOR_SERVER_URL || 'https://velada-flame.vercel.app',
   },
   plugins: {
     LocalNotifications: {

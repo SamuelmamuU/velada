@@ -28,26 +28,15 @@ Elige cualquiera de estos métodos gratuitos:
 
 ---
 
-## 🌐 2. Conectividad con el Servidor Backend
+## 🌐 2. Conectividad con la Nube (Vercel)
 
-La aplicación móvil se conecta de forma segura mediante HTTPS / HTTP a tu servidor backend de Next.js (con MongoDB Atlas):
+El archivo APK generado **ya viene configurado de fábrica para conectarse automáticamente a tu despliegue en la nube**:
+👉 **`https://velada-flame.vercel.app`**
 
-### Opción A: Servidor en Producción (Vercel) — *Recomendada para uso diario*
-Si despliegas la web en Vercel (100% gratuito según [docs/despliegue.md](despliegue.md)):
-- La app móvil se conectará a `https://tu-proyecto.vercel.app`.
-- Tanto el novio como la novia tendrán acceso en tiempo real desde cualquier lugar con datos móviles o Wi-Fi.
-
-### Opción B: Servidor Local (Para pruebas en la misma red Wi-Fi de casa)
-1. En tu computadora, obtén tu IP local de Wi-Fi abriendo PowerShell y escribiendo: `ipconfig` (ejemplo: `192.168.1.50`).
-2. Inicia el servidor con:
-   ```bash
-   npm run dev -- -H 0.0.0.0
-   ```
-3. En `capacitor.config.ts`, define la URL o variable de entorno:
-   ```ts
-   url: "http://192.168.1.50:3000"
-   ```
-4. Recompila con: `npm run android:build`.
+### ¿Qué significa esto?
+- **Funciona en cualquier lugar**: No necesitas tener tu computadora encendida ni estar en la misma red Wi-Fi de tu casa.
+- **Datos móviles y Wi-Fi**: Funciona con cualquier conexión a internet (red móvil 4G/5G o cualquier red Wi-Fi del mundo).
+- **Sincronización en tiempo real**: Todo lo que el Novio (Samuel) cree o la Novia (Diana) responda se sincroniza al instante en la base de datos de MongoDB Atlas.
 
 ---
 
