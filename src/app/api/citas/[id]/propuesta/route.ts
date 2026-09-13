@@ -148,7 +148,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
           success: true,
           message:
             accion === "aceptar"
-              ? "Horario actualizado con la sugerencia de Diana"
+              ? "Horario actualizado con la sugerencia de tu pareja"
               : "Propuesta declinada; se mantiene el horario original.",
           cita: {
             id: cita._id.toString(),
@@ -185,7 +185,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       success: true,
       message:
         accion === "aceptar"
-          ? "Horario actualizado con la sugerencia de Diana"
+          ? "Horario actualizado con la sugerencia de tu pareja"
           : "Propuesta declinada; se mantiene el horario original.",
       cita: memCita,
     });

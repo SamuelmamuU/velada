@@ -14,7 +14,7 @@ export function PairingStatusBadge({ compact = false }: PairingStatusBadgeProps)
   const [modalOpen, setModalOpen] = useState(false);
 
   const isConnected = pareja?.estado === "conectados" || user?.estadoPareja === "conectados";
-  const partnerName = pareja?.parejaNombre || user?.nombrePareja || (user?.rol === "novio" ? "Diana" : "Samuel");
+  const partnerName = pareja?.parejaNombre || user?.nombrePareja || (user?.rol === "novio" ? "tu novia" : "tu novio");
 
   return (
     <>

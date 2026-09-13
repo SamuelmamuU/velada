@@ -28,6 +28,12 @@ interface AuthContextType {
   refreshPareja: () => Promise<void>;
   vincularPareja: (codigo: string) => Promise<{ success: boolean; error?: string; message?: string }>;
   desvincularPareja: () => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (data: {
+    nombre?: string;
+    avatarUrl?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  }) => Promise<{ success: boolean; error?: string; message?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -344,6 +350,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token, refreshPareja]);
 
+  const updateProfile = useCallback(
+    async (data: {
+      nombre?: string;
+      avatarUrl?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    }) => {
+      const currentToken =
+        token ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("velada_token")
+          : null);
+
+      if (!currentToken) {
+        return { success: false, error: "No hay sesión activa" };
+      }
+
+      try {
+        const res = await fetch("/api/auth/me", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify(data),
+        });
+
+        const resData = await res.json();
+        if (!res.ok || !resData.success) {
+          return {
+            success: false,
+            error: resData.error || "Error al actualizar perfil",
+          };
+        }
+
+        if (resData.usuario) {
+          setUser(resData.usuario);
+          saveSession(currentToken, resData.usuario);
+        }
+
+        return {
+          success: true,
+          message: resData.message || "Perfil actualizado con éxito",
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          error: err.message || "Error al conectar con el servidor",
+        };
+      }
+    },
+    [token, saveSession]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -359,6 +419,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshPareja,
         vincularPareja,
         desvincularPareja,
+        updateProfile,
       }}
     >
       {children}

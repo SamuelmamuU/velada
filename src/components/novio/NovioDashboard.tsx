@@ -40,7 +40,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   >("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
 
-  const partnerName = user?.nombrePareja || "Diana";
+  const partnerName = pareja?.parejaNombre || user?.nombrePareja || "tu novia";
 
 
   // Estados de modal de eliminación y notificaciones
@@ -299,8 +299,8 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
                 </h1>
                 <p className="text-ink-soft text-sm mt-1 font-normal">
                   {citas.length}{" "}
-                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · Diana
-                  las recibirá en formato de carta interactiva con mapa en su buzón.
+                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · {partnerName}
+                  {" "}las recibirá en formato de carta interactiva con mapa en su buzón.
                 </p>
               </div>
 

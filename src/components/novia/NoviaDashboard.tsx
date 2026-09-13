@@ -380,7 +380,7 @@ export function NoviaDashboard() {
                   const target = citas.find((c) => !c.recuerdo?.fotoUrl) || citas[0];
                   if (target) handleSelectCita(target, "memory");
                 }}
-                partnerName={user?.nombrePareja || "Samuel"}
+                partnerName={user?.nombrePareja || pareja?.parejaNombre || "tu novio"}
               />
             )}
           </div>

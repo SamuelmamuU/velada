@@ -27,8 +27,9 @@ export function CitaDetailView({
   onBack,
   onCitaUpdated,
 }: CitaDetailViewProps) {
-  const { user, token } = useAuth();
+  const { user, token, pareja } = useAuth();
   const isNovio = user?.rol === "novio";
+  const partnerName = user?.nombrePareja || pareja?.parejaNombre || (user?.rol === "novio" ? "tu novia" : "tu pareja");
 
   const [currentCita, setCurrentCita] = useState<ICitaResponse>(cita);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export function CitaDetailView({
               estado: "aceptada",
             },
           };
-          setFeedbackMsg("Horario actualizado con la propuesta de Diana.");
+          setFeedbackMsg(`Horario actualizado con la propuesta de ${partnerName}.`);
         } else {
           updated = {
             ...currentCita,
@@ -106,7 +107,7 @@ export function CitaDetailView({
               </div>
               <div>
                 <h4 className="font-serif font-bold text-base text-ink">
-                  ¡Diana ha sugerido un nuevo horario!
+                  ¡{partnerName} ha sugerido un nuevo horario!
                 </h4>
                 <div className="text-xs text-ink-soft mt-1 space-y-0.5">
                   <div>

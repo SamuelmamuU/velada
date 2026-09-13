@@ -42,7 +42,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Nuestras Aventuras",
   description:
-    "Diario de viajes, cartas de amor y momentos especiales de Samuel y Diana.",
+    "Diario de viajes, cartas de amor y momentos especiales de la pareja.",
   icons: {
     icon: "/NuestrasAventurasLG.png",
     apple: "/NuestrasAventurasLG.png",
@@ -60,8 +60,10 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${caveat.variable} ${ibmPlexMono.variable}`}
     >
       <body className="font-sans antialiased min-h-screen selection:bg-sky-pastel selection:text-ocean-ink relative">
-        <TravelJournalBackground />
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <TravelJournalBackground />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

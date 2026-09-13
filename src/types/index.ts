@@ -105,6 +105,7 @@ export interface IUsuarioResponse {
   codigoVinculacion?: string;
   estadoPareja?: "esperando_pareja" | "conectados";
   nombrePareja?: string;
+  avatarUrl?: string;
   createdAt?: string;
 }
 

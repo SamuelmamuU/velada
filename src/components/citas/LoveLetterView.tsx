@@ -60,8 +60,11 @@ export function LoveLetterView({
   onCitaUpdated,
   showCloseButton = true,
 }: LoveLetterViewProps) {
-  const { user, token } = useAuth();
+  const { user, token, pareja } = useAuth();
   const isNovia = user?.rol === "novia";
+  const novioName = user?.rol === "novio" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novio");
+  const noviaName = user?.rol === "novia" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novia");
+  const coupleNames = `${noviaName} & ${novioName}`;
 
   const [currentCita, setCurrentCita] = useState<ICitaResponse>(cita);
   const [currentSide, setCurrentSide] = useState<"letter" | "map" | "memory">(
@@ -792,7 +795,7 @@ export function LoveLetterView({
                           "Un momento inolvidable de nuestras aventuras."}
                       </p>
                       <p className="font-mono text-[10px] uppercase tracking-wider text-sky-700/80 mt-1">
-                        Diana & Samuel · Guardado con amor
+                        {coupleNames} · Guardado con amor
                       </p>
                     </div>
                   </div>
@@ -837,7 +840,7 @@ export function LoveLetterView({
                         &ldquo;Tu frase o dedicatoria escrita a mano aparecerá aquí...&rdquo;
                       </p>
                       <p className="font-mono text-[10px] uppercase tracking-wider text-sky-700/60 mt-1">
-                        Diana & Samuel · Álbum de Nuestras Aventuras
+                        {coupleNames} · Álbum de Nuestras Aventuras
                       </p>
                     </div>
                   </div>

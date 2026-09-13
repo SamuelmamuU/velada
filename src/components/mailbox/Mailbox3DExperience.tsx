@@ -101,7 +101,16 @@ export function Mailbox3DExperience({
   onCloseToDashboard,
   isLoginScreen = false,
 }: Mailbox3DExperienceProps) {
-  const { login, register } = useAuth();
+  const { user, pareja, login, register } = useAuth();
+
+  const novioName = user?.rol === "novio" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novio");
+  const noviaName = user?.rol === "novia" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novia");
+  const coupleNames = `${novioName} & ${noviaName}`;
+
+  const coupleNamesRef = useRef(coupleNames);
+  useEffect(() => {
+    coupleNamesRef.current = coupleNames;
+  }, [coupleNames]);
 
   // Estados del flujo del buzón
   const [stage, setStage] = useState<MailboxStage>(initialStage);
@@ -680,20 +689,20 @@ export function Mailbox3DExperience({
 
       // Sombra profunda de relieve de pintura sobre el metal azul
       pCtx.fillStyle = "rgba(8, 20, 38, 0.88)";
-      pCtx.fillText("Samuel & Diana", 1024 + 5, 335 + 6);
+      pCtx.fillText(coupleNamesRef.current, 1024 + 5, 335 + 6);
 
       // Sombra ambiental suave
       pCtx.fillStyle = "rgba(15, 35, 62, 0.45)";
-      pCtx.fillText("Samuel & Diana", 1024 + 2, 335 + 3);
+      pCtx.fillText(coupleNamesRef.current, 1024 + 2, 335 + 3);
 
       // Capa de pintura esmalte blanco puro
       pCtx.fillStyle = "#FFFFFF";
-      pCtx.fillText("Samuel & Diana", 1024, 335);
+      pCtx.fillText(coupleNamesRef.current, 1024, 335);
 
       // Relieve y contorno sutil de brillo cerámico
       pCtx.strokeStyle = "rgba(255, 255, 255, 0.75)";
       pCtx.lineWidth = 2.5;
-      pCtx.strokeText("Samuel & Diana", 1024, 335);
+      pCtx.strokeText(coupleNamesRef.current, 1024, 335);
 
       // 3. Pincelada artesanal curvada de subrayado
       pCtx.strokeStyle = "rgba(255, 255, 255, 0.92)";
@@ -919,7 +928,7 @@ export function Mailbox3DExperience({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-handwriting text-base font-bold text-sky-950 leading-tight">
-                  Samuel & Diana
+                  {coupleNames}
                 </span>
                 {pendingCitas.length > 0 && (
                   <span className="bg-blush-100 text-blush-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-blush-200 font-mono">
@@ -1175,7 +1184,7 @@ export function Mailbox3DExperience({
                   required
                   value={regNombre}
                   onChange={(e) => setRegNombre(e.target.value)}
-                  placeholder="ej. Samuel, Diana..."
+                  placeholder="ej. Jorge, Sofía..."
                   className="w-full py-1.5 px-2.5 border border-[#D5C9AF] rounded-lg font-sans text-xs bg-white/90 text-ink focus:outline-none focus:border-sky-500"
                 />
               </div>
@@ -1353,7 +1362,7 @@ export function Mailbox3DExperience({
                       </div>
 
                       <div className="flex items-center justify-between border-t border-[#E8DFC8]/60 pt-2 text-[11px] text-ink-soft font-mono">
-                        <span>Para: Diana</span>
+                        <span>Para: {noviaName}</span>
                         <span>
                           {format(new Date(cita.horario), "d 'de' MMMM", { locale: es })}
                         </span>

@@ -1,10 +1,12 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { AppLogo } from "@/components/ui/AppLogo";
-import { LogOut, ArrowLeft } from "lucide-react";
+import { LogOut, ArrowLeft, Settings } from "lucide-react";
 import { PairingStatusBadge } from "@/components/pareja/PairingStatusBadge";
+import { EditProfileModal } from "@/components/auth/EditProfileModal";
 
 interface AppHeaderProps {
   tag?: string;
@@ -14,14 +16,15 @@ interface AppHeaderProps {
 
 export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps) {
   const { user, logout } = useAuth();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const defaultTag =
     user?.rol === "novio"
-      ? `PANEL DE ${(user?.nombre || "SAMUEL").toUpperCase()}`
-      : `BUZÓN DE ${(user?.nombre || "DIANA").toUpperCase()}`;
+      ? `PANEL DE ${(user?.nombre || "NOVIO").toUpperCase()}`
+      : `BUZÓN DE ${(user?.nombre || "NOVIA").toUpperCase()}`;
 
   const displayTag = tag || defaultTag;
-  const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "S" : "D");
+  const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "N" : "N");
 
   return (
     <header className="flex items-center justify-between flex-wrap gap-4 mb-9">
@@ -53,12 +56,34 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
         <PairingStatusBadge />
 
         {user && (
-          <div className="flex items-center gap-2 bg-card border border-line/80 py-1.5 pl-1.5 pr-3 rounded-full text-xs font-medium shadow-sm">
-            <div className="w-[28px] h-[28px] rounded-full bg-sky-100 flex items-center justify-center font-serif font-bold text-sky-700 text-xs">
-              {userInitial}
-            </div>
-            <span className="text-ink font-semibold">{user.nombre}</span>
-          </div>
+          <>
+            <button
+              onClick={() => setIsEditProfileOpen(true)}
+              title="Modificar perfil"
+              className="flex items-center gap-2 bg-card border border-line/80 hover:border-sky-300 hover:bg-sky-50/50 py-1.5 pl-1.5 pr-3 rounded-full text-xs font-medium shadow-sm transition-all cursor-pointer group"
+            >
+              <div className="w-[28px] h-[28px] rounded-full bg-sky-100 flex items-center justify-center font-serif font-bold text-sky-700 text-xs overflow-hidden border border-sky-200 group-hover:scale-105 transition-transform">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.nombre}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  userInitial
+                )}
+              </div>
+              <span className="text-ink font-semibold group-hover:text-sky-800 transition-colors">
+                {user.nombre}
+              </span>
+              <Settings size={13} className="text-ink-soft group-hover:text-sky-700 transition-colors" />
+            </button>
+
+            <EditProfileModal
+              isOpen={isEditProfileOpen}
+              onClose={() => setIsEditProfileOpen(false)}
+            />
+          </>
         )}
 
         <button

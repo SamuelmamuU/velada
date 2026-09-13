@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import {
   ICitaResponse,
   ILugar,
@@ -35,6 +36,8 @@ export function NovioForm({
   onSuccess,
   onCancel,
 }: NovioFormProps) {
+  const { user } = useAuth();
+  const partnerName = user?.nombrePareja || (user?.rol === "novio" ? "tu novia" : "tu pareja");
   const isEditing = !!initialCita;
 
   // Campos básicos
@@ -92,7 +95,7 @@ export function NovioForm({
   // Lugar y coordenadas
   const [lugar, setLugar] = useState<ILugar>(
     initialCita?.lugar || {
-      direccion: "Terraza San Pedro, San Pedro Garza García",
+      direccion: "",
       lat: 25.6572,
       lng: -100.4024,
     }
@@ -194,7 +197,7 @@ export function NovioForm({
             {isEditing ? "Modificar carta" : "Escribir nueva carta de amor"}
           </p>
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
-            {isEditing ? "Edita la carta de amor" : "Prepara la próxima cita para Diana"}
+            {isEditing ? "Edita la carta de amor" : `Prepara la próxima cita para ${partnerName}`}
           </h2>
         </div>
         <button
@@ -341,7 +344,7 @@ export function NovioForm({
                 ¿Habrá familiares presentes?
               </div>
               <div className="text-[11px] text-ink-soft">
-                Le ayuda a Diana a saber si es un ambiente familiar.
+                Le ayuda a {partnerName} a saber si es un ambiente familiar.
               </div>
             </div>
             <div className="flex gap-2">
@@ -419,7 +422,7 @@ export function NovioForm({
               onChange={(e) => setEsFlexible(e.target.value === "true")}
               className="w-full py-2.5 px-3 border border-line rounded-[10px] font-sans text-xs bg-ivory text-ink focus:outline-none focus:border-gold"
             >
-              <option value="true">Sí, Diana puede proponer cambio</option>
+              <option value="true">Sí, {partnerName} puede proponer cambio</option>
               <option value="false">No, horario estricto / reservación</option>
             </select>
           </div>

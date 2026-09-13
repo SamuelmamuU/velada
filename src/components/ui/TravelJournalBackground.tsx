@@ -2,8 +2,13 @@
 
 import React from "react";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 export function TravelJournalBackground() {
+  const { user, pareja } = useAuth();
+  const novioName = user?.rol === "novio" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novio");
+  const noviaName = user?.rol === "novia" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novia");
+  const stampText = `${novioName.toUpperCase()} & ${noviaName.toUpperCase()}`;
   const polaroids = [
     {
       src: "/polaroids/ANIVERSARIO.jpg",
@@ -225,7 +230,7 @@ export function TravelJournalBackground() {
             fill="currentColor"
             letterSpacing="1"
           >
-            SAMUEL & DIANA
+            {stampText}
           </text>
         </g>
       </svg>
