@@ -179,7 +179,7 @@ export function NoviaDashboard() {
   };
 
   const handleOpenMailbox = () => {
-    setMailboxStage("door_opening");
+    setMailboxStage("front_closed");
     setMailboxOpenTrigger((prev) => prev + 1);
   };
 

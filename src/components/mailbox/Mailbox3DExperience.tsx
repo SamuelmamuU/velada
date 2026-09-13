@@ -116,7 +116,11 @@ export function Mailbox3DExperience({
 
   useEffect(() => {
     if (openTrigger && openTrigger > 0) {
-      setStage("door_opening");
+      setStage("front_closed");
+      const openTimer = setTimeout(() => {
+        setStage("door_opening");
+      }, 300);
+      return () => clearTimeout(openTimer);
     }
   }, [openTrigger]);
 
@@ -124,7 +128,16 @@ export function Mailbox3DExperience({
     if (stage === "door_opening") {
       const timer = setTimeout(() => {
         setStage("letters_floating");
-      }, 700);
+      }, 750);
+      return () => clearTimeout(timer);
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "minimized_widget") {
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 60);
       return () => clearTimeout(timer);
     }
   }, [stage]);
@@ -333,6 +346,9 @@ export function Mailbox3DExperience({
   // Restaurar buzón al centro desde el widget miniatura
   const handleRestoreFromWidget = () => {
     setStage("front_closed");
+    setTimeout(() => {
+      setStage("door_opening");
+    }, 300);
   };
 
   // =========================================================================
@@ -868,104 +884,106 @@ export function Mailbox3DExperience({
     };
   }, []);
 
-  // Si está minimizado como widget interactivo en la esquina
-  if (stage === "minimized_widget") {
-    return (
-      <div className="fixed bottom-6 right-6 z-50 animate-fade-up select-none">
-        <motion.button
-          type="button"
-          onClick={handleRestoreFromWidget}
-          whileHover={{ scale: 1.08, rotate: -2 }}
-          whileTap={{ scale: 0.94 }}
-          className="group relative flex items-center gap-3 bg-white/95 backdrop-blur-md p-2.5 pr-4 rounded-2xl shadow-letter border border-sky-200/90 text-left cursor-pointer transition-all hover:shadow-xl hover:border-sky-300"
-          title="Abrir Buzón 3D de Nuestras Aventuras"
-        >
-          <div className="relative w-12 h-12 flex-shrink-0 bg-sky-100/70 rounded-xl flex items-center justify-center overflow-hidden border border-sky-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 drop-shadow-xs">
-              <rect x="46" y="60" width="8" height="35" rx="2" fill="#8A6B53" />
-              <rect x="20" y="30" width="60" height="36" rx="18" fill="#89B8E6" />
-              <path
-                d="M 20 48 C 20 38 28 30 38 30 L 62 30 C 72 30 80 38 80 48 Z"
-                fill="#A4C9EE"
-              />
-              <ellipse cx="35" cy="48" rx="11" ry="15" fill="#6B9BC9" />
-              <circle cx="35" cy="48" r="3.5" fill="#E5BE73" />
-              <line x1="72" y1="48" x2="84" y2="30" stroke="#C76D80" strokeWidth="2.5" />
-              <path d="M 84 30 L 92 32 L 84 37 Z" fill="#C76D80" />
-            </svg>
+  return (
+    <>
+      {/* Botón flotante miniatura cuando está minimizado en el dashboard */}
+      {!isLoginScreen && stage === "minimized_widget" && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-up select-none">
+          <motion.button
+            type="button"
+            onClick={handleRestoreFromWidget}
+            whileHover={{ scale: 1.08, rotate: -2 }}
+            whileTap={{ scale: 0.94 }}
+            className="group relative flex items-center gap-3 bg-white/95 backdrop-blur-md p-2.5 pr-4 rounded-2xl shadow-letter border border-sky-200/90 text-left cursor-pointer transition-all hover:shadow-xl hover:border-sky-300"
+            title="Abrir Buzón 3D de Nuestras Aventuras"
+          >
+            <div className="relative w-12 h-12 flex-shrink-0 bg-sky-100/70 rounded-xl flex items-center justify-center overflow-hidden border border-sky-200">
+              <svg viewBox="0 0 100 100" className="w-10 h-10 drop-shadow-xs">
+                <rect x="46" y="60" width="8" height="35" rx="2" fill="#8A6B53" />
+                <rect x="20" y="30" width="60" height="36" rx="18" fill="#89B8E6" />
+                <path
+                  d="M 20 48 C 20 38 28 30 38 30 L 62 30 C 72 30 80 38 80 48 Z"
+                  fill="#A4C9EE"
+                />
+                <ellipse cx="35" cy="48" rx="11" ry="15" fill="#6B9BC9" />
+                <circle cx="35" cy="48" r="3.5" fill="#E5BE73" />
+                <line x1="72" y1="48" x2="84" y2="30" stroke="#C76D80" strokeWidth="2.5" />
+                <path d="M 84 30 L 92 32 L 84 37 Z" fill="#C76D80" />
+              </svg>
 
-            {pendingCitas.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white animate-pulse" />
-            )}
-          </div>
-
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-handwriting text-base font-bold text-sky-950 leading-tight">
-                Samuel & Diana
-              </span>
               {pendingCitas.length > 0 && (
-                <span className="bg-blush-100 text-blush-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-blush-200 font-mono">
-                  {pendingCitas.length}
-                </span>
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white animate-pulse" />
               )}
             </div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-sky-700/80">
-              {pendingCitas.length > 0 ? "Cartas pendientes" : "Buzón al día"}
-            </p>
-          </div>
 
-          <Maximize2
-            size={14}
-            className="text-sky-600 opacity-60 group-hover:opacity-100 transition-opacity ml-1"
-          />
-        </motion.button>
-      </div>
-    );
-  }
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-handwriting text-base font-bold text-sky-950 leading-tight">
+                  Samuel & Diana
+                </span>
+                {pendingCitas.length > 0 && (
+                  <span className="bg-blush-100 text-blush-800 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-blush-200 font-mono">
+                    {pendingCitas.length}
+                  </span>
+                )}
+              </div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-sky-700/80">
+                {pendingCitas.length > 0 ? "Cartas pendientes" : "Buzón al día"}
+              </p>
+            </div>
 
-  return (
-    <div
-      className={
-        isLoginScreen
-          ? "relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden"
-          : `fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden transition-all duration-700 ${
-              stage === "docking"
-                ? "bg-transparent backdrop-blur-none pointer-events-none"
-                : "bg-[#101D2B]/75 backdrop-blur-md"
-            }`
-      }
-    >
-      {/* Botón superior de cerrar hacia el dashboard si no es login */}
-      {!isLoginScreen && stage !== "lateral_login" && (
-        <button
-          type="button"
-          onClick={() => {
-            setStage("docking");
-            setTimeout(() => {
-              setStage("minimized_widget");
-              onCloseToDashboard?.();
-            }, 900);
-          }}
-          className="fixed top-5 right-5 z-50 p-2.5 rounded-full bg-white/90 hover:bg-white text-ink-soft hover:text-ink shadow-md transition-transform hover:scale-105 cursor-pointer border border-sky-100"
-          title="Minimizar buzón e ir al tablero"
-        >
-          <X size={18} />
-        </button>
+            <Maximize2
+              size={14}
+              className="text-sky-600 opacity-60 group-hover:opacity-100 transition-opacity ml-1"
+            />
+          </motion.button>
+        </div>
       )}
 
-      {/* LIENZO 3D THREE.JS (Contenedor de WebGL y CSS3D) */}
+      {/* Contenedor del Buzón 3D (Lienzo en vivo montado persistentemente) */}
       <div
-        ref={mountRef}
-        onClick={() => {
-          if (stage === "front_closed") {
-            handleDoorClick();
-          }
-        }}
-        className={`relative w-full ${isLoginScreen ? "h-screen min-h-[620px]" : "h-[620px] sm:h-[680px]"} flex items-center justify-center select-none ${
-          stage === "front_closed" ? "cursor-pointer" : ""
-        }`}
-      />
+        className={
+          isLoginScreen
+            ? "relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden"
+            : `fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden transition-all duration-500 ${
+                stage === "docking" || stage === "minimized_widget"
+                  ? "bg-transparent backdrop-blur-none pointer-events-none opacity-0"
+                  : "bg-[#101D2B]/75 backdrop-blur-md opacity-100 pointer-events-auto"
+              }`
+        }
+      >
+        {/* Botón superior de cerrar hacia el dashboard si no es login */}
+        {!isLoginScreen && stage !== "lateral_login" && stage !== "minimized_widget" && stage !== "docking" && (
+          <button
+            type="button"
+            onClick={() => {
+              setStage("docking");
+              setTimeout(() => {
+                setStage("minimized_widget");
+                onCloseToDashboard?.();
+              }, 600);
+            }}
+            className="fixed top-5 right-5 z-50 p-2.5 rounded-full bg-white/90 hover:bg-white text-ink-soft hover:text-ink shadow-md transition-transform hover:scale-105 cursor-pointer border border-sky-100"
+            title="Minimizar buzón e ir al tablero"
+          >
+            <X size={18} />
+          </button>
+        )}
+
+        {/* LIENZO 3D THREE.JS (Contenedor de WebGL y CSS3D) */}
+        <div
+          ref={mountRef}
+          onClick={() => {
+            if (stage === "front_closed") {
+              handleDoorClick();
+            }
+          }}
+          className={`relative w-full ${
+            isLoginScreen ? "h-screen min-h-[620px]" : "h-full min-h-[500px]"
+          } flex items-center justify-center select-none ${
+            stage === "front_closed" ? "cursor-pointer" : ""
+          }`}
+        />
 
       {/* ========================================================================= */}
       {/* LA ETIQUETA ADHESIVA DE ACCESO (Inyectada al CSS3DRenderer en el Costado) */}
@@ -1399,5 +1417,6 @@ export function Mailbox3DExperience({
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }
