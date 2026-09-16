@@ -127,10 +127,10 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/citas — Crear nueva cita (Exclusivo para Rol Novio)
+// POST /api/citas — Crear nueva cita (Novio o Novia)
 export async function POST(req: NextRequest) {
   try {
-    const auth = requireRole(req, ["novio"]);
+    const auth = requireRole(req, ["novio", "novia"]);
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await req.json().catch(() => null);
@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
           lugar: validatedData.lugar,
           tematica: validatedData.tematica,
           vestimentaRecomendada: validatedData.vestimentaRecomendada,
-          estado: validatedData.estado || "confirmada",
+          estado: validatedData.estado || "pendiente",
           asistencia: validatedData.asistencia || {
             cantidadPersonas: 2,
             tipoAcompanantes: "solo_pareja",
@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
       lugar: validatedData.lugar,
       tematica: validatedData.tematica,
       vestimentaRecomendada: validatedData.vestimentaRecomendada,
-      estado: validatedData.estado || "confirmada",
+      estado: validatedData.estado || "pendiente",
       parejaId: memUser?.parejaId || null,
       asistencia: validatedData.asistencia || {
         cantidadPersonas: 2,

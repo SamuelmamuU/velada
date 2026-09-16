@@ -99,10 +99,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PUT /api/citas/:id — Editar cita (Exclusivo para Novio)
+// PUT /api/citas/:id — Editar cita (Novio o Novia)
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
-    const auth = requireRole(req, ["novio"]);
+    const auth = requireRole(req, ["novio", "novia"]);
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;
@@ -231,10 +231,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/citas/:id — Eliminar cita (Exclusivo para Novio)
+// DELETE /api/citas/:id — Eliminar cita (Novio o Novia)
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
-    const auth = requireRole(req, ["novio"]);
+    const auth = requireRole(req, ["novio", "novia"]);
     if (auth.errorResponse) return auth.errorResponse;
 
     const { id } = params;

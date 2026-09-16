@@ -62,6 +62,9 @@ export function LoveLetterView({
 }: LoveLetterViewProps) {
   const { user, token, pareja } = useAuth();
   const isNovia = user?.rol === "novia";
+  const isNovio = user?.rol === "novio";
+  const partnerName =
+    user?.nombrePareja || pareja?.parejaNombre || (isNovio ? "tu novia" : "tu novio");
   const novioName = user?.rol === "novio" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novio");
   const noviaName = user?.rol === "novia" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novia");
   const coupleNames = `${noviaName} & ${novioName}`;
@@ -70,6 +73,16 @@ export function LoveLetterView({
   const [currentSide, setCurrentSide] = useState<"letter" | "map" | "memory">(
     initialSide
   );
+
+  const creatorId =
+    typeof currentCita.creadoPor === "object"
+      ? currentCita.creadoPor?.id
+      : currentCita.creadoPor;
+  const isCreator =
+    user?.id && creatorId
+      ? String(user.id) === String(creatorId)
+      : !isNovia;
+  const isRecipient = !isCreator;
   const [responding, setResponding] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
@@ -554,7 +567,7 @@ export function LoveLetterView({
                   <p className="font-handwriting text-lg sm:text-xl text-ink-soft italic">
                     {narrative.posdata}
                   </p>
-                  {isNovia && isPending && (
+                  {isRecipient && isPending && (
                     <button
                       type="button"
                       onClick={() => setShowProposalModal(true)}
@@ -570,7 +583,7 @@ export function LoveLetterView({
 
             {/* ACCIONES AL FONDO DE LA CARTA */}
             <div className="mt-10 pt-6 border-t border-sky-200/60">
-              {isNovia && isPending ? (
+              {isRecipient && isPending ? (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   {/* Botón Sí: Aceptar */}
                   <motion.button
@@ -612,8 +625,34 @@ export function LoveLetterView({
                     </button>
                   )}
                 </div>
+              ) : isCreator && isPending ? (
+                /* Vista del emisor esperando respuesta */
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-sky-50/80 border border-sky-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-sky-700 shrink-0">
+                      <Mail size={20} className="animate-bounce" />
+                    </div>
+                    <div>
+                      <h4 className="font-serif font-bold text-sm text-ink">
+                        Esperando confirmación de {partnerName}
+                      </h4>
+                      <p className="text-xs text-ink-soft">
+                        Le has enviado esta carta con todo tu amor. Te avisaremos en cuanto responda.
+                      </p>
+                    </div>
+                  </div>
+                  {onClose && (
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 text-xs font-semibold text-sky-800 hover:bg-white rounded-xl border border-sky-200 transition-colors cursor-pointer"
+                    >
+                      Cerrar carta
+                    </button>
+                  )}
+                </div>
               ) : (
-                /* Acciones para cita ya respondida o vista del novio */
+                /* Acciones para cita ya respondida */
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <button

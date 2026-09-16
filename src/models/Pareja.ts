@@ -36,6 +36,14 @@ const ParejaSchema = new Schema<IParejaDocument>(
       type: Date,
       default: null,
     },
+    colorDashboardNovio: {
+      type: String,
+      default: "azul",
+    },
+    colorDashboardNovia: {
+      type: String,
+      default: "rosa",
+    },
   },
   {
     timestamps: true,

@@ -1,13 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { ICitaResponse } from "@/types";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ICitaResponse, IRecuerdoIndependiente } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { getTheme } from "@/lib/theme";
 import { sendImmediateNotification } from "@/lib/mobileNative";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { InviteCard } from "@/components/citas/InviteCard";
 import { NovioForm } from "@/components/novio/NovioForm";
-import { CitaDetailView } from "@/components/citas/CitaDetailView";
+import { LoveLetterView } from "@/components/citas/LoveLetterView";
+import { CoupleAvatarHeader } from "@/components/dashboard/CoupleAvatarHeader";
+import { AdventureCalendar } from "@/components/dashboard/AdventureCalendar";
+import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
+import { QrPairingModal } from "@/components/pareja/QrPairingModal";
 import {
   Plus,
   Sparkles,
@@ -19,9 +24,9 @@ import {
   Edit2,
   Mail,
   QrCode,
+  Calendar,
+  Camera,
 } from "lucide-react";
-import { QrPairingModal } from "@/components/pareja/QrPairingModal";
-import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
 
 interface NovioDashboardProps {
   onViewDetail?: (cita: ICitaResponse) => void;
@@ -29,20 +34,22 @@ interface NovioDashboardProps {
 
 export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   const { token, user, pareja } = useAuth();
+  const theme = getTheme(pareja?.colorDashboardNovio, "azul");
+  const partnerName =
+    user?.nombrePareja || pareja?.parejaNombre || "tu novia";
 
   const [citas, setCitas] = useState<ICitaResponse[]>([]);
+  const [recuerdos, setRecuerdos] = useState<IRecuerdoIndependiente[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<
     "list" | "create" | "edit" | "detail"
   >("list");
+  const [activeTab, setActiveTab] = useState<"calendario" | "cartas" | "polaroids">("calendario");
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
   const [detailInitialSide, setDetailInitialSide] = useState<
     "letter" | "map" | "memory"
   >("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
-
-  const partnerName = pareja?.parejaNombre || user?.nombrePareja || "tu novia";
-
 
   // Estados de modal de eliminación y notificaciones
   const [citaToDelete, setCitaToDelete] = useState<ICitaResponse | null>(null);
@@ -69,7 +76,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     }
   }, []);
 
-  const fetchCitas = React.useCallback(
+  const fetchCitas = useCallback(
     async (isPolling = false) => {
       if (!token) return;
       try {
@@ -141,9 +148,11 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               }
             }
 
-            // También detectar si la novia envió una propuesta de cambio de horario
-            const hadPendingProposal = prevCitasStatusMapRef.current.get(`${cita.id}_propuesta`) === "pendiente";
-            const nowHasPendingProposal = cita.propuestaCambio?.estado === "pendiente";
+            // Detectar propuesta de cambio de horario
+            const hadPendingProposal =
+              prevCitasStatusMapRef.current.get(`${cita.id}_propuesta`) === "pendiente";
+            const nowHasPendingProposal =
+              cita.propuestaCambio?.estado === "pendiente";
             if (!hadPendingProposal && nowHasPendingProposal) {
               sendImmediateNotification({
                 title: "📅 ¡Nueva propuesta de horario!",
@@ -166,7 +175,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           } catch {}
         }
       } catch (err) {
-        console.error("Error al cargar citas:", err);
+        console.error("Error al cargar citas del novio:", err);
       } finally {
         if (!isPolling) setLoading(false);
       }
@@ -174,57 +183,64 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     [token, partnerName]
   );
 
-  // Carga inicial y sondeo periódico de respuestas cada 8 segundos
-  useEffect(() => {
-    fetchCitas(false);
+  // Cargar recuerdos independientes
+  const fetchRecuerdos = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/recuerdos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      let local: IRecuerdoIndependiente[] = [];
+      try {
+        local = JSON.parse(
+          localStorage.getItem("velada_polaroids_libres") || "[]"
+        );
+      } catch {}
 
+      if (data.success && Array.isArray(data.recuerdos)) {
+        const map = new Map<string, IRecuerdoIndependiente>();
+        data.recuerdos.forEach((r: IRecuerdoIndependiente) => map.set(r.id, r));
+        local.forEach((r: IRecuerdoIndependiente) => {
+          if (!map.has(r.id)) map.set(r.id, r);
+        });
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+        );
+        setRecuerdos(merged);
+      } else if (local.length > 0) {
+        setRecuerdos(local);
+      }
+    } catch (e) {
+      console.debug("Error cargando recuerdos:", e);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchCitas();
+    fetchRecuerdos();
     const interval = setInterval(() => {
       fetchCitas(true);
-    }, 8000);
-
-    const handleSync = () => {
-      fetchCitas(true);
-    };
-    window.addEventListener("focus", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("focus", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
-  }, [fetchCitas]);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
-  };
+      fetchRecuerdos();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchCitas, fetchRecuerdos]);
 
   const handleCreateSuccess = (nuevaCita: ICitaResponse) => {
-    setCitas((prev) =>
-      [...prev, nuevaCita].sort(
-        (a, b) =>
-          new Date(a.horario).getTime() - new Date(b.horario).getTime()
-      )
-    );
+    setCitas((prev) => [nuevaCita, ...prev]);
     setCurrentView("list");
-    showToast(`Carta de invitación enviada exitosamente. ${partnerName} ya puede verla en su buzón.`);
+    setToastMessage("¡Carta de amor creada con éxito!");
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   const handleEditSuccess = (citaActualizada: ICitaResponse) => {
     setCitas((prev) =>
-      prev
-        .map((c) => (c.id === citaActualizada.id ? citaActualizada : c))
-        .sort(
-          (a, b) =>
-            new Date(a.horario).getTime() - new Date(b.horario).getTime()
-        )
+      prev.map((c) => (c.id === citaActualizada.id ? citaActualizada : c))
     );
     setCurrentView("list");
     setSelectedCita(null);
-    showToast("Cita actualizada correctamente.");
+    setToastMessage("Cita actualizada correctamente");
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   const handleDeleteConfirm = async () => {
@@ -238,13 +254,12 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       const data = await res.json();
       if (data.success) {
         setCitas((prev) => prev.filter((c) => c.id !== citaToDelete.id));
-        showToast("La cita ha sido eliminada.");
         setCitaToDelete(null);
-      } else {
-        alert(data.error || "No se pudo eliminar la cita");
+        setToastMessage("Cita eliminada correctamente");
+        setTimeout(() => setToastMessage(null), 3000);
       }
-    } catch {
-      alert("Error al conectar con el servidor.");
+    } catch (err) {
+      console.error(err);
     } finally {
       setDeleting(false);
     }
@@ -256,16 +271,16 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   );
 
   return (
-    <div className="min-h-screen bg-ivory text-ink">
+    <div className={`min-h-screen text-ink pb-20 bg-gradient-to-b ${theme.bgGradient}`}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 bg-ink text-white py-3 px-5 rounded-2xl shadow-2xl border border-gold/30 flex items-center gap-3 animate-fade-up">
-          <CheckCircle2 size={18} className="text-gold" />
+        <div className="fixed top-6 right-6 z-50 bg-ink text-white py-3 px-5 rounded-2xl shadow-2xl border border-sky-200/30 flex items-center gap-3 animate-fade-up">
+          <CheckCircle2 size={18} className="text-emerald-400" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
 
-      <div className="max-w-[1040px] mx-auto px-6 py-8 sm:py-12">
+      <div className="max-w-[1040px] mx-auto px-5 sm:px-8 py-8 sm:py-12">
         {/* Cabecera superior con marca y usuario */}
         <AppHeader
           tag={
@@ -288,9 +303,9 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           backLabel="Volver a la lista"
         />
 
-        {/* Vista de Detalle Individual (Carta romántica con dog-ear) */}
+        {/* Vista de Detalle Individual (Carta de amor interactiva con respuestas) */}
         {currentView === "detail" && selectedCita && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-up">
             <div className="flex items-center justify-between gap-3 bg-white/80 backdrop-blur border border-sky-200/70 p-3 rounded-2xl shadow-xs max-w-[760px] mx-auto">
               <span className="text-xs font-medium text-sky-800 flex items-center gap-1.5 pl-2">
                 <Mail size={14} className="text-sky-600" />
@@ -313,10 +328,10 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               </div>
             </div>
 
-            <CitaDetailView
+            <LoveLetterView
               cita={selectedCita}
               initialSide={detailInitialSide}
-              onBack={() => {
+              onClose={() => {
                 setCurrentView("list");
                 setSelectedCita(null);
               }}
@@ -351,182 +366,263 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
           />
         )}
 
-        {/* Vista Principal: Lista de Citas */}
+        {/* Vista Principal: Lista, Calendario y Recuerdos */}
         {currentView === "list" && (
           <div className="space-y-6">
-            {/* Banner de propuestas de cambio pendientes enviadas por la novia */}
-            {!loading && citasConPropuesta.length > 0 && (
-              <div className="bg-gradient-to-r from-rose-soft/80 to-paper border border-rose/40 rounded-2xl p-5 shadow-sm animate-fade-up">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose flex items-center justify-center text-white">
-                      <CalendarClock size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-serif font-semibold text-base text-ink">
-                        {partnerName} ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
-                        {citasConPropuesta.length === 1 ? "cita" : "citas"}
-                      </h4>
-                      <p className="text-xs text-ink-soft">
-                        Revisa la sugerencia para aceptar o conservar la fecha original.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSelectedCita(citasConPropuesta[0]);
-                      setCurrentView("detail");
-                    }}
-                    className="bg-ink hover:bg-gold-deep text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all cursor-pointer"
-                  >
-                    Revisar propuesta
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Visual de Perfil Entrelazado de Ambos con Corazón Superior */}
+            <CoupleAvatarHeader theme={theme} />
 
-            {/* Banner de Invitación QR si no está conectado aún */}
-            {!loading && pareja?.estado !== "conectados" && user?.estadoPareja !== "conectados" && (
-              <div className="bg-sky-50/90 border border-sky-200 rounded-2xl p-5 shadow-xs animate-fade-up">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center flex-shrink-0">
-                      <QrCode size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-serif font-semibold text-base text-ink">
-                        Conecta el buzón con tu pareja mediante Código QR
-                      </h4>
-                      <p className="text-xs text-ink-soft">
-                        Muestra tu código QR o compártele tu código de invitación para que tus cartas lleguen directamente a su buzón.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setQrModalOpen(true)}
-                    className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-                  >
-                    <QrCode size={14} />
-                    <span>Ver mi Código QR</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Encabezado de la Sección */}
-            <div className="flex items-end justify-between flex-wrap gap-4 mb-4">
-              <div>
-                <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-sky-700 font-bold mb-1">
-                  Tus cartas e invitaciones
-                </p>
-                <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink">
-                  Nuestras Aventuras
-                </h1>
-                <p className="text-ink-soft text-sm mt-1 font-normal">
-                  {citas.length}{" "}
-                  {citas.length === 1 ? "carta creada" : "cartas creadas"} · {partnerName}
-                  {" "}las recibirá en formato de carta interactiva con mapa en su buzón.
-                </p>
-              </div>
+            {/* Pestañas de Navegación Principal */}
+            <div className="flex items-center gap-2 p-1.5 bg-white/80 backdrop-blur-md rounded-2xl max-w-fit mx-auto sm:mx-0 border border-slate-200/80 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab("calendario")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "calendario"
+                    ? "bg-sky-600 text-white shadow-xs"
+                    : "text-ink-soft hover:text-ink hover:bg-slate-50"
+                }`}
+              >
+                <Calendar size={15} />
+                <span>Calendario de Aventuras</span>
+              </button>
 
               <button
-                onClick={() => setCurrentView("create")}
-                className="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm py-3 px-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 active:translate-y-0 cursor-pointer"
+                type="button"
+                onClick={() => setActiveTab("cartas")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "cartas"
+                    ? "bg-sky-600 text-white shadow-xs"
+                    : "text-ink-soft hover:text-ink hover:bg-slate-50"
+                }`}
               >
-                <Plus size={16} />
-                <span>Escribir nueva carta</span>
+                <Mail size={15} />
+                <span>Mis Cartas</span>
+                {citasConPropuesta.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-mono">
+                    {citasConPropuesta.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("polaroids")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "polaroids"
+                    ? "bg-sky-600 text-white shadow-xs"
+                    : "text-ink-soft hover:text-ink hover:bg-slate-50"
+                }`}
+              >
+                <Camera size={15} />
+                <span>Álbum Polaroid</span>
+                {recuerdos.length > 0 && (
+                  <span className="text-[10px] opacity-75 font-mono">
+                    ({recuerdos.length})
+                  </span>
+                )}
               </button>
             </div>
 
-            {/* Estado de Carga */}
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-20 bg-card rounded-2xl border border-line">
-                <Loader2 size={32} className="animate-spin text-sky-600 mb-3" />
-                <p className="font-serif text-ink-soft text-sm">
-                  Cargando tus cartas agendadas...
-                </p>
+            {/* CONTENIDO SEGÚN LA PESTAÑA ACTIVA */}
+            {activeTab === "calendario" && (
+              <div className="space-y-6 animate-fade-up">
+                {/* Calendario interactivo con citas (carta con corazón / polaroid) */}
+                <AdventureCalendar
+                  citas={citas}
+                  recuerdos={recuerdos}
+                  theme={theme}
+                  onSelectCita={(c) => {
+                    setSelectedCita(c);
+                    setDetailInitialSide("letter");
+                    setCurrentView("detail");
+                    onViewDetail?.(c);
+                  }}
+                  onNewCita={() => setCurrentView("create")}
+                  onRecuerdoAdded={(nuevo) => {
+                    setRecuerdos((prev) => [nuevo, ...prev]);
+                  }}
+                />
               </div>
             )}
 
-            {/* Estado Vacío */}
-            {!loading && citas.length === 0 && (
-              <div className="text-center py-16 px-6 bg-card rounded-2xl border border-line shadow-card max-w-lg mx-auto">
-                <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 mx-auto mb-4">
-                  <CalendarHeart size={28} />
+            {activeTab === "cartas" && (
+              <div className="space-y-6 animate-fade-up">
+                {/* Banner de propuestas de cambio pendientes enviadas por la novia */}
+                {!loading && citasConPropuesta.length > 0 && (
+                  <div className="bg-gradient-to-r from-rose-50 to-white border border-rose-200/80 rounded-2xl p-5 shadow-sm animate-fade-up">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-white">
+                          <CalendarClock size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-serif font-semibold text-base text-ink">
+                            {partnerName} ha propuesto un cambio de horario en {citasConPropuesta.length}{" "}
+                            {citasConPropuesta.length === 1 ? "cita" : "citas"}
+                          </h4>
+                          <p className="text-xs text-ink-soft">
+                            Revisa la sugerencia para aceptar o conservar la fecha original.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedCita(citasConPropuesta[0]);
+                          setCurrentView("detail");
+                        }}
+                        className="bg-ink hover:bg-slate-800 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-sm transition-all cursor-pointer"
+                      >
+                        Revisar propuesta
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Banner de Invitación QR si no está conectado aún */}
+                {!loading && pareja?.estado !== "conectados" && user?.estadoPareja !== "conectados" && (
+                  <div className="bg-sky-50/90 border border-sky-200 rounded-2xl p-5 shadow-xs animate-fade-up">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center flex-shrink-0">
+                          <QrCode size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-serif font-bold text-sm text-sky-950">
+                            Conecta con {partnerName} para enviarle cartas
+                          </h4>
+                          <p className="text-xs text-ink-soft">
+                            Muestra tu código QR o compártele tu código de invitación para que tus cartas lleguen directamente a su buzón.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setQrModalOpen(true)}
+                        className="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <QrCode size={14} />
+                        <span>Ver mi Código QR</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Encabezado de la Sección */}
+                <div className="flex items-end justify-between flex-wrap gap-4 mb-4">
+                  <div>
+                    <p className="font-mono text-[11.5px] uppercase tracking-[0.1em] text-sky-700 font-bold mb-1">
+                      Tus cartas e invitaciones
+                    </p>
+                    <h1 className="font-serif text-3xl sm:text-4xl font-bold text-ink">
+                      Nuestras Aventuras
+                    </h1>
+                    <p className="text-ink-soft text-sm mt-1 font-normal">
+                      {citas.length}{" "}
+                      {citas.length === 1 ? "carta registrada" : "cartas registradas"} · {partnerName}
+                      {" "}las recibirá en formato de carta interactiva en su buzón.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentView("create")}
+                    className="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm py-3 px-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-150 active:translate-y-0 cursor-pointer"
+                  >
+                    <Plus size={16} />
+                    <span>Escribir nueva carta</span>
+                  </button>
                 </div>
-                <h3 className="font-serif text-xl font-bold mb-2 text-ink">
-                  Aún no has escrito ninguna carta
-                </h3>
-                <p className="text-ink-soft text-sm leading-relaxed mb-6">
-                  Sorprende a tu novia diseñando la primera invitación romántica, con
-                  dedicatoria, fecha, lugar y mapa en su segunda hoja.
-                </p>
-                <button
-                  onClick={() => setCurrentView("create")}
-                  className="bg-sky-600 text-white font-bold text-sm py-3 px-5 rounded-xl hover:bg-sky-700 hover:shadow-md transition-all inline-flex items-center gap-2"
-                >
-                  <Sparkles size={16} className="text-sky-200" />
-                  <span>Escribir la primera carta</span>
-                </button>
+
+                {/* Estado de Carga */}
+                {loading && (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200">
+                    <Loader2 size={32} className="animate-spin text-sky-600 mb-3" />
+                    <p className="font-serif text-ink-soft text-sm">
+                      Cargando tus cartas agendadas...
+                    </p>
+                  </div>
+                )}
+
+                {/* Estado Vacío */}
+                {!loading && citas.length === 0 && (
+                  <div className="text-center py-16 px-6 bg-white rounded-2xl border border-slate-200 shadow-sm max-w-lg mx-auto">
+                    <div className="w-14 h-14 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 mx-auto mb-4">
+                      <CalendarHeart size={28} />
+                    </div>
+                    <h3 className="font-serif text-xl font-bold mb-2 text-ink">
+                      Aún no has escrito ninguna carta
+                    </h3>
+                    <p className="text-ink-soft text-sm leading-relaxed mb-6">
+                      Sorprende a {partnerName} diseñando la primera invitación romántica, con
+                      dedicatoria, fecha, lugar y mapa en su segunda hoja.
+                    </p>
+                    <button
+                      onClick={() => setCurrentView("create")}
+                      className="bg-sky-600 text-white font-bold text-sm py-3 px-5 rounded-xl hover:bg-sky-700 hover:shadow-md transition-all inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles size={16} className="text-sky-200" />
+                      <span>Escribir la primera carta</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Cuadrícula de Tarjetas Tipo Invitación */}
+                {!loading && citas.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {citas.map((cita, idx) => (
+                      <InviteCard
+                        key={cita.id}
+                        cita={cita}
+                        index={idx}
+                        isNovio={true}
+                        onSelect={(c) => {
+                          setSelectedCita(c);
+                          setDetailInitialSide("letter");
+                          setCurrentView("detail");
+                          onViewDetail?.(c);
+                        }}
+                        onEdit={(c) => {
+                          setSelectedCita(c);
+                          setCurrentView("edit");
+                        }}
+                        onDelete={(c) => setCitaToDelete(c)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Cuadrícula de Tarjetas Tipo Invitación */}
-            {!loading && citas.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {citas.map((cita, idx) => (
-                  <InviteCard
-                    key={cita.id}
-                    cita={cita}
-                    index={idx}
-                    isNovio={true}
-                    onSelect={(c) => {
-                      setSelectedCita(c);
-                      setDetailInitialSide("letter");
-                      setCurrentView("detail");
-                      onViewDetail?.(c);
-                    }}
-                    onEdit={(c) => {
-                      setSelectedCita(c);
-                      setCurrentView("edit");
-                    }}
-                    onDelete={(c) => setCitaToDelete(c)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Muro de Recuerdos Polaroid de Nuestras Aventuras */}
-            {!loading && citas.length > 0 && (
-              <PolaroidMemoriesGallery
-                citas={citas}
-                onSelectMemory={(c) => {
-                  setSelectedCita(c);
-                  setDetailInitialSide("memory");
-                  setCurrentView("detail");
-                  onViewDetail?.(c);
-                }}
-                onAddMemory={() => {
-                  const target = citas.find((c) => !c.recuerdo?.fotoUrl) || citas[0];
-                  if (target) {
-                    setSelectedCita(target);
+            {activeTab === "polaroids" && (
+              <div className="animate-fade-up">
+                <PolaroidMemoriesGallery
+                  citas={citas}
+                  recuerdos={recuerdos}
+                  theme={theme}
+                  onSelectMemory={(c) => {
+                    setSelectedCita(c);
                     setDetailInitialSide("memory");
                     setCurrentView("detail");
-                    onViewDetail?.(target);
-                  }
-                }}
-                partnerName={partnerName}
-              />
+                    onViewDetail?.(c);
+                  }}
+                  onRecuerdoAdded={(nuevo) => {
+                    setRecuerdos((prev) => [nuevo, ...prev]);
+                  }}
+                  onRecuerdoDeleted={(id) => {
+                    setRecuerdos((prev) => prev.filter((r) => r.id !== id));
+                  }}
+                  partnerName={partnerName}
+                />
+              </div>
             )}
 
             {/* Botón Flotante FAB */}
             <button
               onClick={() => setCurrentView("create")}
               title="Crear nueva cita"
-              className="fixed right-7 bottom-7 z-40 bg-gold hover:bg-gold-deep text-ink hover:text-white font-semibold text-sm py-3.5 px-5 rounded-full shadow-2xl hover:shadow-[0_16px_30px_-12px_rgba(43,36,56,0.5)] transition-all flex items-center gap-2 cursor-pointer border border-gold-deep/20"
+              className="fixed right-6 bottom-6 z-40 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs sm:text-sm py-3.5 px-5 rounded-full shadow-2xl hover:shadow-[0_16px_30px_-12px_rgba(2,132,199,0.5)] transition-all flex items-center gap-2 cursor-pointer border border-sky-400/40"
             >
               <Plus size={18} />
-              <span className="font-sans font-semibold">Nueva carta</span>
+              <span className="font-sans font-bold">Nueva carta</span>
             </button>
           </div>
         )}
@@ -535,11 +631,11 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       {/* Modal de Confirmación para Eliminar Cita */}
       {citaToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm animate-fade-up">
-          <div className="bg-card rounded-2xl p-6 sm:p-7 max-w-sm w-full border border-line shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-soft flex items-center justify-center text-rose mx-auto mb-4">
+          <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-sm w-full border border-slate-200 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-4">
               <AlertTriangle size={24} />
             </div>
-            <h3 className="font-serif text-xl font-semibold mb-2">
+            <h3 className="font-serif text-xl font-semibold mb-2 text-ink">
               ¿Eliminar esta cita?
             </h3>
             <p className="text-ink-soft text-sm leading-relaxed mb-6">
@@ -549,14 +645,14 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
               <button
                 onClick={handleDeleteConfirm}
                 disabled={deleting}
-                className="flex-1 bg-rose hover:bg-rose/90 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {deleting ? <Loader2 size={16} className="animate-spin" /> : "Eliminar"}
               </button>
               <button
                 onClick={() => setCitaToDelete(null)}
                 disabled={deleting}
-                className="px-4 py-3 rounded-xl border border-line text-ink-soft hover:bg-paper text-sm font-medium transition-colors"
+                className="px-4 py-3 rounded-xl border border-slate-200 text-ink-soft hover:bg-slate-50 text-sm font-medium transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -569,4 +665,3 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     </div>
   );
 }
-

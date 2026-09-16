@@ -36,8 +36,12 @@ export function NovioForm({
   onSuccess,
   onCancel,
 }: NovioFormProps) {
-  const { user } = useAuth();
-  const partnerName = user?.nombrePareja || (user?.rol === "novio" ? "tu novia" : "tu pareja");
+  const { user, pareja } = useAuth();
+  const isNovio = user?.rol === "novio";
+  const partnerName =
+    user?.nombrePareja ||
+    pareja?.parejaNombre ||
+    (isNovio ? "tu novia" : "tu novio");
   const isEditing = !!initialCita;
 
   // Campos básicos

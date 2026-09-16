@@ -51,6 +51,22 @@ export interface IRecuerdo {
   fechaSubida?: string;
 }
 
+export interface IRecuerdoIndependiente {
+  id: string;
+  fotoUrl: string;
+  pieDeFoto?: string;
+  fecha: string;
+  creadoPor?:
+    | {
+        id: string;
+        nombre: string;
+      }
+    | string;
+  parejaId?: string | null;
+  citaId?: string | null;
+  createdAt?: string;
+}
+
 export interface IPareja {
   _id?: Types.ObjectId | string;
   id?: string;
@@ -59,6 +75,8 @@ export interface IPareja {
   noviaId?: Types.ObjectId | string | null;
   estado: "esperando_pareja" | "conectados";
   fechaVinculacion?: Date | string | null;
+  colorDashboardNovio?: string;
+  colorDashboardNovia?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -67,6 +85,8 @@ export interface IParejaDocument extends Omit<IPareja, "_id" | "id" | "novioId" 
   _id: Types.ObjectId;
   novioId?: Types.ObjectId | null;
   noviaId?: Types.ObjectId | null;
+  colorDashboardNovio?: string;
+  colorDashboardNovia?: string;
 }
 
 
@@ -77,6 +97,9 @@ export interface IParejaResponse {
   parejaNombre?: string;
   parejaEmail?: string;
   parejaRol?: RolUsuario;
+  parejaAvatarUrl?: string;
+  colorDashboardNovio?: string;
+  colorDashboardNovia?: string;
   fechaVinculacion?: string;
 }
 

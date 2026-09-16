@@ -1,10 +1,11 @@
-import { ICitaResponse, IUsuarioResponse, IPareja } from "@/types";
+import { ICitaResponse, IUsuarioResponse, IPareja, IRecuerdoIndependiente } from "@/types";
 
 // Base de datos en memoria para fallback cuando MongoDB no está en ejecución localmente
 interface MemoryDatabase {
   usuarios: (IUsuarioResponse & { passwordHash: string })[];
   parejas: IPareja[];
   citas: ICitaResponse[];
+  recuerdos: IRecuerdoIndependiente[];
 }
 
 const globalStore = global as unknown as { __velada_mem_db?: MemoryDatabase };
@@ -42,11 +43,14 @@ if (!globalStore.__velada_mem_db) {
         novioId: "64f1a2b3c4d5e6f7a8b9c001",
         noviaId: "64f1a2b3c4d5e6f7a8b9c002",
         estado: "conectados",
+        colorDashboardNovio: "azul",
+        colorDashboardNovia: "rosa",
         fechaVinculacion: "2026-01-01T00:00:00.000Z",
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
       },
     ],
+    recuerdos: [],
     citas: [
       {
         id: "64f1a2b3c4d5e6f7a8b9c101",
