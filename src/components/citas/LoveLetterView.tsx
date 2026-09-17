@@ -243,6 +243,9 @@ export function LoveLetterView({
       );
       localRecuerdos[currentCita.id] = memoryObj;
       localStorage.setItem("velada_recuerdos", JSON.stringify(localRecuerdos));
+      try {
+        window.dispatchEvent(new CustomEvent("velada_polaroids_updated"));
+      } catch {}
     } catch (e) {
       console.warn("Error guardando en localStorage:", e);
     }

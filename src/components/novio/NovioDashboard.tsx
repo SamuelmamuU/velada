@@ -34,7 +34,10 @@ interface NovioDashboardProps {
 
 export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
   const { token, user, pareja } = useAuth();
-  const theme = getTheme(pareja?.colorDashboardNovio, "azul");
+  const theme = getTheme(
+    pareja?.colorDashboardNovio || pareja?.colorDashboardNovia,
+    "azul"
+  );
   const partnerName =
     user?.nombrePareja || pareja?.parejaNombre || "tu novia";
 

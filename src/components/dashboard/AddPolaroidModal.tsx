@@ -24,15 +24,6 @@ interface AddPolaroidModalProps {
   initialDate?: Date;
 }
 
-const PRESET_MEMORIES = [
-  { url: "/polaroids/ANIVERSARIO.jpg", label: "Aniversario" },
-  { url: "/polaroids/SANTALUCIA.jpg", label: "Paseo Santa Lucía" },
-  { url: "/polaroids/CABANA.jpg", label: "Fin de semana en Cabaña" },
-  { url: "/polaroids/ARCADE.jpg", label: "Tarde de Juegos Arcade" },
-  { url: "/polaroids/GRADUACION.jpg", label: "Día de Graduación" },
-  { url: "/polaroids/VOLUNTARIOS.jpg", label: "Día de Voluntariado" },
-];
-
 export function AddPolaroidModal({
   isOpen,
   onClose,
@@ -110,6 +101,9 @@ export function AddPolaroidModal({
       const data = await res.json();
       if (data.success && data.recuerdo) {
         triggerHaptic("success");
+        try {
+          window.dispatchEvent(new CustomEvent("velada_polaroids_updated"));
+        } catch {}
         onSuccess(data.recuerdo);
         onClose();
       } else {
@@ -119,6 +113,9 @@ export function AddPolaroidModal({
           ...memoryPayload,
           createdAt: new Date().toISOString(),
         };
+        try {
+          window.dispatchEvent(new CustomEvent("velada_polaroids_updated"));
+        } catch {}
         onSuccess(fallbackObj);
         onClose();
       }
@@ -128,6 +125,9 @@ export function AddPolaroidModal({
         ...memoryPayload,
         createdAt: new Date().toISOString(),
       };
+      try {
+        window.dispatchEvent(new CustomEvent("velada_polaroids_updated"));
+      } catch {}
       onSuccess(fallbackObj);
       onClose();
     } finally {
@@ -212,38 +212,7 @@ export function AddPolaroidModal({
             </label>
           </div>
 
-          {/* Galería de fotos precargadas */}
-          <div>
-            <span className="block text-[11px] font-semibold text-ink-soft mb-1.5">
-              O elige una de nuestras fotos de ejemplo:
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESET_MEMORIES.map((preset, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setPhotoUrl(preset.url);
-                    if (!caption) setCaption(preset.label);
-                  }}
-                  className={`relative aspect-square rounded-lg overflow-hidden border transition-all cursor-pointer ${
-                    photoUrl === preset.url
-                      ? "border-sky-500 ring-2 ring-sky-400"
-                      : "border-slate-200 hover:opacity-80"
-                  }`}
-                >
-                  <img
-                    src={preset.url}
-                    alt={preset.label}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-ink/60 text-white text-[9px] py-0.5 px-1 truncate text-center">
-                    {preset.label}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+
 
           {/* Fecha para el calendario */}
           <div>

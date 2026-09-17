@@ -1,58 +1,132 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
-import React from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { Camera } from "lucide-react";
+
+interface UploadedPolaroidItem {
+  src: string;
+  caption: string;
+  id?: string;
+}
+
+const BACKGROUND_SLOTS = [
+  {
+    className: "top-8 sm:top-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-6deg] block",
+    slotLabel: "Polaroid #1",
+  },
+  {
+    className: "top-8 sm:top-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[6deg] block",
+    slotLabel: "Polaroid #2",
+  },
+  {
+    className: "top-[40%] left-1 sm:left-3 lg:left-5 xl:left-8 rotate-[5deg] hidden sm:block",
+    slotLabel: "Polaroid #3",
+  },
+  {
+    className: "top-[42%] right-1 sm:right-3 lg:right-5 xl:right-8 rotate-[-5deg] hidden sm:block",
+    slotLabel: "Polaroid #4",
+  },
+  {
+    className: "bottom-8 sm:bottom-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-4deg] hidden sm:block",
+    slotLabel: "Polaroid #5",
+  },
+  {
+    className: "bottom-8 sm:bottom-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[7deg] hidden sm:block",
+    slotLabel: "Polaroid #6",
+  },
+];
 
 export function TravelJournalBackground() {
-  const { user, pareja } = useAuth();
+  const { user, pareja, token } = useAuth();
   const novioName = user?.rol === "novio" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novio");
   const noviaName = user?.rol === "novia" ? user?.nombre : (user?.nombrePareja || pareja?.parejaNombre || "Novia");
   const stampText = `${novioName.toUpperCase()} & ${noviaName.toUpperCase()}`;
-  const polaroids = [
-    {
-      src: "/polaroids/ANIVERSARIO.jpg",
-      caption: "Nuestro Aniversario",
-      className: "top-8 sm:top-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-6deg] block",
-      width: 135,
-      height: 135,
-    },
-    {
-      src: "/polaroids/SANTALUCIA.jpg",
-      caption: "Paseo Santa Lucía",
-      className: "top-8 sm:top-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[6deg] block",
-      width: 135,
-      height: 135,
-    },
-    {
-      src: "/polaroids/CABANA.jpg",
-      caption: "Nuestra Cabaña",
-      className: "top-[40%] left-1 sm:left-3 lg:left-5 xl:left-8 rotate-[5deg] hidden sm:block",
-      width: 130,
-      height: 130,
-    },
-    {
-      src: "/polaroids/ARCADE.jpg",
-      caption: "Tarde de juegos",
-      className: "top-[42%] right-1 sm:right-3 lg:right-5 xl:right-8 rotate-[-5deg] hidden sm:block",
-      width: 130,
-      height: 130,
-    },
-    {
-      src: "/polaroids/GRADUACION.jpg",
-      caption: "Un gran logro",
-      className: "bottom-8 sm:bottom-12 left-2 sm:left-4 lg:left-6 xl:left-10 rotate-[-4deg] hidden sm:block",
-      width: 130,
-      height: 130,
-    },
-    {
-      src: "/polaroids/VOLUNTARIOS.jpg",
-      caption: "Juntos siempre",
-      className: "bottom-8 sm:bottom-12 right-2 sm:right-4 lg:right-6 xl:right-10 rotate-[7deg] hidden sm:block",
-      width: 130,
-      height: 130,
-    },
-  ];
+
+  const [uploadedPolaroids, setUploadedPolaroids] = useState<UploadedPolaroidItem[]>([]);
+
+  const loadUploadedPolaroids = useCallback(async () => {
+    const list: UploadedPolaroidItem[] = [];
+
+    // 1. Cargar desde localStorage para reflejo instantáneo y offline
+    try {
+      const localLibres = JSON.parse(
+        localStorage.getItem("velada_polaroids_libres") || "[]"
+      );
+      if (Array.isArray(localLibres)) {
+        localLibres.forEach((r: any) => {
+          if (r?.fotoUrl && !list.some((item) => item.src === r.fotoUrl)) {
+            list.push({
+              src: r.fotoUrl,
+              caption: r.pieDeFoto || "Nuestro Momento",
+              id: r.id,
+            });
+          }
+        });
+      }
+
+      const localRecuerdosCitas = JSON.parse(
+        localStorage.getItem("velada_recuerdos") || "{}"
+      );
+      if (localRecuerdosCitas && typeof localRecuerdosCitas === "object") {
+        Object.values(localRecuerdosCitas).forEach((r: any) => {
+          if (r?.fotoUrl && !list.some((item) => item.src === r.fotoUrl)) {
+            list.push({
+              src: r.fotoUrl,
+              caption: r.pieDeFoto || "Nuestra Velada",
+            });
+          }
+        });
+      }
+    } catch {}
+
+    setUploadedPolaroids([...list].slice(0, 6));
+
+    // 2. Si hay token, sincronizar con base de datos para mostrar fotos subidas por la pareja
+    if (token) {
+      try {
+        const res = await fetch("/api/recuerdos", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.recuerdos)) {
+          const apiList: UploadedPolaroidItem[] = [];
+          data.recuerdos.forEach((r: any) => {
+            if (r?.fotoUrl && !apiList.some((item) => item.src === r.fotoUrl)) {
+              apiList.push({
+                src: r.fotoUrl,
+                caption: r.pieDeFoto || "Nuestro Momento",
+                id: r.id,
+              });
+            }
+          });
+
+          // Mezclar manteniendo orden
+          list.forEach((l) => {
+            if (!apiList.some((a) => a.src === l.src)) {
+              apiList.push(l);
+            }
+          });
+
+          setUploadedPolaroids(apiList.slice(0, 6));
+        }
+      } catch (e) {
+        console.debug("Error sincronizando polaroids de fondo:", e);
+      }
+    }
+  }, [token]);
+
+  useEffect(() => {
+    loadUploadedPolaroids();
+    const handleUpdate = () => loadUploadedPolaroids();
+    window.addEventListener("velada_polaroids_updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("velada_polaroids_updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [loadUploadedPolaroids]);
 
   return (
     <div
@@ -236,38 +310,60 @@ export function TravelJournalBackground() {
       </svg>
 
       {/* 2. POLAROIDS DISPERSAS CON ESTÉTICA VINTAGE Y WASHI TAPE */}
-      {polaroids.map((item, idx) => (
-        <div
-          key={idx}
-          className={`absolute ${item.className} opacity-65 hover:opacity-100 transition-opacity duration-300 drop-shadow-md`}
-        >
-          {/* Trozo de cinta adhesiva washi tape en la parte superior */}
-          <div
-            className="w-10 h-3 mx-auto -mb-1.5 bg-amber-100/80 border border-amber-300/40 shadow-xs z-10 relative"
-            style={{
-              clipPath:
-                "polygon(0 0, 100% 0, 95% 100%, 5% 100%)",
-            }}
-          />
+      {BACKGROUND_SLOTS.map((slot, idx) => {
+        const photo = uploadedPolaroids[idx];
 
-          {/* Marco Polaroid */}
-          <div className="bg-white p-2 pb-5 rounded-xs border border-sky-100/80 shadow-md">
-            <div className="relative overflow-hidden rounded-xs bg-sky-50 aspect-square w-[110px] h-[110px]">
-              <Image
-                src={item.src}
-                alt={item.caption}
-                fill
-                sizes="140px"
-                className="object-cover sepia-[0.15] contrast-105"
-              />
-            </div>
-            {/* Pie manuscrito de la foto */}
-            <p className="font-handwriting text-[13px] text-sky-950 font-bold text-center mt-1.5 leading-tight tracking-tight">
-              {item.caption}
-            </p>
+        return (
+          <div
+            key={idx}
+            className={`absolute ${slot.className} ${
+              photo ? "opacity-75 hover:opacity-100" : "opacity-45 hover:opacity-75"
+            } transition-opacity duration-300 drop-shadow-md`}
+          >
+            {/* Trozo de cinta adhesiva washi tape en la parte superior */}
+            <div
+              className={`w-10 h-3 mx-auto -mb-1.5 ${
+                photo
+                  ? "bg-amber-100/90 border-amber-300/50"
+                  : "bg-slate-100/80 border-slate-300/40"
+              } border shadow-2xs z-10 relative`}
+              style={{
+                clipPath: "polygon(0 0, 100% 0, 95% 100%, 5% 100%)",
+              }}
+            />
+
+            {photo ? (
+              /* Marco Polaroid con foto subida por la pareja */
+              <div className="bg-white p-2 pb-5 rounded-xs border border-sky-100/90 shadow-md">
+                <div className="relative overflow-hidden rounded-xs bg-sky-50 aspect-square w-[110px] h-[110px]">
+                  <img
+                    src={photo.src}
+                    alt={photo.caption}
+                    className="w-full h-full object-cover sepia-[0.12] contrast-105"
+                  />
+                </div>
+                {/* Pie manuscrito de la foto */}
+                <p className="font-handwriting text-[13px] text-sky-950 font-bold text-center mt-1.5 leading-tight tracking-tight line-clamp-1 max-w-[110px]">
+                  {photo.caption}
+                </p>
+              </div>
+            ) : (
+              /* Marco Polaroid Placeholder esperando foto de la pareja */
+              <div className="bg-white/85 backdrop-blur-2xs p-2 pb-5 rounded-xs border border-dashed border-sky-300/70 shadow-xs">
+                <div className="relative overflow-hidden rounded-xs bg-sky-50/60 aspect-square w-[110px] h-[110px] flex flex-col items-center justify-center text-sky-400/80">
+                  <Camera size={26} className="mb-1 opacity-70" />
+                  <span className="text-[9.5px] font-mono text-sky-700/80 font-semibold">
+                    {slot.slotLabel}
+                  </span>
+                </div>
+                <p className="font-handwriting text-[12px] text-sky-800/60 font-bold text-center mt-1.5 leading-tight">
+                  Sube tu foto
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

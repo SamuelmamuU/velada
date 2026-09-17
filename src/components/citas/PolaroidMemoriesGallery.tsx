@@ -86,6 +86,9 @@ export function PolaroidMemoriesGallery({
           JSON.stringify(filtered)
         );
       } catch {}
+      try {
+        window.dispatchEvent(new CustomEvent("velada_polaroids_updated"));
+      } catch {}
     } catch (e) {
       console.error(e);
     } finally {
@@ -108,6 +111,10 @@ export function PolaroidMemoriesGallery({
           <p className="text-ink-soft text-xs sm:text-sm mt-0.5 max-w-xl">
             Momentos especiales capturados en nuestras aventuras juntos. Toca
             cualquier foto para revivir los detalles.
+          </p>
+          <p className="text-[11px] font-mono text-sky-700 font-semibold mt-1 flex items-center gap-1">
+            <Sparkles size={12} className="text-amber-500" />
+            <span>Las 6 fotos que suban aquí decoran el fondo de su diario de viajes.</span>
           </p>
         </div>
 

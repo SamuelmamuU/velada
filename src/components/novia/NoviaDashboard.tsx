@@ -39,7 +39,10 @@ import { QrPairingModal } from "@/components/pareja/QrPairingModal";
 
 export function NoviaDashboard() {
   const { token, user, pareja } = useAuth();
-  const theme = getTheme(pareja?.colorDashboardNovia, "rosa");
+  const theme = getTheme(
+    pareja?.colorDashboardNovia || pareja?.colorDashboardNovio,
+    "rosa"
+  );
   const partnerName =
     user?.nombrePareja || pareja?.parejaNombre || "tu novio";
 

@@ -46,17 +46,17 @@ export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
         <div className="flex items-center gap-4 w-full sm:w-auto justify-center sm:justify-start">
           {/* Contenedor de círculos semi-entrelazados */}
           <div
-            className="relative flex items-center cursor-pointer group"
+            className="relative flex items-center shrink-0 cursor-pointer group select-none"
             onClick={() => setProfileModalOpen(true)}
             title="Toca para editar tu foto o perfil"
           >
             {/* Círculo 1 (Izquierdo) */}
-            <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white font-serif font-bold text-lg transition-transform group-hover:scale-105 z-0">
+            <div className="relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] sm:w-14 sm:h-14 sm:min-w-14 sm:min-h-14 shrink-0 aspect-square rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white font-serif font-bold text-lg transition-transform group-hover:scale-105 z-0">
               {leftAvatar ? (
                 <img
                   src={leftAvatar}
                   alt={leftName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover shrink-0 aspect-square rounded-full"
                 />
               ) : (
                 <span>{leftInitial}</span>
@@ -64,12 +64,12 @@ export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
             </div>
 
             {/* Círculo 2 (Derecho - semi entrelazado / superpuesto) */}
-            <div className="relative w-13 h-13 sm:w-14 sm:h-14 -ml-4 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-tr from-rose-400 to-pink-500 flex items-center justify-center text-white font-serif font-bold text-lg transition-transform group-hover:scale-105 z-10">
+            <div className="relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] sm:w-14 sm:h-14 sm:min-w-14 sm:min-h-14 shrink-0 aspect-square -ml-4 rounded-full border-[3px] border-white shadow-md overflow-hidden bg-gradient-to-tr from-rose-400 to-pink-500 flex items-center justify-center text-white font-serif font-bold text-lg transition-transform group-hover:scale-105 z-10">
               {rightAvatar ? (
                 <img
                   src={rightAvatar}
                   alt={rightName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover shrink-0 aspect-square rounded-full"
                 />
               ) : (
                 <span>{rightInitial}</span>
@@ -77,28 +77,28 @@ export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
             </div>
 
             {/* Corazón en la unión superior de ambos círculos */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-7 h-7 rounded-full bg-white shadow-md border border-rose-100 flex items-center justify-center animate-bounce duration-1000">
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-7 h-7 min-w-7 min-h-7 shrink-0 rounded-full bg-white shadow-md border border-rose-100 flex items-center justify-center animate-bounce duration-1000">
               <Heart
                 size={15}
-                className="fill-rose-500 text-rose-500 drop-shadow-xs"
+                className="fill-rose-500 text-rose-500 drop-shadow-xs shrink-0"
               />
             </div>
           </div>
 
           {/* Información de la pareja */}
-          <div className="text-left">
+          <div className="text-left min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="font-serif font-bold text-lg sm:text-xl text-ink leading-tight">
+              <h2 className="font-serif font-bold text-lg sm:text-xl text-ink leading-tight truncate">
                 {leftName} &amp; {rightName}
               </h2>
             </div>
             <p className="text-ink-soft text-xs mt-0.5 flex items-center gap-1.5 font-sans">
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 shrink-0 rounded-full ${
                   isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
                 }`}
               />
-              <span>
+              <span className="truncate">
                 {isConnected
                   ? "Juntos en cada aventura"
                   : "Esperando vinculación"}
@@ -113,10 +113,10 @@ export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
             type="button"
             onClick={() => setThemeModalOpen(true)}
             className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-ink hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
-            title={`Personalizar el color del dashboard de ${partnerName}`}
+            title="Personalizar el color compartido del dashboard"
           >
             <Palette size={14} className={theme.textAccent} />
-            <span>Color para {partnerName}</span>
+            <span>Color Compartido</span>
           </button>
 
           <button

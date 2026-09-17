@@ -57,6 +57,11 @@ export function AdventureCalendar({
   const [polaroidDate, setPolaroidDate] = useState<Date>(new Date());
   const [selectedRecuerdoModal, setSelectedRecuerdoModal] =
     useState<IRecuerdoIndependiente | null>(null);
+  const [dayDetailsModal, setDayDetailsModal] = useState<{
+    date: Date;
+    citas: ICitaResponse[];
+    recuerdos: IRecuerdoIndependiente[];
+  } | null>(null);
 
   const prevMonth = () => {
     triggerHaptic("light");
@@ -193,10 +198,12 @@ export function AdventureCalendar({
               key={day.toISOString()}
               onClick={() => {
                 triggerHaptic("light");
-                if (dayCitas.length > 0) {
-                  onSelectCita(dayCitas[0]);
-                } else if (primerRecuerdo) {
-                  setSelectedRecuerdoModal(primerRecuerdo);
+                if (dayCitas.length > 0 || dayRecuerdos.length > 0) {
+                  setDayDetailsModal({
+                    date: day,
+                    citas: dayCitas,
+                    recuerdos: dayRecuerdos,
+                  });
                 } else {
                   setSelectedDay(day);
                 }
@@ -223,12 +230,23 @@ export function AdventureCalendar({
                   {format(day, "d")}
                 </span>
 
-                {/* Badge flotante discreto si hay más de 1 cita */}
-                {dayCitas.length > 1 && (
-                  <span className="text-[9px] font-mono font-bold bg-sky-100 text-sky-800 px-1 rounded-full">
-                    +{dayCitas.length}
+                {/* Badge flotante discreto de contenido del día */}
+                {(dayCitas.length > 0 && dayRecuerdos.length > 0) ||
+                dayCitas.length > 1 ||
+                dayRecuerdos.length > 1 ? (
+                  <span className="text-[9px] font-mono font-bold bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-2xs">
+                    {dayCitas.length > 0 && (
+                      <span>💌{dayCitas.length > 1 ? dayCitas.length : ""}</span>
+                    )}
+                    {dayRecuerdos.length > 0 && (
+                      <span>📷{dayRecuerdos.length > 1 ? dayRecuerdos.length : ""}</span>
+                    )}
                   </span>
-                )}
+                ) : dayCitas.length === 1 && dayRecuerdos.length === 0 ? (
+                  <span className="text-[9px] font-mono text-sky-600">💌</span>
+                ) : dayRecuerdos.length === 1 && dayCitas.length === 0 ? (
+                  <span className="text-[9px] font-mono text-rose-500">📷</span>
+                ) : null}
               </div>
 
               {/* Contenido visual del día */}
@@ -294,6 +312,208 @@ export function AdventureCalendar({
           );
         })}
       </div>
+
+      {/* Modal de Detalle Completo de Todo lo Subido en el Día */}
+      {dayDetailsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink/65 backdrop-blur-sm animate-fade-up overflow-y-auto">
+          <div className="bg-white rounded-[26px] p-5 sm:p-6 max-w-lg w-full border border-sky-100 shadow-2xl relative my-6 max-h-[90vh] flex flex-col">
+            {/* Botón cerrar */}
+            <button
+              onClick={() => setDayDetailsModal(null)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-ink-soft hover:text-ink flex items-center justify-center transition-colors cursor-pointer z-10"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Cabecera del día */}
+            <div className="mb-4 pr-8 pb-3 border-b border-slate-100">
+              <span className="font-mono text-[10.5px] uppercase tracking-wider text-sky-700 font-bold flex items-center gap-1.5">
+                <Sparkles size={12} className={theme.textAccent} />
+                Aventuras &amp; Recuerdos del Día
+              </span>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-ink capitalize mt-0.5">
+                {format(dayDetailsModal.date, "EEEE, d 'de' MMMM, yyyy", { locale: es })}
+              </h3>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                {dayDetailsModal.citas.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800">
+                    <Mail size={12} />
+                    {dayDetailsModal.citas.length} {dayDetailsModal.citas.length === 1 ? "Cita agendada" : "Citas agendadas"}
+                  </span>
+                )}
+                {dayDetailsModal.recuerdos.length > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                    <Camera size={12} />
+                    {dayDetailsModal.recuerdos.length} {dayDetailsModal.recuerdos.length === 1 ? "Polaroid" : "Polaroids"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Contenido scrolleable de todo lo subido ese día */}
+            <div className="flex-1 overflow-y-auto space-y-5 pr-1">
+              {/* 1. SECCIÓN CITAS AGENDADAS */}
+              {dayDetailsModal.citas.length > 0 && (
+                <div>
+                  <h4 className="font-serif font-bold text-sm text-ink mb-2.5 flex items-center gap-1.5">
+                    <Mail size={14} className="text-sky-600" />
+                    <span>Invitaciones y Citas ({dayDetailsModal.citas.length})</span>
+                  </h4>
+                  <div className="space-y-3">
+                    {dayDetailsModal.citas.map((cita) => {
+                      let horaFormatted = "";
+                      try {
+                        horaFormatted = format(new Date(cita.horario), "hh:mm a");
+                      } catch {
+                        horaFormatted = cita.horario;
+                      }
+
+                      return (
+                        <div
+                          key={cita.id}
+                          className="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200/90 hover:border-sky-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <h5 className="font-serif font-bold text-base text-ink leading-tight">
+                                {cita.nombre}
+                              </h5>
+                              <span
+                                className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${
+                                  cita.estado === "aceptada" || cita.estado === "confirmada"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : cita.estado === "rechazada"
+                                    ? "bg-rose-100 text-rose-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
+                                {cita.estado || "Pendiente"}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 text-xs text-ink-soft flex-wrap">
+                              <span className="flex items-center gap-1 font-mono">
+                                <Clock size={12} className="text-sky-600" />
+                                {horaFormatted}
+                              </span>
+                              {cita.lugar?.direccion && (
+                                <span className="flex items-center gap-1 truncate max-w-[200px]">
+                                  <MapPin size={12} className="text-rose-500 shrink-0" />
+                                  <span className="truncate">{cita.lugar.direccion}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Si la cita tiene foto polaroid adjunta */}
+                            {cita.recuerdo?.fotoUrl && (
+                              <div className="mt-2.5 flex items-center gap-2.5 p-2 bg-white rounded-xl border border-slate-200">
+                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                                  <img
+                                    src={cita.recuerdo.fotoUrl}
+                                    alt="Polaroid de la cita"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-mono text-[9.5px] uppercase tracking-wider text-sky-700 font-semibold block">
+                                    Polaroid de la cita
+                                  </span>
+                                  <p className="font-handwriting text-sm text-ink font-bold truncate">
+                                    {cita.recuerdo.pieDeFoto || "Nuestro Momento"}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDayDetailsModal(null);
+                              onSelectCita(cita);
+                            }}
+                            className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                          >
+                            <Mail size={13} />
+                            <span>Ver Carta</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. SECCIÓN FOTOGRAFÍAS POLAROID */}
+              {dayDetailsModal.recuerdos.length > 0 && (
+                <div>
+                  <h4 className="font-serif font-bold text-sm text-ink mb-2.5 flex items-center gap-1.5">
+                    <Camera size={14} className="text-rose-500" />
+                    <span>Recuerdos Polaroid ({dayDetailsModal.recuerdos.length})</span>
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {dayDetailsModal.recuerdos.map((recuerdo) => (
+                      <div
+                        key={recuerdo.id}
+                        onClick={() => setSelectedRecuerdoModal(recuerdo)}
+                        className="bg-white p-2.5 pb-4 rounded-sm border border-slate-200 shadow-sm hover:shadow-md hover:scale-102 transition-all cursor-pointer relative group text-center"
+                      >
+                        {/* Washi tape decorativo */}
+                        <div
+                          className="w-8 h-2.5 mx-auto -mt-3.5 mb-1 bg-amber-200/90 border border-amber-300 shadow-2xs relative z-10"
+                          style={{
+                            clipPath: "polygon(0 0, 100% 0, 95% 100%, 5% 100%)",
+                          }}
+                        />
+                        <div className="aspect-square w-full rounded-xs overflow-hidden bg-slate-100 mb-1.5 border border-slate-200">
+                          <img
+                            src={recuerdo.fotoUrl}
+                            alt={recuerdo.pieDeFoto || "Polaroid"}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                        <p className="font-handwriting text-xs sm:text-sm text-ink font-bold truncate">
+                          {recuerdo.pieDeFoto || "Nuestro Momento"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Acciones para agregar más en este día */}
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <button
+                type="button"
+                onClick={() => {
+                  const d = dayDetailsModal.date;
+                  setDayDetailsModal(null);
+                  onNewCita?.(d);
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100/70 text-sky-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Plus size={14} />
+                <span>Agregar otra Cita</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const d = dayDetailsModal.date;
+                  setDayDetailsModal(null);
+                  setPolaroidDate(d);
+                  setShowAddPolaroid(true);
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/70 text-amber-900 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Camera size={14} />
+                <span>Subir otra Polaroid</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Opciones para Día Vacío */}
       {selectedDay && (

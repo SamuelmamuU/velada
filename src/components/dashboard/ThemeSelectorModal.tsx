@@ -17,12 +17,11 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
   const partnerName =
     user?.nombrePareja || pareja?.parejaNombre || (isNovio ? "tu novia" : "tu novio");
 
-  // El tema que el usuario actual va a cambiar es el de su pareja:
-  // Si soy novio, configuro colorDashboardNovia. Si soy novia, colorDashboardNovio.
+  // El tema es compartido para la pareja: ambos verán el mismo color seleccionado
   const initialThemeKey = (
-    isNovio
-      ? pareja?.colorDashboardNovia || "rosa"
-      : pareja?.colorDashboardNovio || "azul"
+    pareja?.colorDashboardNovia ||
+    pareja?.colorDashboardNovio ||
+    (isNovio ? "azul" : "rosa")
   ) as ThemeKey;
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>(initialThemeKey);
@@ -47,14 +46,11 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
       const data = await res.json();
       if (data.success) {
         triggerHaptic("success");
-        setMessage(`¡Listo! El dashboard de ${partnerName} ahora se vestirá en este color.`);
-        // Guardar localmente para reflejo instantáneo si ambos comparten dispositivo
+        setMessage("¡Listo! Ambos dashboards lucirán este color compartido.");
+        // Guardar localmente para reflejo instantáneo en ambos perfiles
         try {
-          if (isNovio) {
-            localStorage.setItem("velada_theme_novia", selectedTheme);
-          } else {
-            localStorage.setItem("velada_theme_novio", selectedTheme);
-          }
+          localStorage.setItem("velada_theme_novia", selectedTheme);
+          localStorage.setItem("velada_theme_novio", selectedTheme);
         } catch {}
         await refreshPareja();
         setTimeout(() => {
@@ -89,18 +85,17 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
           <div>
             <span className="font-mono text-[10.5px] uppercase tracking-wider text-sky-700 font-bold flex items-center gap-1">
               <Sparkles size={12} />
-              Personalización en pareja
+              Tema Compartido de Pareja
             </span>
             <h3 className="font-serif text-xl font-bold text-ink">
-              Color para {partnerName}
+              Color del Dashboard
             </h3>
           </div>
         </div>
 
         <p className="text-ink-soft text-xs sm:text-sm mt-1 mb-5 leading-relaxed">
-          Tú decides la paleta de color con la que{" "}
-          <strong className="text-ink">{partnerName}</strong> disfrutará de su
-          dashboard, cartas y calendarios de veladas.
+          Elijan juntos la paleta de color para su diario y panel. Tanto tu pantalla como la de{" "}
+          <strong className="text-ink">{partnerName}</strong> tendrán la misma estética y color.
         </p>
 
         {/* Malla de temas */}
@@ -180,7 +175,7 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
             ) : (
               <>
                 <Heart size={15} className="fill-white" />
-                <span>Guardar para {partnerName}</span>
+                <span>Guardar Color Compartido</span>
               </>
             )}
           </button>

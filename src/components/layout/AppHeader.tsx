@@ -27,15 +27,15 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
   const userInitial = user?.nombre?.charAt(0).toUpperCase() || (user?.rol === "novio" ? "N" : "N");
 
   return (
-    <header className="flex items-center justify-between flex-wrap gap-4 mb-9">
+    <header className="w-full bg-white/95 backdrop-blur-md rounded-[22px] border border-slate-200/90 p-3.5 sm:p-4 shadow-xs flex items-center justify-between flex-wrap gap-3.5 mb-6">
       {/* Marca / Logo con NuestrasAventurasLG.png */}
       <div className="flex items-center gap-3">
         <AppLogo size="md" />
         <div>
-          <div className="font-serif font-bold text-[22px] sm:text-[24px] text-ink leading-tight tracking-tight">
+          <div className="font-serif font-bold text-[20px] sm:text-[23px] text-ink leading-tight tracking-tight">
             Nuestras Aventuras
           </div>
-          <div className="font-mono text-[10px] sm:text-[10.5px] text-sky-800 tracking-[0.12em] uppercase font-semibold">
+          <div className="font-mono text-[9.5px] sm:text-[10.5px] text-sky-800 tracking-[0.12em] uppercase font-semibold">
             {displayTag}
           </div>
         </div>
@@ -62,12 +62,12 @@ export function AppHeader({ tag, onBack, backLabel = "Volver" }: AppHeaderProps)
               title="Modificar perfil"
               className="flex items-center gap-2 bg-card border border-line/80 hover:border-sky-300 hover:bg-sky-50/50 py-1.5 pl-1.5 pr-3 rounded-full text-xs font-medium shadow-sm transition-all cursor-pointer group"
             >
-              <div className="w-[28px] h-[28px] rounded-full bg-sky-100 flex items-center justify-center font-serif font-bold text-sky-700 text-xs overflow-hidden border border-sky-200 group-hover:scale-105 transition-transform">
+              <div className="w-[28px] h-[28px] min-w-[28px] min-h-[28px] shrink-0 aspect-square rounded-full bg-sky-100 flex items-center justify-center font-serif font-bold text-sky-700 text-xs overflow-hidden border border-sky-200 group-hover:scale-105 transition-transform">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
                     alt={user.nombre}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover shrink-0 aspect-square rounded-full"
                   />
                 ) : (
                   userInitial

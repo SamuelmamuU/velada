@@ -40,11 +40,9 @@ export async function PUT(req: NextRequest) {
         if (pareja) {
           // Si el usuario actual es novio, define el color del dashboard de su novia
           // Si el usuario actual es novia, define el color del dashboard de su novio
-          if (user.rol === "novio") {
-            pareja.colorDashboardNovia = color;
-          } else {
-            pareja.colorDashboardNovio = color;
-          }
+          // El color es compartido para la pareja (ambos dashboards tienen el mismo color)
+          pareja.colorDashboardNovia = color;
+          pareja.colorDashboardNovio = color;
           await pareja.save();
 
           // También actualizar memoryStore si existe la pareja en memoria
@@ -52,16 +50,13 @@ export async function PUT(req: NextRequest) {
             (p) => p.id === user.parejaId?.toString()
           );
           if (memPareja) {
-            if (user.rol === "novio") {
-              memPareja.colorDashboardNovia = color;
-            } else {
-              memPareja.colorDashboardNovio = color;
-            }
+            memPareja.colorDashboardNovia = color;
+            memPareja.colorDashboardNovio = color;
           }
 
           return NextResponse.json({
             success: true,
-            message: `Color asignado con amor para tu pareja.`,
+            message: `Color compartido asignado con éxito para la pareja.`,
             data: {
               colorDashboardNovio: pareja.colorDashboardNovio,
               colorDashboardNovia: pareja.colorDashboardNovia,
@@ -78,14 +73,11 @@ export async function PUT(req: NextRequest) {
     if (memUser && memUser.parejaId) {
       const memPareja = memoryStore.parejas.find((p) => p.id === memUser.parejaId);
       if (memPareja) {
-        if (memUser.rol === "novio") {
-          memPareja.colorDashboardNovia = color;
-        } else {
-          memPareja.colorDashboardNovio = color;
-        }
+        memPareja.colorDashboardNovia = color;
+        memPareja.colorDashboardNovio = color;
         return NextResponse.json({
           success: true,
-          message: `Color asignado con amor para tu pareja.`,
+          message: `Color compartido asignado con éxito para la pareja.`,
           data: {
             colorDashboardNovio: memPareja.colorDashboardNovio,
             colorDashboardNovia: memPareja.colorDashboardNovia,
