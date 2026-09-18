@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
   X,
@@ -40,6 +41,12 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (isOpen && user) {
       setNombre(user.nombre || "");
@@ -53,7 +60,7 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
     }
   }, [isOpen, user]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   // Manejador para cargar y comprimir la imagen en Canvas
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,8 +183,8 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
 
   const initial = (nombre?.charAt(0) || user?.nombre?.charAt(0) || "U").toUpperCase();
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/50 backdrop-blur-sm animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/60 backdrop-blur-md animate-fadeIn">
       <div className="bg-card w-full max-w-md rounded-3xl shadow-2xl border border-line overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header del Modal */}
         <div className="px-6 py-5 border-b border-line flex items-center justify-between bg-sky-50/50">
@@ -424,6 +431,7 @@ export function EditProfileModal({ isOpen, onClose }: EditProfileModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/context/AuthContext";
 import { THEMES, ThemeKey } from "@/lib/theme";
 import { X, Check, Palette, Sparkles, Heart, Loader2 } from "lucide-react";
@@ -28,7 +29,12 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSave = async () => {
     if (!token) return;
@@ -66,8 +72,8 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm animate-fade-up">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/60 backdrop-blur-md animate-fade-up">
       <div className="bg-white rounded-[26px] p-6 sm:p-7 max-w-md w-full border border-sky-100 shadow-2xl relative overflow-hidden">
         {/* Botón cerrar */}
         <button
@@ -181,6 +187,7 @@ export function ThemeSelectorModal({ isOpen, onClose }: ThemeSelectorModalProps)
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -633,7 +633,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
 
       {/* Modal de Confirmación para Eliminar Cita */}
       {citaToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm animate-fade-up">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/60 backdrop-blur-md animate-fade-up">
           <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-sm w-full border border-slate-200 shadow-2xl text-center">
             <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-4">
               <AlertTriangle size={24} />

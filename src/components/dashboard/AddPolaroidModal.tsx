@@ -1,7 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/context/AuthContext";
 import { IRecuerdoIndependiente } from "@/types";
 import { format } from "date-fns";
@@ -39,7 +40,12 @@ export function AddPolaroidModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,8 +141,8 @@ export function AddPolaroidModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 backdrop-blur-sm animate-fade-up overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/60 backdrop-blur-md animate-fade-up overflow-y-auto">
       <div className="bg-white rounded-[26px] p-6 max-w-md w-full border border-sky-100 shadow-2xl relative my-8">
         <button
           onClick={onClose}
@@ -271,6 +277,7 @@ export function AddPolaroidModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

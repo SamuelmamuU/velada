@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { CheckCircle2, XCircle, Loader2, Play, FlaskConical, X } from "lucide-react";
 
 interface TestCase {
@@ -28,6 +29,11 @@ export function TestRunnerModal() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<SuiteResponse | null>(null);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const runTests = async () => {
     setLoading(true);
@@ -60,8 +66,8 @@ export function TestRunnerModal() {
         <span>Pruebas del Sistema</span>
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink/70 backdrop-blur-sm animate-fade-up">
+      {open && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/70 backdrop-blur-md animate-fade-up">
           <div className="bg-card rounded-[22px] max-w-2xl w-full max-h-[88vh] flex flex-col border border-line shadow-2xl overflow-hidden">
             {/* Cabecera del Modal */}
             <div className="p-6 border-b border-line flex items-center justify-between bg-paper/50">
@@ -192,7 +198,8 @@ export function TestRunnerModal() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
