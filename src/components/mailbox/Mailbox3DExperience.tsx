@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import { CSS3DRenderer, CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer.js";
-import { ICitaResponse, RolUsuario } from "@/types";
+import { ICitaResponse, RolUsuario, ModeloBuzon } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { LoveLetterView } from "@/components/citas/LoveLetterView";
 import { Seal } from "@/components/ui/Seal";
@@ -116,6 +116,36 @@ export function Mailbox3DExperience({
   const [stage, setStage] = useState<MailboxStage>(initialStage);
   const [selectedLetter, setSelectedLetter] = useState<ICitaResponse | null>(null);
   const [activeEnvelopeIndex, setActiveEnvelopeIndex] = useState(0);
+
+  const [modeloBuzonState, setModeloBuzonState] = useState<ModeloBuzon>(
+    (pareja?.modeloBuzon || "clasico") as ModeloBuzon
+  );
+
+  useEffect(() => {
+    if (pareja?.modeloBuzon) {
+      setModeloBuzonState(pareja.modeloBuzon as ModeloBuzon);
+    } else {
+      try {
+        const stored = localStorage.getItem("velada_modelo_buzon");
+        if (stored === "clasico" || stored === "vintage" || stored === "moderno") {
+          setModeloBuzonState(stored as ModeloBuzon);
+        }
+      } catch {}
+    }
+  }, [pareja?.modeloBuzon]);
+
+  useEffect(() => {
+    const handleModeloChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setModeloBuzonState(customEvent.detail as ModeloBuzon);
+      }
+    };
+    window.addEventListener("velada_modelo_buzon_changed", handleModeloChange);
+    return () => {
+      window.removeEventListener("velada_modelo_buzon_changed", handleModeloChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (initialStage) {
@@ -428,29 +458,227 @@ export function Mailbox3DExperience({
     scene.add(interiorLight);
 
     // =========================================================================
-    // CONSTRUCCIÓN DEL MODELO 3D REALISTA Y SÓLIDO (ExtrudeGeometry sin fisuras)
+    // CONSTRUCCIÓN DEL MODELO 3D SEGÚN EL ESTILO SELECCIONADO (modeloBuzonState)
     // =========================================================================
     const mailboxGroup = new THREE.Group();
     scene.add(mailboxGroup);
 
-    // Dimensiones canónicas del buzón:
-    // Ancho = 15, Alto Base = 5.5, Radio Curvo Domo = 7.5, Profundidad Z = 22
+    const currentModelo = modeloBuzonState || "clasico";
     const wallThickness = 0.5;
-    const bodyShape = new THREE.Shape();
-    bodyShape.moveTo(-7.5, 0);
-    bodyShape.lineTo(-7.5, 5.5);
-    bodyShape.absarc(0, 5.5, 7.5, Math.PI, 0, true);
-    bodyShape.lineTo(7.5, 0);
-    bodyShape.closePath();
 
-    // Cavidad interior hueca (Hole)
-    const innerHole = new THREE.Path();
-    innerHole.moveTo(-7.5 + wallThickness, wallThickness);
-    innerHole.lineTo(-7.5 + wallThickness, 5.5);
-    innerHole.absarc(0, 5.5, 7.5 - wallThickness, Math.PI, 0, true);
-    innerHole.lineTo(7.5 - wallThickness, wallThickness);
-    innerHole.closePath();
-    bodyShape.holes.push(innerHole);
+    let bodyShape = new THREE.Shape();
+    let innerHole = new THREE.Path();
+    let metalMaterial: THREE.MeshStandardMaterial;
+    let backMaterial: THREE.MeshStandardMaterial;
+    let doorShape = new THREE.Shape();
+    let doorMaterial: THREE.MeshStandardMaterial;
+    let brassMaterial: THREE.MeshStandardMaterial;
+    let flagArmMaterial: THREE.MeshStandardMaterial;
+    let flagBladeMaterial: THREE.MeshStandardMaterial;
+    let postMaterial: THREE.MeshStandardMaterial;
+
+    let doorLatchY = 4.6;
+    let flagPivotY = 5.2;
+
+    if (currentModelo === "vintage") {
+      // -----------------------------------------------------------------------
+      // MODELO 2: VINTAGE HIERRO & BRONCE (Cofre Victoriano con Techo a Dos Aguas)
+      // -----------------------------------------------------------------------
+      bodyShape.moveTo(-7.5, 0);
+      bodyShape.lineTo(-7.5, 6.0);
+      bodyShape.lineTo(0, 11.0);
+      bodyShape.lineTo(7.5, 6.0);
+      bodyShape.lineTo(7.5, 0);
+      bodyShape.closePath();
+
+      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
+      innerHole.lineTo(-7.5 + wallThickness, 6.0 - wallThickness * 0.5);
+      innerHole.lineTo(0, 11.0 - wallThickness * 1.4);
+      innerHole.lineTo(7.5 - wallThickness, 6.0 - wallThickness * 0.5);
+      innerHole.lineTo(7.5 - wallThickness, wallThickness);
+      innerHole.closePath();
+      bodyShape.holes.push(innerHole);
+
+      metalMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2b2e33,
+        roughness: 0.55,
+        metalness: 0.75,
+      });
+
+      backMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1f2126,
+        roughness: 0.65,
+        metalness: 0.7,
+      });
+
+      doorShape.moveTo(-7.4, 0);
+      doorShape.lineTo(-7.4, 5.9);
+      doorShape.lineTo(0, 10.8);
+      doorShape.lineTo(7.4, 5.9);
+      doorShape.lineTo(7.4, 0);
+      doorShape.closePath();
+
+      doorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x34373d,
+        roughness: 0.5,
+        metalness: 0.7,
+      });
+
+      brassMaterial = new THREE.MeshStandardMaterial({
+        color: 0xb8860b,
+        metalness: 0.85,
+        roughness: 0.35,
+      });
+
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.8 });
+      flagBladeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xc5a059,
+        roughness: 0.4,
+        metalness: 0.6,
+      });
+
+      postMaterial = new THREE.MeshStandardMaterial({
+        color: 0x23252a,
+        roughness: 0.7,
+        metalness: 0.4,
+      });
+
+      doorLatchY = 5.2;
+      flagPivotY = 6.0;
+
+    } else if (currentModelo === "moderno") {
+      // -----------------------------------------------------------------------
+      // MODELO 3: MODERNO PASTEL & AMOR (Bloque Minimalista Contemporáneo)
+      // -----------------------------------------------------------------------
+      const r = 2.5;
+      bodyShape.moveTo(-7.5, 0);
+      bodyShape.lineTo(-7.5, 10.0 - r);
+      bodyShape.quadraticCurveTo(-7.5, 10.0, -7.5 + r, 10.0);
+      bodyShape.lineTo(7.5 - r, 10.0);
+      bodyShape.quadraticCurveTo(7.5, 10.0, 7.5, 10.0 - r);
+      bodyShape.lineTo(7.5, 0);
+      bodyShape.closePath();
+
+      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
+      innerHole.lineTo(-7.5 + wallThickness, 10.0 - r);
+      innerHole.quadraticCurveTo(-7.5 + wallThickness, 10.0 - wallThickness, -7.5 + r, 10.0 - wallThickness);
+      innerHole.lineTo(7.5 - r, 10.0 - wallThickness);
+      innerHole.quadraticCurveTo(7.5 - wallThickness, 10.0 - wallThickness, 7.5 - wallThickness, 10.0 - r);
+      innerHole.lineTo(7.5 - wallThickness, wallThickness);
+      innerHole.closePath();
+      bodyShape.holes.push(innerHole);
+
+      metalMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf4c2c2,
+        roughness: 0.25,
+        metalness: 0.15,
+      });
+
+      backMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe8b4b4,
+        roughness: 0.35,
+        metalness: 0.1,
+      });
+
+      doorShape.moveTo(-7.4, 0);
+      doorShape.lineTo(-7.4, 9.8 - r);
+      doorShape.quadraticCurveTo(-7.4, 9.8, -7.4 + r, 9.8);
+      doorShape.lineTo(7.4 - r, 9.8);
+      doorShape.quadraticCurveTo(7.4, 9.8, 7.4, 9.8 - r);
+      doorShape.lineTo(7.4, 0);
+      doorShape.closePath();
+
+      doorMaterial = new THREE.MeshStandardMaterial({
+        color: 0xfff8f0,
+        roughness: 0.2,
+        metalness: 0.1,
+      });
+
+      brassMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe0a96d,
+        metalness: 0.8,
+        roughness: 0.2,
+      });
+
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0xffb3c1, metalness: 0.5 });
+      flagBladeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff4d6d,
+        roughness: 0.25,
+        metalness: 0.2,
+      });
+
+      postMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf5f5f7,
+        roughness: 0.4,
+        metalness: 0.1,
+      });
+
+      doorLatchY = 4.8;
+      flagPivotY = 5.5;
+
+    } else {
+      // -----------------------------------------------------------------------
+      // MODELO 1: CLÁSICO ROMÁNTICO (Default - Domo Abovedado Satinado)
+      // -----------------------------------------------------------------------
+      bodyShape.moveTo(-7.5, 0);
+      bodyShape.lineTo(-7.5, 5.5);
+      bodyShape.absarc(0, 5.5, 7.5, Math.PI, 0, true);
+      bodyShape.lineTo(7.5, 0);
+      bodyShape.closePath();
+
+      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
+      innerHole.lineTo(-7.5 + wallThickness, 5.5);
+      innerHole.absarc(0, 5.5, 7.5 - wallThickness, Math.PI, 0, true);
+      innerHole.lineTo(7.5 - wallThickness, wallThickness);
+      innerHole.closePath();
+      bodyShape.holes.push(innerHole);
+
+      metalMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6290bd,
+        roughness: 0.32,
+        metalness: 0.22,
+      });
+
+      backMaterial = new THREE.MeshStandardMaterial({
+        color: 0x517a9e,
+        roughness: 0.45,
+        metalness: 0.2,
+      });
+
+      doorShape.moveTo(-7.4, 0);
+      doorShape.lineTo(-7.4, 5.4);
+      doorShape.absarc(0, 5.4, 7.4, Math.PI, 0, true);
+      doorShape.lineTo(7.4, 0);
+      doorShape.closePath();
+
+      doorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x6896c2,
+        roughness: 0.28,
+        metalness: 0.25,
+      });
+
+      brassMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe5be73,
+        metalness: 0.85,
+        roughness: 0.25,
+      });
+
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.7 });
+      flagBladeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xd93850,
+        roughness: 0.35,
+        metalness: 0.15,
+      });
+
+      postMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5a3d28,
+        roughness: 0.85,
+        metalness: 0.05,
+      });
+
+      doorLatchY = 4.6;
+      flagPivotY = 5.2;
+    }
 
     // Geometría continua y estanca del túnel del buzón
     const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, {
@@ -461,38 +689,27 @@ export function Mailbox3DExperience({
       bevelSize: 0.18,
       bevelThickness: 0.18,
     });
-    // Centrar en Z (de -11 a +11)
     bodyGeometry.translate(0, 0, -11);
-
-    // Material de Chapa Metálica Azul Postal Esmaltada
-    const metalMaterial = new THREE.MeshStandardMaterial({
-      color: 0x6290bd,
-      roughness: 0.32,
-      metalness: 0.22,
-    });
 
     const bodyMesh = new THREE.Mesh(bodyGeometry, metalMaterial);
     bodyMesh.castShadow = true;
     bodyMesh.receiveShadow = true;
     mailboxGroup.add(bodyMesh);
 
+    // Ranura superior para modelo moderno
+    if (currentModelo === "moderno") {
+      const letterSlot = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 0.3, 1.4),
+        brassMaterial
+      );
+      letterSlot.position.set(0, 10.15, 0);
+      mailboxGroup.add(letterSlot);
+    }
+
     // Pared trasera que cierra el fondo del buzón (en Z = -11)
-    const backShape = new THREE.Shape();
-    backShape.moveTo(-7.5, 0);
-    backShape.lineTo(-7.5, 5.5);
-    backShape.absarc(0, 5.5, 7.5, Math.PI, 0, true);
-    backShape.lineTo(7.5, 0);
-    backShape.closePath();
-    const backGeometry = new THREE.ShapeGeometry(backShape);
+    const backGeometry = new THREE.ShapeGeometry(bodyShape);
     backGeometry.translate(0, 0, -11.02);
-    const backMesh = new THREE.Mesh(
-      backGeometry,
-      new THREE.MeshStandardMaterial({
-        color: 0x517a9e,
-        roughness: 0.45,
-        metalness: 0.2,
-      })
-    );
+    const backMesh = new THREE.Mesh(backGeometry, backMaterial);
     mailboxGroup.add(backMesh);
 
     // Suelo interior de correspondencia
@@ -500,7 +717,7 @@ export function Mailbox3DExperience({
     const shelfMesh = new THREE.Mesh(
       shelfGeom,
       new THREE.MeshStandardMaterial({
-        color: 0x1d3045,
+        color: currentModelo === "vintage" ? 0x111317 : currentModelo === "moderno" ? 0xd4a5a5 : 0x1d3045,
         roughness: 0.7,
       })
     );
@@ -514,13 +731,6 @@ export function Mailbox3DExperience({
     doorPivot.position.set(0, 0.1, 11.05);
     mailboxGroup.add(doorPivot);
 
-    const doorShape = new THREE.Shape();
-    doorShape.moveTo(-7.4, 0);
-    doorShape.lineTo(-7.4, 5.4);
-    doorShape.absarc(0, 5.4, 7.4, Math.PI, 0, true);
-    doorShape.lineTo(7.4, 0);
-    doorShape.closePath();
-
     const doorGeometry = new THREE.ExtrudeGeometry(doorShape, {
       depth: 0.45,
       bevelEnabled: true,
@@ -529,24 +739,13 @@ export function Mailbox3DExperience({
       bevelSize: 0.12,
       bevelThickness: 0.12,
     });
-    const doorMesh = new THREE.Mesh(
-      doorGeometry,
-      new THREE.MeshStandardMaterial({
-        color: 0x6896c2,
-        roughness: 0.28,
-        metalness: 0.25,
-      })
-    );
+    const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
     doorPivot.add(doorMesh);
 
     // Bisagras de latón dorado en la base
     const hingeGeom = new THREE.CylinderGeometry(0.3, 0.3, 1.4, 12);
     hingeGeom.rotateZ(Math.PI / 2);
-    const brassMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe5be73,
-      metalness: 0.85,
-      roughness: 0.25,
-    });
+
     const leftHinge = new THREE.Mesh(hingeGeom, brassMaterial);
     leftHinge.position.set(-5.5, 0.15, 0.3);
     doorPivot.add(leftHinge);
@@ -558,48 +757,68 @@ export function Mailbox3DExperience({
     // Pestillo y Tirador Dorado de Apertura
     const latchGeom = new THREE.TorusGeometry(0.9, 0.22, 12, 24);
     const latchMesh = new THREE.Mesh(latchGeom, brassMaterial);
-    latchMesh.position.set(0, 4.6, 0.65);
+    latchMesh.position.set(0, doorLatchY, 0.65);
     doorPivot.add(latchMesh);
 
+    if (currentModelo === "vintage") {
+      const lockBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 2.4, 0.35),
+        brassMaterial
+      );
+      lockBox.position.set(0, 4.2, 0.55);
+      doorPivot.add(lockBox);
+
+      const lockRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.55, 0.14, 12, 18),
+        brassMaterial
+      );
+      lockRing.position.set(0, 5.5, 0.55);
+      doorPivot.add(lockRing);
+    }
+
     // =========================================================================
-    // BANDERÍN POSTAL ROJO EN EL COSTADO
+    // BANDERÍN POSTAL EN EL COSTADO
     // =========================================================================
     const flagPivot = new THREE.Group();
-    flagPivot.position.set(7.62, 5.2, 4.5);
+    flagPivot.position.set(7.62, flagPivotY, 4.5);
     mailboxGroup.add(flagPivot);
 
     const flagArmGeom = new THREE.CylinderGeometry(0.14, 0.14, 6.2, 10);
     flagArmGeom.translate(0, 3.1, 0);
-    const flagArm = new THREE.Mesh(
-      flagArmGeom,
-      new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.7 })
-    );
+    const flagArm = new THREE.Mesh(flagArmGeom, flagArmMaterial);
     flagPivot.add(flagArm);
 
-    const flagBladeGeom = new THREE.BoxGeometry(0.12, 2.4, 3.8);
-    flagBladeGeom.translate(0, 5.2, 1.8);
-    const flagBlade = new THREE.Mesh(
-      flagBladeGeom,
-      new THREE.MeshStandardMaterial({
-        color: 0xd93850,
-        roughness: 0.35,
-        metalness: 0.15,
-      })
-    );
+    let flagBlade: THREE.Mesh;
+    let flagBladeGeom: THREE.BufferGeometry;
+
+    if (currentModelo === "moderno") {
+      const heartShape = new THREE.Shape();
+      heartShape.moveTo(0, 0.5);
+      heartShape.bezierCurveTo(0, 0.5, -0.8, 1.4, -0.8, 2.2);
+      heartShape.bezierCurveTo(-0.8, 3.0, 0, 3.6, 0, 4.2);
+      heartShape.bezierCurveTo(0, 3.6, 0.8, 3.0, 0.8, 2.2);
+      heartShape.bezierCurveTo(0.8, 1.4, 0, 0.5, 0, 0.5);
+
+      flagBladeGeom = new THREE.ExtrudeGeometry(heartShape, {
+        depth: 0.25,
+        bevelEnabled: true,
+        bevelSize: 0.06,
+        bevelThickness: 0.06,
+      });
+      flagBladeGeom.translate(0, 3.5, 1.8);
+      flagBlade = new THREE.Mesh(flagBladeGeom, flagBladeMaterial);
+    } else {
+      flagBladeGeom = new THREE.BoxGeometry(0.12, 2.4, 3.8);
+      flagBladeGeom.translate(0, 5.2, 1.8);
+      flagBlade = new THREE.Mesh(flagBladeGeom, flagBladeMaterial);
+    }
     flagPivot.add(flagBlade);
 
     // =========================================================================
-    // POSTE DE MADERA RÚSTICA DE APOYO
+    // POSTE DE APOYO
     // =========================================================================
     const postGeom = new THREE.BoxGeometry(2.4, 18, 2.4);
-    const postMesh = new THREE.Mesh(
-      postGeom,
-      new THREE.MeshStandardMaterial({
-        color: 0x5a3d28,
-        roughness: 0.85,
-        metalness: 0.05,
-      })
-    );
+    const postMesh = new THREE.Mesh(postGeom, postMaterial);
     postMesh.position.set(0, -9, 0);
     mailboxGroup.add(postMesh);
 
@@ -891,7 +1110,7 @@ export function Mailbox3DExperience({
       shadowTex.dispose();
       webglRenderer.dispose();
     };
-  }, []);
+  }, [modeloBuzonState]);
 
   return (
     <>

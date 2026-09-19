@@ -67,6 +67,8 @@ export interface IRecuerdoIndependiente {
   createdAt?: string;
 }
 
+export type ModeloBuzon = "clasico" | "vintage" | "moderno";
+
 export interface IPareja {
   _id?: Types.ObjectId | string;
   id?: string;
@@ -77,6 +79,7 @@ export interface IPareja {
   fechaVinculacion?: Date | string | null;
   colorDashboardNovio?: string;
   colorDashboardNovia?: string;
+  modeloBuzon?: ModeloBuzon;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -87,6 +90,7 @@ export interface IParejaDocument extends Omit<IPareja, "_id" | "id" | "novioId" 
   noviaId?: Types.ObjectId | null;
   colorDashboardNovio?: string;
   colorDashboardNovia?: string;
+  modeloBuzon?: ModeloBuzon;
 }
 
 
@@ -100,6 +104,7 @@ export interface IParejaResponse {
   parejaAvatarUrl?: string;
   colorDashboardNovio?: string;
   colorDashboardNovia?: string;
+  modeloBuzon?: ModeloBuzon;
   fechaVinculacion?: string;
 }
 

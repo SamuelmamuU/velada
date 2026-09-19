@@ -6,27 +6,39 @@ import { Pareja } from "@/models/Pareja";
 import { memoryStore } from "@/lib/store";
 
 const VALID_THEMES = ["rosa", "azul", "oro", "lavanda", "esmeralda", "vino"];
+const VALID_MODELOS_BUZON = ["clasico", "vintage", "moderno"];
 
-// PUT /api/pareja/tema — Configurar el color del dashboard de la pareja
+// PUT /api/pareja/tema — Configurar el color y/or modelo de buzón de la pareja
 export async function PUT(req: NextRequest) {
   try {
     const auth = requireAuth(req);
     if (auth.errorResponse) return auth.errorResponse;
 
     const body = await req.json().catch(() => null);
-    if (!body || !body.color) {
+    if (!body || (!body.color && !body.modeloBuzon)) {
       return NextResponse.json(
-        { success: false, error: "El campo color es obligatorio." },
+        { success: false, error: "Debes enviar al menos un campo a personalizar (color o modeloBuzon)." },
         { status: 400 }
       );
     }
 
-    const { color } = body;
-    if (!VALID_THEMES.includes(color)) {
+    const { color, modeloBuzon } = body;
+
+    if (color && !VALID_THEMES.includes(color)) {
       return NextResponse.json(
         {
           success: false,
           error: `Color inválido. Opciones disponibles: ${VALID_THEMES.join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (modeloBuzon && !VALID_MODELOS_BUZON.includes(modeloBuzon)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Modelo de buzón inválido. Opciones: ${VALID_MODELOS_BUZON.join(", ")}`,
         },
         { status: 400 }
       );
@@ -38,11 +50,13 @@ export async function PUT(req: NextRequest) {
       if (user && user.parejaId) {
         const pareja = await Pareja.findById(user.parejaId);
         if (pareja) {
-          // Si el usuario actual es novio, define el color del dashboard de su novia
-          // Si el usuario actual es novia, define el color del dashboard de su novio
-          // El color es compartido para la pareja (ambos dashboards tienen el mismo color)
-          pareja.colorDashboardNovia = color;
-          pareja.colorDashboardNovio = color;
+          if (color) {
+            pareja.colorDashboardNovia = color;
+            pareja.colorDashboardNovio = color;
+          }
+          if (modeloBuzon) {
+            pareja.modeloBuzon = modeloBuzon;
+          }
           await pareja.save();
 
           // También actualizar memoryStore si existe la pareja en memoria
@@ -50,16 +64,22 @@ export async function PUT(req: NextRequest) {
             (p) => p.id === user.parejaId?.toString()
           );
           if (memPareja) {
-            memPareja.colorDashboardNovia = color;
-            memPareja.colorDashboardNovio = color;
+            if (color) {
+              memPareja.colorDashboardNovia = color;
+              memPareja.colorDashboardNovio = color;
+            }
+            if (modeloBuzon) {
+              memPareja.modeloBuzon = modeloBuzon;
+            }
           }
 
           return NextResponse.json({
             success: true,
-            message: `Color compartido asignado con éxito para la pareja.`,
+            message: `Personalización asignada con éxito para la pareja.`,
             data: {
               colorDashboardNovio: pareja.colorDashboardNovio,
               colorDashboardNovia: pareja.colorDashboardNovia,
+              modeloBuzon: pareja.modeloBuzon,
             },
           });
         }
@@ -73,14 +93,20 @@ export async function PUT(req: NextRequest) {
     if (memUser && memUser.parejaId) {
       const memPareja = memoryStore.parejas.find((p) => p.id === memUser.parejaId);
       if (memPareja) {
-        memPareja.colorDashboardNovia = color;
-        memPareja.colorDashboardNovio = color;
+        if (color) {
+          memPareja.colorDashboardNovia = color;
+          memPareja.colorDashboardNovio = color;
+        }
+        if (modeloBuzon) {
+          memPareja.modeloBuzon = modeloBuzon;
+        }
         return NextResponse.json({
           success: true,
-          message: `Color compartido asignado con éxito para la pareja.`,
+          message: `Personalización asignada con éxito para la pareja.`,
           data: {
             colorDashboardNovio: memPareja.colorDashboardNovio,
             colorDashboardNovia: memPareja.colorDashboardNovia,
+            modeloBuzon: memPareja.modeloBuzon,
           },
         });
       }

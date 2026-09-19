@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
                 parejaAvatarUrl: partner?.avatarUrl || undefined,
                 colorDashboardNovio: pareja.colorDashboardNovio || "azul",
                 colorDashboardNovia: pareja.colorDashboardNovia || "rosa",
+                modeloBuzon: pareja.modeloBuzon || "clasico",
                 fechaVinculacion: pareja.fechaVinculacion
                   ? new Date(pareja.fechaVinculacion).toISOString()
                   : undefined,
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
             parejaAvatarUrl: partner?.avatarUrl || undefined,
             colorDashboardNovio: pareja.colorDashboardNovio || "azul",
             colorDashboardNovia: pareja.colorDashboardNovia || "rosa",
+            modeloBuzon: pareja.modeloBuzon || "clasico",
             fechaVinculacion: pareja.fechaVinculacion
               ? new Date(pareja.fechaVinculacion).toISOString()
               : undefined,

@@ -44,6 +44,11 @@ const ParejaSchema = new Schema<IParejaDocument>(
       type: String,
       default: "rosa",
     },
+    modeloBuzon: {
+      type: String,
+      enum: ["clasico", "vintage", "moderno"],
+      default: "clasico",
+    },
   },
   {
     timestamps: true,
