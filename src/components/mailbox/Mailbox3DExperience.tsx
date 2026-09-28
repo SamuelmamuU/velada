@@ -213,7 +213,6 @@ export function Mailbox3DExperience({
   });
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    // Si la carta está expandida o en login interactivo, no iniciar arrastre orbital
     if (stage === "letter_expanded" || stage === "lateral_login") return;
     orbitStateRef.current.isDragging = true;
     orbitStateRef.current.prevX = e.clientX;
@@ -236,13 +235,16 @@ export function Mailbox3DExperience({
     orbitStateRef.current.isDragging = false;
   };
 
-  // Referencias para el bucle de animación de Three.js
+  // Referencias para los targets de animación Three.js
   const animStateRef = useRef({
     stageBaseRotY: -Math.PI * 0.5,
     targetDoorRotX: 0,
     targetDoorZ: 11.05,
     targetKeyRotZ: 0,
     targetLatchRotX: 0,
+    targetFlapRotX: 0,
+    targetScrollUnroll: 0,
+    targetGlassSlideX: 0,
     targetLightIntensity: 0,
     targetPosX: 0,
     targetScale: 1,
@@ -266,6 +268,9 @@ export function Mailbox3DExperience({
         s.targetDoorZ = 11.05;
         s.targetKeyRotZ = 0;
         s.targetLatchRotX = 0;
+        s.targetFlapRotX = 0;
+        s.targetScrollUnroll = 0;
+        s.targetGlassSlideX = 0;
         s.targetLightIntensity = 0;
         s.targetPosX = 0;
         s.targetScale = 1;
@@ -278,6 +283,9 @@ export function Mailbox3DExperience({
         s.targetDoorZ = 11.05;
         s.targetKeyRotZ = 0;
         s.targetLatchRotX = 0;
+        s.targetFlapRotX = 0;
+        s.targetScrollUnroll = 0;
+        s.targetGlassSlideX = 0;
         s.targetLightIntensity = 0;
         s.targetPosX = 0;
         s.targetScale = 0.94;
@@ -290,6 +298,9 @@ export function Mailbox3DExperience({
         s.targetDoorZ = 11.05;
         s.targetKeyRotZ = 0;
         s.targetLatchRotX = 0;
+        s.targetFlapRotX = 0;
+        s.targetScrollUnroll = 0;
+        s.targetGlassSlideX = 0;
         s.targetLightIntensity = 0;
         s.targetPosX = 0;
         s.targetScale = 1;
@@ -301,9 +312,12 @@ export function Mailbox3DExperience({
         orb.targetRotX = 0.05;
         s.targetDoorRotX = -Math.PI * 0.48;
         s.targetDoorZ = modeloBuzonState === "moderno" ? 12.8 : 11.05;
-        s.targetKeyRotZ = Math.PI * 0.5; // Giro de 90° de la llave vintage
-        s.targetLatchRotX = -Math.PI * 0.25; // Salto del cerrojo superior
-        s.targetLightIntensity = 3.6; // Luz cálida interior brillante
+        s.targetKeyRotZ = Math.PI * 0.5; // Giro 90° de la llave vintage en 3D
+        s.targetLatchRotX = -Math.PI * 0.28; // Salto del cerrojo de pasador en 3D
+        s.targetFlapRotX = -Math.PI * 0.85; // Solapa del sobre 3D se despliega en WebGL
+        s.targetScrollUnroll = 1.0; // Pergamino 3D se desenrolla en WebGL
+        s.targetGlassSlideX = -3.5; // Panel de cristal neón 3D se desliza
+        s.targetLightIntensity = 3.8; // Luz cálida interior brillante
         s.targetPosX = 0;
         s.targetScale = 1;
         break;
@@ -324,6 +338,9 @@ export function Mailbox3DExperience({
         s.targetDoorZ = 11.05;
         s.targetKeyRotZ = 0;
         s.targetLatchRotX = 0;
+        s.targetFlapRotX = 0;
+        s.targetScrollUnroll = 0;
+        s.targetGlassSlideX = 0;
         s.targetLightIntensity = 0;
         s.targetPosX = 0;
         s.targetScale = 0.28;
@@ -504,10 +521,10 @@ export function Mailbox3DExperience({
     container.appendChild(cssRenderer.domElement);
 
     // 4. Luces de la Escena (Fotorrealismo Metálico y Enfoque Dramático)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.35);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffaee, 1.9);
+    const sunLight = new THREE.DirectionalLight(0xfffaee, 1.95);
     sunLight.position.set(24, 38, 28);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 1024;
@@ -749,7 +766,7 @@ export function Mailbox3DExperience({
       flagPivotY = 5.2;
     }
 
-    // Geometría continua y estanca del túnel del buzón
+    // Geometría continua del túnel del buzón
     const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, {
       depth: 22,
       bevelEnabled: true,
@@ -926,30 +943,144 @@ export function Mailbox3DExperience({
     }
 
     // =========================================================================
-    // SOBRES 3D WEBGL INTERACTIVOS EN ABANICO (DENTRO DEL CANVAS THREE.JS)
+    // SOBRES / PERGAMINOS 3D WEBGL INTERACTIVOS Y ARTICULADOS
     // =========================================================================
     const envGroup = new THREE.Group();
     envGroup.position.set(0, 2.8, 2);
 
-    const envBodyGeom = new THREE.BoxGeometry(6.8, 4.5, 0.35);
-    const envBodyMat = new THREE.MeshStandardMaterial({
-      color: 0xfaf7f0,
-      roughness: 0.35,
-      metalness: 0.05,
-    });
-    const envBody = new THREE.Mesh(envBodyGeom, envBodyMat);
-    envGroup.add(envBody);
+    let envBodyGeom: THREE.BufferGeometry;
+    let envBodyMat: THREE.MeshStandardMaterial;
+    let flapPivot: THREE.Group | null = null;
+    let flapGeom: THREE.BufferGeometry | null = null;
+    let scrollMesh: THREE.Mesh | null = null;
+    let ribbonMesh: THREE.Mesh | null = null;
+    let glassFrontMesh: THREE.Mesh | null = null;
+    let heartSealPivot: THREE.Group | null = null;
 
-    const sealGeom = new THREE.CylinderGeometry(0.72, 0.72, 0.18, 24);
-    sealGeom.rotateX(Math.PI / 2);
-    const sealMat = new THREE.MeshStandardMaterial({
-      color: 0xc4384b,
-      roughness: 0.25,
-      metalness: 0.2,
-    });
-    const sealMesh = new THREE.Mesh(sealGeom, sealMat);
-    sealMesh.position.set(0, 0, 0.22);
-    envGroup.add(sealMesh);
+    if (currentModelo === "vintage") {
+      // Pergamino 3D en espiral atado con cinta de seda bordada
+      envBodyGeom = new THREE.CylinderGeometry(1.2, 1.2, 7.5, 24);
+      envBodyGeom.rotateZ(Math.PI / 2);
+      envBodyMat = new THREE.MeshStandardMaterial({
+        color: 0xf4ead3,
+        roughness: 0.5,
+        metalness: 0.05,
+      });
+      scrollMesh = new THREE.Mesh(envBodyGeom, envBodyMat);
+      envGroup.add(scrollMesh);
+
+      const ribbonGeom = new THREE.TorusGeometry(1.28, 0.16, 12, 24);
+      ribbonGeom.rotateY(Math.PI / 2);
+      const ribbonMat = new THREE.MeshStandardMaterial({
+        color: 0xc4384b,
+        roughness: 0.25,
+        metalness: 0.3,
+      });
+      ribbonMesh = new THREE.Mesh(ribbonGeom, ribbonMat);
+      envGroup.add(ribbonMesh);
+
+    } else if (currentModelo === "moderno") {
+      // Tarjeta de cristal neón 3D con sello magnético flotante de corazón
+      envBodyGeom = new THREE.BoxGeometry(6.8, 4.4, 0.25);
+      envBodyMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.1,
+        metalness: 0.1,
+      });
+      const glassBase = new THREE.Mesh(envBodyGeom, envBodyMat);
+      envGroup.add(glassBase);
+
+      const glassFrontGeom = new THREE.BoxGeometry(6.6, 4.2, 0.1);
+      const glassFrontMat = new THREE.MeshStandardMaterial({
+        color: 0xff4d6d,
+        transparent: true,
+        opacity: 0.45,
+        roughness: 0.05,
+      });
+      glassFrontMesh = new THREE.Mesh(glassFrontGeom, glassFrontMat);
+      glassFrontMesh.position.set(0, 0, 0.15);
+      envGroup.add(glassFrontMesh);
+
+      heartSealPivot = new THREE.Group();
+      heartSealPivot.position.set(0, 0, 0.3);
+      const heartShape3D = new THREE.Shape();
+      heartShape3D.moveTo(0, 0.3);
+      heartShape3D.bezierCurveTo(0, 0.3, -0.5, 0.8, -0.5, 1.3);
+      heartShape3D.bezierCurveTo(-0.5, 1.8, 0, 2.2, 0, 2.6);
+      heartShape3D.bezierCurveTo(0, 2.2, 0.5, 1.8, 0.5, 1.3);
+      heartShape3D.bezierCurveTo(0.5, 0.8, 0, 0.3, 0, 0.3);
+      heartShape3D.closePath();
+
+      const heartGeom3D = new THREE.ExtrudeGeometry(heartShape3D, {
+        depth: 0.15,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        steps: 1,
+        bevelSize: 0.04,
+        bevelThickness: 0.04,
+      });
+      heartGeom3D.center();
+      const heartMat3D = new THREE.MeshStandardMaterial({
+        color: 0xff1744,
+        roughness: 0.15,
+        metalness: 0.3,
+      });
+      const heartMesh3D = new THREE.Mesh(heartGeom3D, heartMat3D);
+      heartSealPivot.add(heartMesh3D);
+      envGroup.add(heartSealPivot);
+
+    } else {
+      // Sobre 3D Origami de pergamino cremoso con solapa superior basculante 180°
+      envBodyGeom = new THREE.BoxGeometry(6.8, 4.4, 0.32);
+      envBodyMat = new THREE.MeshStandardMaterial({
+        color: 0xfaf7f0,
+        roughness: 0.35,
+        metalness: 0.05,
+      });
+      const envBody = new THREE.Mesh(envBodyGeom, envBodyMat);
+      envGroup.add(envBody);
+
+      // Solapa articulada en la parte superior del sobre (y = +2.2)
+      flapPivot = new THREE.Group();
+      flapPivot.position.set(0, 2.2, 0.17);
+
+      const flapShape = new THREE.Shape();
+      flapShape.moveTo(-3.4, 0);
+      flapShape.lineTo(0, -2.4);
+      flapShape.lineTo(3.4, 0);
+      flapShape.closePath();
+
+      flapGeom = new THREE.ExtrudeGeometry(flapShape, {
+        depth: 0.08,
+        bevelEnabled: true,
+        bevelSegments: 1,
+        steps: 1,
+        bevelSize: 0.02,
+        bevelThickness: 0.02,
+      });
+      const flapMesh = new THREE.Mesh(
+        flapGeom,
+        new THREE.MeshStandardMaterial({
+          color: 0xf3eee2,
+          roughness: 0.38,
+        })
+      );
+      flapPivot.add(flapMesh);
+      envGroup.add(flapPivot);
+
+      const sealGeom = new THREE.CylinderGeometry(0.72, 0.72, 0.18, 24);
+      sealGeom.rotateX(Math.PI / 2);
+      const sealMat = new THREE.MeshStandardMaterial({
+        color: 0xc4384b,
+        roughness: 0.25,
+        metalness: 0.2,
+      });
+      const sealMesh = new THREE.Mesh(sealGeom, sealMat);
+      sealMesh.position.set(0, -1.2, 0.12);
+      flapPivot.add(sealMesh);
+    }
 
     mailboxGroup.add(envGroup);
 
@@ -1013,7 +1144,6 @@ export function Mailbox3DExperience({
       pCtx.textAlign = "center";
       pCtx.textBaseline = "middle";
 
-      // 1. Etiqueta superior
       pCtx.font = `700 36px ${interFamily}`;
       try {
         (pCtx as unknown as { letterSpacing: string }).letterSpacing = "8px";
@@ -1021,13 +1151,11 @@ export function Mailbox3DExperience({
       pCtx.fillStyle = "rgba(225, 242, 255, 0.92)";
       pCtx.fillText("★  BUZÓN FAMILIAR  ★", 1024, 130);
 
-      // 2. Nombres "Samuel & Diana" en tamaño grande (240px)
       pCtx.font = `bold 240px ${caveatFamily}`;
       try {
         (pCtx as unknown as { letterSpacing: string }).letterSpacing = "2px";
       } catch {}
 
-      // Sombra profunda de relieve de pintura sobre el metal
       pCtx.fillStyle = "rgba(8, 20, 38, 0.88)";
       pCtx.fillText(coupleNamesRef.current, 1024 + 5, 335 + 6);
 
@@ -1041,7 +1169,6 @@ export function Mailbox3DExperience({
       pCtx.lineWidth = 2.5;
       pCtx.strokeText(coupleNamesRef.current, 1024, 335);
 
-      // 3. Pincelada artesanal curvada de subrayado
       pCtx.strokeStyle = "rgba(255, 255, 255, 0.92)";
       pCtx.lineWidth = 8;
       pCtx.lineCap = "round";
@@ -1050,7 +1177,6 @@ export function Mailbox3DExperience({
       pCtx.bezierCurveTo(680, 495, 1360, 435, 1788, 465);
       pCtx.stroke();
 
-      // 4. Subtítulo tipográfico en mayúsculas
       pCtx.font = `bold 44px ${interFamily}`;
       try {
         (pCtx as unknown as { letterSpacing: string }).letterSpacing = "12px";
@@ -1060,7 +1186,6 @@ export function Mailbox3DExperience({
       pCtx.fillStyle = "rgba(235, 245, 255, 0.98)";
       pCtx.fillText("NUESTROS VIAJES · BUZÓN DE AVENTURAS", 1024, 545);
 
-      // 5. Detalles postales vintage
       pCtx.font = `600 24px ${monoFamily}`;
       try {
         (pCtx as unknown as { letterSpacing: string }).letterSpacing = "6px";
@@ -1118,12 +1243,13 @@ export function Mailbox3DExperience({
     // BUCLE DE ANIMACIÓN CONTINUA (Física suave sin saltos)
     // =========================================================================
     let animId: number;
-    let currRotY = animStateRef.current.stageBaseRotY;
-    let currRotX = 0;
     let currDoorRotX = 0;
     let currDoorZ = 11.05;
     let currKeyRotZ = 0;
     let currLatchRotX = 0;
+    let currFlapRotX = 0;
+    let currScrollUnroll = 0;
+    let currGlassSlideX = 0;
     let currLight = 0;
     let currPosX = animStateRef.current.targetPosX;
     let currScale = 1;
@@ -1147,6 +1273,9 @@ export function Mailbox3DExperience({
       currDoorZ += (s.targetDoorZ - currDoorZ) * Math.min(delta * 6, 1);
       currKeyRotZ += (s.targetKeyRotZ - currKeyRotZ) * Math.min(delta * 7, 1);
       currLatchRotX += (s.targetLatchRotX - currLatchRotX) * Math.min(delta * 7, 1);
+      currFlapRotX += (s.targetFlapRotX - currFlapRotX) * Math.min(delta * 5.5, 1);
+      currScrollUnroll += (s.targetScrollUnroll - currScrollUnroll) * Math.min(delta * 5.5, 1);
+      currGlassSlideX += (s.targetGlassSlideX - currGlassSlideX) * Math.min(delta * 5.5, 1);
       currLight += (s.targetLightIntensity - currLight) * Math.min(delta * 7, 1);
       currPosX += (s.targetPosX - currPosX) * Math.min(delta * 5.5, 1);
       currScale += (s.targetScale - currScale) * Math.min(delta * 5, 1);
@@ -1169,6 +1298,15 @@ export function Mailbox3DExperience({
       latchPivot.rotation.x = currLatchRotX;
       if (keyPivot) keyPivot.rotation.z = currKeyRotZ;
       interiorLight.intensity = currLight;
+
+      // Cinemática de apertura de sobres / pergaminos 3D
+      if (flapPivot) flapPivot.rotation.x = currFlapRotX;
+      if (scrollMesh) {
+        scrollMesh.scale.x = 1 + currScrollUnroll * 0.45;
+        if (ribbonMesh) ribbonMesh.position.y = currScrollUnroll * 4.2;
+      }
+      if (glassFrontMesh) glassFrontMesh.position.x = currGlassSlideX;
+      if (heartSealPivot) heartSealPivot.position.z = 0.3 + Math.sin(elapsed * 3) * 0.15;
 
       // Flotación del sobre 3D emergiendo desde la cavidad
       if (stage === "door_opening" || stage === "letters_floating") {
@@ -1198,7 +1336,7 @@ export function Mailbox3DExperience({
 
     animate();
 
-    // Manejo de visibilidad (Ahorro de batería móvil cuando la app pasa a segundo plano)
+    // Manejo de visibilidad
     const handleVisibilityChange = () => {
       if (document.hidden) {
         isRunning = false;
@@ -1264,8 +1402,7 @@ export function Mailbox3DExperience({
       shelfGeom.dispose();
       envBodyGeom.dispose();
       envBodyMat.dispose();
-      sealGeom.dispose();
-      sealMat.dispose();
+      if (flapGeom) flapGeom.dispose();
       if (rivetGeom) rivetGeom.dispose();
       if (keyStemGeom) keyStemGeom.dispose();
       if (keyRingGeom) keyRingGeom.dispose();
@@ -1667,7 +1804,7 @@ export function Mailbox3DExperience({
       )}
 
       {/* ========================================================================= */}
-      {/* SOBRES DE CARTAS FLOTANDO EN 3D FRENTE A LA PUERTA ABIERTA */}
+      {/* SOBRES DE CARTAS FLOTANDO FRENTE A LA PUERTA ABIERTA */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {stage === "letters_floating" && (
@@ -1771,7 +1908,7 @@ export function Mailbox3DExperience({
                       <div className="absolute -bottom-3 inset-x-0 flex justify-center">
                         <span className="bg-sky-700 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md group-hover:bg-sky-800 transition-colors flex items-center gap-1.5 font-sans">
                           <Sparkles size={11} />
-                          <span>Toca para desplegar la carta</span>
+                          <span>Toca para desplegar la carta 3D</span>
                         </span>
                       </div>
                     </motion.div>
