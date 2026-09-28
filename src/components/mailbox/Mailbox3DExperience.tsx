@@ -27,8 +27,6 @@ import {
   EyeOff,
   RotateCcw,
 } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 
 export type MailboxStage =
   | "lateral_login"
@@ -200,6 +198,8 @@ export function Mailbox3DExperience({
   // Referencias para el canvas Three.js WebGL + CSS3D
   const mountRef = useRef<HTMLDivElement>(null);
   const labelDomRef = useRef<HTMLDivElement>(null);
+  const raycasterRef = useRef(new THREE.Raycaster());
+  const mousePointerRef = useRef(new THREE.Vector2());
 
   // Control de arrastre orbital libre 360° en 3D
   const orbitStateRef = useRef({
@@ -313,11 +313,11 @@ export function Mailbox3DExperience({
         s.targetDoorRotX = -Math.PI * 0.48;
         s.targetDoorZ = modeloBuzonState === "moderno" ? 12.8 : 11.05;
         s.targetKeyRotZ = Math.PI * 0.5; // Giro 90° de la llave vintage en 3D
-        s.targetLatchRotX = -Math.PI * 0.28; // Salto del cerrojo de pasador en 3D
-        s.targetFlapRotX = -Math.PI * 0.85; // Solapa del sobre 3D se despliega en WebGL
-        s.targetScrollUnroll = 1.0; // Pergamino 3D se desenrolla en WebGL
-        s.targetGlassSlideX = -3.5; // Panel de cristal neón 3D se desliza
-        s.targetLightIntensity = 3.8; // Luz cálida interior brillante
+        s.targetLatchRotX = -Math.PI * 0.28; // Salto del cerrojo en 3D
+        s.targetFlapRotX = -Math.PI * 0.95; // Solapa del sobre 3D se despliega en WebGL
+        s.targetScrollUnroll = 1.0;
+        s.targetGlassSlideX = -3.5;
+        s.targetLightIntensity = 4.2; // Luz cálida interior brillante
         s.targetPosX = 0;
         s.targetScale = 1;
         break;
@@ -521,10 +521,10 @@ export function Mailbox3DExperience({
     container.appendChild(cssRenderer.domElement);
 
     // 4. Luces de la Escena (Fotorrealismo Metálico y Enfoque Dramático)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.35);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.45);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xfffaee, 1.95);
+    const sunLight = new THREE.DirectionalLight(0xfffaee, 2.05);
     sunLight.position.set(24, 38, 28);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 1024;
@@ -534,7 +534,7 @@ export function Mailbox3DExperience({
     sunLight.shadow.bias = -0.0004;
     scene.add(sunLight);
 
-    const rimLight = new THREE.DirectionalLight(0x8ec3f5, 0.9);
+    const rimLight = new THREE.DirectionalLight(0x8ec3f5, 0.95);
     rimLight.position.set(-26, 14, -22);
     scene.add(rimLight);
 
@@ -544,19 +544,15 @@ export function Mailbox3DExperience({
     scene.add(interiorLight);
 
     // =========================================================================
-    // CONSTRUCCIÓN DEL MODELO 3D DESDE CERO SEGÚN EL ESTILO SELECCIONADO
+    // CONSTRUCCIÓN SÓLIDA Y ESTANCA DE 6 PANELES PARA EL BUZÓN 3D
     // =========================================================================
     const mailboxGroup = new THREE.Group();
     scene.add(mailboxGroup);
 
     const currentModelo = modeloBuzonState || "clasico";
-    const wallThickness = 0.5;
 
-    let bodyShape = new THREE.Shape();
-    let innerHole = new THREE.Path();
     let metalMaterial: THREE.MeshStandardMaterial;
     let backMaterial: THREE.MeshStandardMaterial;
-    let doorShape = new THREE.Shape();
     let doorMaterial: THREE.MeshStandardMaterial;
     let brassMaterial: THREE.MeshStandardMaterial;
     let flagArmMaterial: THREE.MeshStandardMaterial;
@@ -567,198 +563,107 @@ export function Mailbox3DExperience({
     let flagPivotY = 5.2;
 
     if (currentModelo === "vintage") {
-      // -----------------------------------------------------------------------
-      // MODELO 2: VINTAGE COFRE VICTORIANO (Hierro Forjado & Llave de Bronce 3D)
-      // -----------------------------------------------------------------------
-      bodyShape.moveTo(-7.5, 0);
-      bodyShape.lineTo(-7.5, 6.0);
-      bodyShape.lineTo(0, 11.2);
-      bodyShape.lineTo(7.5, 6.0);
-      bodyShape.lineTo(7.5, 0);
-      bodyShape.closePath();
-
-      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
-      innerHole.lineTo(-7.5 + wallThickness, 6.0 - wallThickness * 0.5);
-      innerHole.lineTo(0, 11.2 - wallThickness * 1.4);
-      innerHole.lineTo(7.5 - wallThickness, 6.0 - wallThickness * 0.5);
-      innerHole.lineTo(7.5 - wallThickness, wallThickness);
-      innerHole.closePath();
-      bodyShape.holes.push(innerHole);
-
       metalMaterial = new THREE.MeshStandardMaterial({
         color: 0x22252a,
-        roughness: 0.55,
-        metalness: 0.78,
+        roughness: 0.52,
+        metalness: 0.8,
       });
-
       backMaterial = new THREE.MeshStandardMaterial({
         color: 0x181a1e,
-        roughness: 0.68,
-        metalness: 0.72,
+        roughness: 0.65,
+        metalness: 0.75,
       });
-
-      doorShape.moveTo(-7.4, 0);
-      doorShape.lineTo(-7.4, 5.9);
-      doorShape.lineTo(0, 11.0);
-      doorShape.lineTo(7.4, 5.9);
-      doorShape.lineTo(7.4, 0);
-      doorShape.closePath();
-
       doorMaterial = new THREE.MeshStandardMaterial({
         color: 0x2c2f35,
-        roughness: 0.5,
-        metalness: 0.75,
+        roughness: 0.48,
+        metalness: 0.78,
       });
-
       brassMaterial = new THREE.MeshStandardMaterial({
         color: 0xc99c42,
-        metalness: 0.9,
-        roughness: 0.3,
+        metalness: 0.92,
+        roughness: 0.28,
       });
-
-      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.88 });
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x141414, metalness: 0.9 });
       flagBladeMaterial = new THREE.MeshStandardMaterial({
         color: 0xd9a84e,
-        roughness: 0.35,
-        metalness: 0.75,
+        roughness: 0.32,
+        metalness: 0.78,
       });
-
       postMaterial = new THREE.MeshStandardMaterial({
         color: 0x1a1c20,
-        roughness: 0.72,
-        metalness: 0.55,
+        roughness: 0.7,
+        metalness: 0.6,
       });
 
       doorLatchY = 5.2;
       flagPivotY = 6.0;
 
     } else if (currentModelo === "moderno") {
-      // -----------------------------------------------------------------------
-      // MODELO 3: FUTURISTA NEO-SATINADO (Minimalista Telescópico & LED)
-      // -----------------------------------------------------------------------
-      const r = 2.6;
-      bodyShape.moveTo(-7.5, 0);
-      bodyShape.lineTo(-7.5, 10.0 - r);
-      bodyShape.quadraticCurveTo(-7.5, 10.0, -7.5 + r, 10.0);
-      bodyShape.lineTo(7.5 - r, 10.0);
-      bodyShape.quadraticCurveTo(7.5, 10.0, 7.5, 10.0 - r);
-      bodyShape.lineTo(7.5, 0);
-      bodyShape.closePath();
-
-      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
-      innerHole.lineTo(-7.5 + wallThickness, 10.0 - r);
-      innerHole.quadraticCurveTo(-7.5 + wallThickness, 10.0 - wallThickness, -7.5 + r, 10.0 - wallThickness);
-      innerHole.lineTo(7.5 - r, 10.0 - wallThickness);
-      innerHole.quadraticCurveTo(7.5 - wallThickness, 10.0 - wallThickness, 7.5 - wallThickness, 10.0 - r);
-      innerHole.lineTo(7.5 - wallThickness, wallThickness);
-      innerHole.closePath();
-      bodyShape.holes.push(innerHole);
-
       metalMaterial = new THREE.MeshStandardMaterial({
         color: 0xf2c2c7,
-        roughness: 0.18,
-        metalness: 0.14,
+        roughness: 0.16,
+        metalness: 0.16,
       });
-
       backMaterial = new THREE.MeshStandardMaterial({
         color: 0xe2b2b7,
-        roughness: 0.28,
-        metalness: 0.1,
+        roughness: 0.25,
+        metalness: 0.12,
       });
-
-      doorShape.moveTo(-7.4, 0);
-      doorShape.lineTo(-7.4, 9.8 - r);
-      doorShape.quadraticCurveTo(-7.4, 9.8, -7.4 + r, 9.8);
-      doorShape.lineTo(7.4 - r, 9.8);
-      doorShape.quadraticCurveTo(7.4, 9.8, 7.4, 9.8 - r);
-      doorShape.lineTo(7.4, 0);
-      doorShape.closePath();
-
       doorMaterial = new THREE.MeshStandardMaterial({
         color: 0xffffff,
-        roughness: 0.15,
-        metalness: 0.08,
+        roughness: 0.14,
+        metalness: 0.1,
       });
-
       brassMaterial = new THREE.MeshStandardMaterial({
         color: 0xebbe73,
-        metalness: 0.88,
-        roughness: 0.2,
+        metalness: 0.9,
+        roughness: 0.18,
       });
-
-      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0xff99a8, metalness: 0.5 });
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0xff99a8, metalness: 0.55 });
       flagBladeMaterial = new THREE.MeshStandardMaterial({
         color: 0xef3054,
-        roughness: 0.18,
-        metalness: 0.15,
+        roughness: 0.16,
+        metalness: 0.18,
       });
-
       postMaterial = new THREE.MeshStandardMaterial({
         color: 0xf9fafb,
-        roughness: 0.25,
-        metalness: 0.2,
+        roughness: 0.22,
+        metalness: 0.22,
       });
 
       doorLatchY = 4.8;
       flagPivotY = 5.5;
 
     } else {
-      // -----------------------------------------------------------------------
-      // MODELO 1: CLÁSICO POSTAL AMERICANO (US Mail Arch con Ribs & Pasador)
-      // -----------------------------------------------------------------------
-      bodyShape.moveTo(-7.5, 0);
-      bodyShape.lineTo(-7.5, 5.5);
-      bodyShape.absarc(0, 5.5, 7.5, Math.PI, 0, true);
-      bodyShape.lineTo(7.5, 0);
-      bodyShape.closePath();
-
-      innerHole.moveTo(-7.5 + wallThickness, wallThickness);
-      innerHole.lineTo(-7.5 + wallThickness, 5.5);
-      innerHole.absarc(0, 5.5, 7.5 - wallThickness, Math.PI, 0, true);
-      innerHole.lineTo(7.5 - wallThickness, wallThickness);
-      innerHole.closePath();
-      bodyShape.holes.push(innerHole);
-
       metalMaterial = new THREE.MeshStandardMaterial({
         color: 0x5482b3,
-        roughness: 0.26,
-        metalness: 0.38,
+        roughness: 0.24,
+        metalness: 0.4,
       });
-
       backMaterial = new THREE.MeshStandardMaterial({
         color: 0x436c96,
-        roughness: 0.38,
-        metalness: 0.32,
-      });
-
-      doorShape.moveTo(-7.4, 0);
-      doorShape.lineTo(-7.4, 5.4);
-      doorShape.absarc(0, 5.4, 7.4, Math.PI, 0, true);
-      doorShape.lineTo(7.4, 0);
-      doorShape.closePath();
-
-      doorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x5c8bc2,
-        roughness: 0.24,
+        roughness: 0.35,
         metalness: 0.35,
       });
-
+      doorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5c8bc2,
+        roughness: 0.22,
+        metalness: 0.38,
+      });
       brassMaterial = new THREE.MeshStandardMaterial({
         color: 0xf0c268,
-        metalness: 0.9,
-        roughness: 0.2,
+        metalness: 0.92,
+        roughness: 0.18,
       });
-
-      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 });
+      flagArmMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.82 });
       flagBladeMaterial = new THREE.MeshStandardMaterial({
         color: 0xeb2f46,
-        roughness: 0.28,
-        metalness: 0.15,
+        roughness: 0.26,
+        metalness: 0.18,
       });
-
       postMaterial = new THREE.MeshStandardMaterial({
         color: 0x46301e,
-        roughness: 0.88,
+        roughness: 0.85,
         metalness: 0.05,
       });
 
@@ -766,21 +671,69 @@ export function Mailbox3DExperience({
       flagPivotY = 5.2;
     }
 
-    // Geometría continua del túnel del buzón
-    const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, {
-      depth: 22,
-      bevelEnabled: true,
-      bevelSegments: 3,
-      steps: 1,
-      bevelSize: 0.18,
-      bevelThickness: 0.18,
-    });
-    bodyGeometry.translate(0, 0, -11);
+    // -------------------------------------------------------------------------
+    // ENSAMBLAJE TRIDIMENSIONAL SÓLIDO (6 PANELS CONTINUOS SIN VACÍOS)
+    // -------------------------------------------------------------------------
+    const mailboxBodyGroup = new THREE.Group();
 
-    const bodyMesh = new THREE.Mesh(bodyGeometry, metalMaterial);
-    bodyMesh.castShadow = true;
-    bodyMesh.receiveShadow = true;
-    mailboxGroup.add(bodyMesh);
+    // 1. Placa de Suelo Sólida
+    const floorGeom = new THREE.BoxGeometry(15, 0.8, 22);
+    const floorMesh = new THREE.Mesh(floorGeom, metalMaterial);
+    floorMesh.position.set(0, 0.4, 0);
+    floorMesh.castShadow = true;
+    floorMesh.receiveShadow = true;
+    mailboxBodyGroup.add(floorMesh);
+
+    // 2. Pared Lateral Izquierda Maciza
+    const leftWallGeom = new THREE.BoxGeometry(0.8, 6.5, 22);
+    const leftWallMesh = new THREE.Mesh(leftWallGeom, metalMaterial);
+    leftWallMesh.position.set(-7.1, 3.65, 0);
+    leftWallMesh.castShadow = true;
+    leftWallMesh.receiveShadow = true;
+    mailboxBodyGroup.add(leftWallMesh);
+
+    // 3. Pared Lateral Derecha Maciza
+    const rightWallGeom = new THREE.BoxGeometry(0.8, 6.5, 22);
+    const rightWallMesh = new THREE.Mesh(rightWallGeom, metalMaterial);
+    rightWallMesh.position.set(7.1, 3.65, 0);
+    rightWallMesh.castShadow = true;
+    rightWallMesh.receiveShadow = true;
+    mailboxBodyGroup.add(rightWallMesh);
+
+    // 4. Bóveda de Techo Cilíndrica Maciza
+    const roofOuterGeom = new THREE.CylinderGeometry(7.5, 7.5, 22, 32, 1, false, 0, Math.PI);
+    roofOuterGeom.rotateZ(-Math.PI / 2);
+    roofOuterGeom.rotateY(Math.PI / 2);
+    const roofOuterMesh = new THREE.Mesh(roofOuterGeom, metalMaterial);
+    roofOuterMesh.position.set(0, 6.9, 0);
+    roofOuterMesh.castShadow = true;
+    roofOuterMesh.receiveShadow = true;
+    mailboxBodyGroup.add(roofOuterMesh);
+
+    // 5. Pared Trasera Ciega Maciza
+    const backPlateGeom = new THREE.BoxGeometry(14.8, 11, 0.8);
+    const backPlateMesh = new THREE.Mesh(backPlateGeom, backMaterial);
+    backPlateMesh.position.set(0, 5.5, -11);
+    backPlateMesh.castShadow = true;
+    mailboxBodyGroup.add(backPlateMesh);
+
+    // 6. Marco Frontal Embellecedor Redondeado
+    const topFrameGeom = new THREE.BoxGeometry(15.4, 0.8, 0.8);
+    const topFrameMesh = new THREE.Mesh(topFrameGeom, brassMaterial);
+    topFrameMesh.position.set(0, 10.2, 11.0);
+    mailboxBodyGroup.add(topFrameMesh);
+
+    const leftFrameGeom = new THREE.BoxGeometry(0.8, 10.2, 0.8);
+    const leftFrameMesh = new THREE.Mesh(leftFrameGeom, brassMaterial);
+    leftFrameMesh.position.set(-7.3, 5.1, 11.0);
+    mailboxBodyGroup.add(leftFrameMesh);
+
+    const rightFrameGeom = new THREE.BoxGeometry(0.8, 10.2, 0.8);
+    const rightFrameMesh = new THREE.Mesh(rightFrameGeom, brassMaterial);
+    rightFrameMesh.position.set(7.3, 5.1, 11.0);
+    mailboxBodyGroup.add(rightFrameMesh);
+
+    mailboxGroup.add(mailboxBodyGroup);
 
     // Ranura superior para modelo moderno
     if (currentModelo === "moderno") {
@@ -788,35 +741,26 @@ export function Mailbox3DExperience({
         new THREE.BoxGeometry(10, 0.38, 1.5),
         brassMaterial
       );
-      letterSlot.position.set(0, 10.18, 0);
+      letterSlot.position.set(0, 10.4, 0);
       letterSlot.castShadow = true;
       mailboxGroup.add(letterSlot);
     }
 
-    // Remaches de bronce ornamentales para modelo vintage
+    // Remaches de bronce ornamentales en los 8 vértices
     const rivetMeshes: THREE.Mesh[] = [];
-    let rivetGeom: THREE.CylinderGeometry | null = null;
-    if (currentModelo === "vintage") {
-      rivetGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.25, 12);
-      rivetGeom.rotateX(Math.PI / 2);
-      for (let x = -6.5; x <= 6.5; x += 2.6) {
-        const rivet1 = new THREE.Mesh(rivetGeom, brassMaterial);
-        rivet1.position.set(x, 0.3, 11.2);
-        mailboxGroup.add(rivet1);
-        rivetMeshes.push(rivet1);
+    const rivetGeom = new THREE.CylinderGeometry(0.2, 0.2, 0.3, 12);
+    rivetGeom.rotateX(Math.PI / 2);
+    for (let x = -6.8; x <= 6.8; x += 2.7) {
+      const rivet1 = new THREE.Mesh(rivetGeom, brassMaterial);
+      rivet1.position.set(x, 0.8, 11.4);
+      mailboxGroup.add(rivet1);
+      rivetMeshes.push(rivet1);
 
-        const rivet2 = new THREE.Mesh(rivetGeom, brassMaterial);
-        rivet2.position.set(x, 5.8, 11.2);
-        mailboxGroup.add(rivet2);
-        rivetMeshes.push(rivet2);
-      }
+      const rivet2 = new THREE.Mesh(rivetGeom, brassMaterial);
+      rivet2.position.set(x, 6.2, 11.4);
+      mailboxGroup.add(rivet2);
+      rivetMeshes.push(rivet2);
     }
-
-    // Pared trasera que cierra el fondo del buzón (en Z = -11)
-    const backGeometry = new THREE.ShapeGeometry(bodyShape);
-    backGeometry.translate(0, 0, -11.02);
-    const backMesh = new THREE.Mesh(backGeometry, backMaterial);
-    mailboxGroup.add(backMesh);
 
     // Suelo interior de correspondencia
     const shelfGeom = new THREE.BoxGeometry(13.8, 0.3, 21.6);
@@ -827,7 +771,7 @@ export function Mailbox3DExperience({
         roughness: 0.7,
       })
     );
-    shelfMesh.position.set(0, wallThickness * 0.5, 0);
+    shelfMesh.position.set(0, 0.45, 0);
     mailboxGroup.add(shelfMesh);
 
     // =========================================================================
@@ -884,24 +828,18 @@ export function Mailbox3DExperience({
     mailboxGroup.add(shadowPlane);
 
     // =========================================================================
-    // PUERTA FRONTAL BASCULANTE CON BISAGRA ARTICULADA (Z = +11)
+    // PUERTA FRONTAL BASCULANTE MACIZA CON BISAGRA ARTICULADA (Z = +11)
     // =========================================================================
     const doorPivot = new THREE.Group();
     doorPivot.position.set(0, 0.1, 11.05);
     mailboxGroup.add(doorPivot);
 
-    const doorGeometry = new THREE.ExtrudeGeometry(doorShape, {
-      depth: 0.45,
-      bevelEnabled: true,
-      bevelSegments: 2,
-      steps: 1,
-      bevelSize: 0.12,
-      bevelThickness: 0.12,
-    });
+    const doorGeometry = new THREE.BoxGeometry(13.8, 10.4, 0.55);
     const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+    doorMesh.position.set(0, 5.2, 0);
     doorPivot.add(doorMesh);
 
-    // Bisagras de latón dorado en la base
+    // Bisagras de latón dorado macizas en la base
     const hingeGeom = new THREE.CylinderGeometry(0.3, 0.3, 1.4, 12);
     hingeGeom.rotateZ(Math.PI / 2);
 
@@ -958,7 +896,6 @@ export function Mailbox3DExperience({
     let heartSealPivot: THREE.Group | null = null;
 
     if (currentModelo === "vintage") {
-      // Pergamino 3D en espiral atado con cinta de seda bordada
       envBodyGeom = new THREE.CylinderGeometry(1.2, 1.2, 7.5, 24);
       envBodyGeom.rotateZ(Math.PI / 2);
       envBodyMat = new THREE.MeshStandardMaterial({
@@ -980,7 +917,6 @@ export function Mailbox3DExperience({
       envGroup.add(ribbonMesh);
 
     } else if (currentModelo === "moderno") {
-      // Tarjeta de cristal neón 3D con sello magnético flotante de corazón
       envBodyGeom = new THREE.BoxGeometry(6.8, 4.4, 0.25);
       envBodyMat = new THREE.MeshStandardMaterial({
         color: 0xffffff,
@@ -1032,7 +968,6 @@ export function Mailbox3DExperience({
       envGroup.add(heartSealPivot);
 
     } else {
-      // Sobre 3D Origami de pergamino cremoso con solapa superior basculante 180°
       envBodyGeom = new THREE.BoxGeometry(6.8, 4.4, 0.32);
       envBodyMat = new THREE.MeshStandardMaterial({
         color: 0xfaf7f0,
@@ -1042,7 +977,6 @@ export function Mailbox3DExperience({
       const envBody = new THREE.Mesh(envBodyGeom, envBodyMat);
       envGroup.add(envBody);
 
-      // Solapa articulada en la parte superior del sobre (y = +2.2)
       flapPivot = new THREE.Group();
       flapPivot.position.set(0, 2.2, 0.17);
 
@@ -1240,6 +1174,31 @@ export function Mailbox3DExperience({
     }
 
     // =========================================================================
+    // DETECCIÓN RAYCASTER WEBGL PARA CLICS EN OBJETOS 3D (PUERTA / SOBRE 3D)
+    // =========================================================================
+    const handleCanvasClick = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      mousePointerRef.current.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mousePointerRef.current.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycasterRef.current.setFromCamera(mousePointerRef.current, camera);
+      const intersects = raycasterRef.current.intersectObjects(scene.children, true);
+
+      if (intersects.length > 0) {
+        if (stage === "front_closed") {
+          handleDoorClick();
+        } else if (stage === "letters_floating" && pendingCitas.length > 0) {
+          const citaTarget = pendingCitas[activeEnvelopeIndex] || pendingCitas[0];
+          if (citaTarget) {
+            handleEnvelopeClick(citaTarget);
+          }
+        }
+      }
+    };
+
+    container.addEventListener("click", handleCanvasClick);
+
+    // =========================================================================
     // BUCLE DE ANIMACIÓN CONTINUA (Física suave sin saltos)
     // =========================================================================
     let animId: number;
@@ -1370,6 +1329,7 @@ export function Mailbox3DExperience({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      container.removeEventListener("click", handleCanvasClick);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", handleResize);
       isRunning = false;
@@ -1382,8 +1342,14 @@ export function Mailbox3DExperience({
         container.removeChild(cssRenderer.domElement);
       }
 
-      bodyGeometry.dispose();
-      backGeometry.dispose();
+      floorGeom.dispose();
+      leftWallGeom.dispose();
+      rightWallGeom.dispose();
+      roofOuterGeom.dispose();
+      backPlateGeom.dispose();
+      topFrameGeom.dispose();
+      leftFrameGeom.dispose();
+      rightFrameGeom.dispose();
       doorGeometry.dispose();
       hingeGeom.dispose();
       latchGeom.dispose();
@@ -1411,7 +1377,7 @@ export function Mailbox3DExperience({
       shadowTex.dispose();
       webglRenderer.dispose();
     };
-  }, [modeloBuzonState]);
+  }, [modeloBuzonState, pendingCitas, activeEnvelopeIndex, stage]);
 
   return (
     <>
@@ -1521,11 +1487,6 @@ export function Mailbox3DExperience({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onClick={() => {
-            if (stage === "front_closed") {
-              handleDoorClick();
-            }
-          }}
           className={`relative w-full ${
             isLoginScreen ? "h-screen min-h-[620px]" : "h-full min-h-[500px]"
           } flex items-center justify-center select-none cursor-grab active:cursor-grabbing`}
@@ -1798,142 +1759,42 @@ export function Mailbox3DExperience({
         >
           <div className="bg-white/95 text-sky-950 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg border border-sky-100 flex items-center gap-2 hover:scale-105 transition-transform">
             <Heart size={15} className="fill-blush-400 text-blush-400 animate-ping" />
-            <span>Toca la puerta del buzón para abrirlo</span>
+            <span>Toca el buzón 3D o la puerta para abrirlo</span>
           </div>
         </motion.div>
       )}
 
-      {/* ========================================================================= */}
-      {/* SOBRES DE CARTAS FLOTANDO FRENTE A LA PUERTA ABIERTA */}
-      {/* ========================================================================= */}
-      <AnimatePresence>
-        {stage === "letters_floating" && (
-          <motion.div
-            key="floating-envelopes"
-            initial={{ opacity: 0, scale: 0.6, y: 40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.7, y: 30 }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute z-40 flex flex-col items-center justify-center pointer-events-auto"
-          >
-            {pendingCitas.length > 0 ? (
-              <div className="flex flex-col items-center">
-                {pendingCitas.length > 1 && (
-                  <div className="flex items-center gap-2 mb-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full shadow-md border border-sky-100">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveEnvelopeIndex((prev) =>
-                          prev > 0 ? prev - 1 : pendingCitas.length - 1
-                        )
-                      }
-                      className="p-1 rounded-full hover:bg-sky-100 text-sky-900 transition-colors cursor-pointer"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="font-mono text-xs font-semibold text-sky-900">
-                      {activeEnvelopeIndex + 1} de {pendingCitas.length} cartas
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveEnvelopeIndex((prev) =>
-                          prev < pendingCitas.length - 1 ? prev + 1 : 0
-                        )
-                      }
-                      className="p-1 rounded-full hover:bg-sky-100 text-sky-900 transition-colors cursor-pointer"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                )}
-
-                {(() => {
-                  const cita = pendingCitas[activeEnvelopeIndex] || pendingCitas[0];
-                  return (
-                    <motion.div
-                      key={cita.id}
-                      animate={{
-                        y: [0, -12, 0],
-                        rotate: [-1.2, 1.2, -1.2],
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 3.5,
-                        ease: "easeInOut",
-                      }}
-                      whileHover={{ scale: 1.05, y: -16 }}
-                      onClick={() => handleEnvelopeClick(cita)}
-                      className="group relative w-[290px] sm:w-[330px] h-[200px] sm:h-[220px] bg-[#FAF7F0] rounded-2xl shadow-2xl p-5 border border-[#E8DFC8] cursor-pointer flex flex-col justify-between select-none transition-all hover:shadow-[0_20px_40px_rgba(20,50,90,0.35)]"
-                    >
-                      <div
-                        className="absolute inset-1.5 rounded-xl pointer-events-none opacity-40"
-                        style={{
-                          border: "1px dashed #C9A96E",
-                        }}
-                      />
-
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="font-mono text-[9px] uppercase tracking-widest text-[#9A8150] block font-bold">
-                            Correspondencia Especial
-                          </span>
-                          <span className="font-serif italic text-xs text-ink-soft">
-                            Nuestras Aventuras
-                          </span>
-                        </div>
-
-                        <div className="w-10 h-12 border-2 border-dashed border-[#C9A96E] bg-sky-50 rounded-sm flex flex-col items-center justify-center p-1 shadow-xs">
-                          <Heart size={14} className="fill-blush-400 text-blush-500" />
-                          <span className="font-mono text-[7px] text-sky-900 font-bold mt-1">
-                            2026
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="self-center my-auto flex flex-col items-center">
-                        <Seal size="md" className="group-hover:scale-110 transition-transform shadow-md" />
-                        <p className="font-handwriting text-2xl text-sky-950 font-bold mt-2">
-                          {cita.nombre}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between border-t border-[#E8DFC8]/60 pt-2 text-[11px] text-ink-soft font-mono">
-                        <span>Para: {noviaName}</span>
-                        <span>
-                          {format(new Date(cita.horario), "d 'de' MMMM", { locale: es })}
-                        </span>
-                      </div>
-
-                      <div className="absolute -bottom-3 inset-x-0 flex justify-center">
-                        <span className="bg-sky-700 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md group-hover:bg-sky-800 transition-colors flex items-center gap-1.5 font-sans">
-                          <Sparkles size={11} />
-                          <span>Toca para desplegar la carta 3D</span>
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl border border-sky-100 shadow-xl text-center max-w-sm">
-                <Heart size={28} className="fill-sky-400 text-sky-500 mx-auto mb-2" />
-                <h3 className="font-serif font-bold text-lg text-ink">Buzón al día</h3>
-                <p className="text-xs text-ink-soft mt-1">
-                  No tienes cartas pendientes por responder. Puedes revisar tu historial completo en el tablero.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCloseExpandedLetter}
-                  className="mt-4 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-all"
-                >
-                  Ir al Tablero Principal
-                </button>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Indicador táctil para interactuar con los sobres 3D en WebGL */}
+      {stage === "letters_floating" && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute bottom-10 z-40 flex flex-col items-center select-none pointer-events-none"
+        >
+          {pendingCitas.length > 0 ? (
+            <div className="bg-white/95 text-sky-950 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg border border-sky-100 flex items-center gap-2">
+              <Sparkles size={15} className="text-amber-500 animate-bounce" />
+              <span>Toca la carta 3D en el centro para desplegarla</span>
+            </div>
+          ) : (
+            <div className="bg-white/95 backdrop-blur-md p-5 rounded-2xl border border-sky-100 shadow-xl text-center max-w-sm pointer-events-auto">
+              <Heart size={26} className="fill-sky-400 text-sky-500 mx-auto mb-2" />
+              <h3 className="font-serif font-bold text-base text-ink">Buzón al día</h3>
+              <p className="text-xs text-ink-soft mt-1">
+                No tienes cartas pendientes por responder.
+              </p>
+              <button
+                type="button"
+                onClick={handleCloseExpandedLetter}
+                className="mt-3 px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-all"
+              >
+                Ir al Tablero Principal
+              </button>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* ========================================================================= */}
       {/* VISTA DESPLEGADA DE LA CARTA (3 PESTAÑAS: CARTA, MAPA, POLAROID) */}
