@@ -48,6 +48,20 @@
   - Cuando la pareja se vincula con éxito.
   - Cuando una cita es aceptada o rechazada.
 
+### 7. Animaciones y Modelos 3D de Buzones Fotorrealistas (Three.js)
+* **Skill Dedicada**: [`threejs-animations`](./.agents/skills/threejs-animations/SKILL.md) que establece las directrices de físicas, optimización GPU móvil y ciclo de vida Three.js.
+* **Componente 3D Principal**: [`Mailbox3DExperience.tsx`](./src/components/mailbox/Mailbox3DExperience.tsx)
+* **3 Modelos Configurables por la Pareja**:
+  - `clasico`: Domo abovedado esmaltado en azul satinado, herrajes de latón pulido, tirador de aro y poste de madera.
+  - `vintage`: Cofre victoriano a dos aguas en hierro forjado oscuro con remaches 3D en bronce, candado artesanal con ojo de cerradura y poste de forja.
+  - `moderno`: Bloque minimalista de bordes suaves satinados en pastel/crema, ranura dorada para cartas, banderín de corazón 3D magenta y poste de aluminio.
+* **Físicas & Efectos Fotorrealistas**:
+  - **Inclinación Interactiva 3D**: Respuesta al movimiento del puntero/ratón (`onPointerMove`) inclinando el buzón sutilmente para dar profundidad de campo.
+  - **Puerta con Rebote Elástico**: Abatimiento mecánico de la puerta con micro-oscilación al abrir.
+  - **Luz Cálida Cavidad Interior**: Encendido dinámico de un `PointLight` en el interior del buzón al abrirse.
+  - **Emergencia de Sobres 3D**: Animación emergente de sobres 3D en WebGL saliendo físicamente del buzón hacia el usuario.
+  - **Cero Bugs Visuales & Rendimiento**: Eliminación de *z-fighting* en la pintura de los nombres con `polygonOffset`, control de DPR para Android (Capacitor) y suspensión en segundo plano (`visibilitychange`).
+
 ---
 
 ## 🛠️ Comandos de Desarrollo y Compilación
@@ -65,3 +79,4 @@
   npm run android:build
   ```
   *(Usa el script `./scripts/build-apk.ps1` que sincroniza Capacitor y compila con Gradle usando el JDK de Android Studio).*
+

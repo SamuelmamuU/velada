@@ -244,3 +244,27 @@ Este documento está redactado para ser ejecutado por un agente de IA (ej. Claud
   - Al hacer click en el buzón miniatura del costado, vuelve a expandirse al centro para reabrir cartas o revisar correspondencia.
 
 **Criterio de aceptación:** El login opera sobre la cara lateral con "Samuel & Diana" pintados; tras el login, la cámara rota al frente; al tocar la puerta se abre y flotan los sobres en 3D; al abrir un sobre se accede a las 3 hojas (Carta/Mapa/Polaroid); al cerrar, la carta se archiva en el tablero y el buzón se repliega al costado como widget miniatura.
+
+---
+
+## Fase 14 — Skill Three.js, Personalización de Modelos 3D de Buzones y Físicas Fotorrealistas
+
+**Objetivo:** Establecer una skill dedicada en Antigravity para experiencias 3D en Three.js (`threejs-animations`) e implementar tres modelos tridimensionales fotorrealistas de buzones de correo (`clasico`, `vintage`, `moderno`) con materiales PBR, iluminación cálida interior, inclinación interactiva por puntero, y físicas de animación depuradas sin bugs visuales.
+
+- [x] **Skill Dedicada `threejs-animations`**:
+  - Registro local (`.agents/skills/threejs-animations/SKILL.md`) y global (`~/.gemini/config/skills/threejs-animations/SKILL.md`) con estándares de optimización GPU móvil (DPR), ciclo de vida Three.js (disposal estricto) y físicas de apertura.
+- [x] **3 Modelos 3D Configurables por la Pareja**:
+  - `clasico`: Túnel abovedado con chapa metálica azul satinada, bisagras de latón pulido, herrajes de agarre, soporte inferior y poste de madera.
+  - `vintage`: Cofre victoriano a dos aguas en hierro forjado oscuro con remaches 3D en bronce, candado artesanal con ojo de cerradura y poste de forja.
+  - `moderno`: Bloque minimalista de bordes suaves satinados en tono pastel/crema, ranura dorada para cartas, banderín de corazón 3D magenta y poste de aluminio.
+- [x] **Físicas & Fotorrealismo**:
+  - Inclinación interactiva por puntero/ratón (`onPointerMove`) para añadir profundidad de campo en directo.
+  - Puerta basculante con abatimiento mecánico y rebote elástico suave al abrir del todo.
+  - Encendido dinámico de luz interior cálida (`PointLight`) en la cavidad del buzón.
+  - Salida emergente de sobre 3D en WebGL desde la cavidad interna hacia el usuario.
+- [x] **Cero Bugs Visuales & Rendimiento**:
+  - Ajuste de `polygonOffset` en la chapa grabada con los nombres de la pareja para prevenir *z-fighting*.
+  - Gestión de DPR optimizada para WebView Android (Capacitor) y suspensión en segundo plano (`visibilitychange`).
+
+**Criterio de aceptación:** La pareja puede personalizar y elegir entre 3 modelos 3D únicos en el modal de personalización, disfrutando de una experiencia 3D con inclinación táctil/cursor, iluminación interior cálida, sobres 3D emergentes y compilación de producción limpia con 0 errores.
+
