@@ -48,16 +48,14 @@
   - Cuando la pareja se vincula con éxito.
   - Cuando una cita es aceptada o rechazada.
 
-### 7. Animaciones y Modelos 3D de Buzones Fotorrealistas (Three.js)
+### 7. Animaciones y Modelos 3D de Buzones Fotorrealistas (Three.js - Reconstrucción Modular v1.7.1)
 * **Skill Dedicada**: [`threejs-animations`](./.agents/skills/threejs-animations/SKILL.md) que establece las directrices de físicas, optimización GPU móvil y ciclo de vida Three.js.
-* **Componente 3D Principal**: [`Mailbox3DExperience.tsx`](./src/components/mailbox/Mailbox3DExperience.tsx)
-* **3 Modelos Configurables por la Pareja**:
-  - `clasico`: Domo abovedado esmaltado en azul satinado, herrajes de latón pulido, tirador de aro y poste de madera.
-  - `vintage`: Cofre victoriano a dos aguas en hierro forjado oscuro con remaches 3D en bronce, candado artesanal con ojo de cerradura y poste de forja.
-  - `moderno`: Bloque minimalista de bordes suaves satinados en pastel/crema, ranura dorada para cartas, banderín de corazón 3D magenta y poste de aluminio.
-* **Físicas & Efectos Fotorrealistas**:
-  - **Inclinación Interactiva 3D**: Respuesta al movimiento del puntero/ratón (`onPointerMove`) inclinando el buzón sutilmente para dar profundidad de campo.
-  - **Puerta con Rebote Elástico**: Abatimiento mecánico de la puerta con micro-oscilación al abrir.
+* **Componente 3D Principal**: [`Mailbox3DExperience.tsx`](./src/components/mailbox/Mailbox3DExperience.tsx) desacoplado de la geometría WebGL mediante la arquitectura modular en `src/components/mailbox/three/`:
+  - [`mailboxModel.ts`](./src/components/mailbox/three/mailboxModel.ts): 3 modelos físicos con siluetas y geometrías volumétricas 100% sólidas y estancas (`clasico`, `vintage`, `moderno`), sin caras faltantes ni piezas flotando. Banderín en `-X` y rótulo caligráfico de la pareja en `+X`.
+  - [`envelopeModel.ts`](./src/components/mailbox/three/envelopeModel.ts): Sobre 3D cerrado con sello de cera en relieve 3D, textura HD en pergamino con título de la cita centrado y fechas de creación y cita en las esquinas inferiores (`📅 Envío: ...`, `✨ Cita: ...`), más solapa triangular que se desdobla al tocarlo.
+  - [`MailboxScene.ts`](./src/components/mailbox/three/MailboxScene.ts): Gestor de escena con ciclo de vida único (no recrea el contexto WebGL al cambiar de etapa), encuadre responsive adaptativo según relación de aspecto vertical/horizontal, cinemática suave con `Clock` delta, discriminación de arrastre vs. tap (umbral de 7 px) y apertura física lógica de la puerta cayendo hacia afuera (+X ~95°) con micro-rebote elástico.
+* **Navegación Multi-Carta**: Controles táctiles integrados (‹ › y contador `1 de N`) para hojear cartas pendientes en 3D.
+* **Etiqueta Adhesiva Lateral CSS3D**: Inyectada en el costado `+X` para inicio de sesión y registro interactivo directo sobre el buzón, completamente adaptada a pantallas móviles y de escritorio.
   - **Luz Cálida Cavidad Interior**: Encendido dinámico de un `PointLight` en el interior del buzón al abrirse.
   - **Emergencia de Sobres 3D**: Animación emergente de sobres 3D en WebGL saliendo físicamente del buzón hacia el usuario.
   - **Cero Bugs Visuales & Rendimiento**: Eliminación de *z-fighting* en la pintura de los nombres con `polygonOffset`, control de DPR para Android (Capacitor) y suspensión en segundo plano (`visibilitychange`).

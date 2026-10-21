@@ -44,13 +44,12 @@ Al crear componentes interactivos 3D en cliente:
 
 ### B. Animaciones Específicas de Buzón de Cartas 3D
 - **Apertura de Puerta Frontal**:
-  - Crear un pivote `doorPivot = new THREE.Group()` alineado con la bisagra inferior (`z = +11.05`, `y = 0.1`).
-  - Animar la rotación `doorPivot.rotation.x` hacia un ángulo de `Math.PI * 0.48` (~86°) para abatir la puerta hacia el frente.
-- **Elevación de Banderín Postal / Corazón**:
-  - Pivote lateral `flagPivot = new THREE.Group()` en el costado del buzón.
-  - Animar `flagPivot.rotation.z` a `Math.PI / 2` o `0` según haya cartas nuevas pendientes.
+  - Crear un pivote `doorPivot = new THREE.Group()` alineado con la bisagra inferior física (`z = +halfZ`, `y = hingeY`).
+  - Animar la rotación `doorPivot.rotation.x` hacia un ángulo positivo `+Math.PI * 0.54` (~95°-97°) para abatir la puerta hacia afuera y abajo hasta el tope horizontal con amortiguación y micro-rebote físico. (IMPORTANTE: Nunca usar ángulos negativos en la puerta frontal, ya que la empotran dentro del buzón).
+- **Separación de Lados para Banderín y Placa de Nombres**:
+  - El banderín postal articulado debe ubicarse en el costado izquierdo (`-X`), mientras que la placa o adhesivo con los nombres de la pareja y el login CSS3D debe ubicarse en el costado opuesto (`+X`), previniendo cualquier cruce visual entre ambos elementos.
 - **Sobres Flotantes y Desdoblamiento**:
-  - Al abrir la puerta, los sobres se trasladan suavemente desde el interior del buzón hacia el frente de la cámara con elevación oscilante sinusoidal (`Math.sin(time * frequency)`).
+  - Los sobres nacen acostados dentro de la cámara y se trasladan hacia el frente (`z` pasando de 2.0 a 14.5) elevándose suavemente con oscilación sinusoidal (`Math.sin(time * frequency)`). Al interactuar, la solapa superior triangular (`flapPivot`) se desdobla 170° hacia arriba y atrás antes de desplegar la carta completa.
 
 ---
 
