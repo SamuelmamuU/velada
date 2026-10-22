@@ -268,3 +268,29 @@ Este documento está redactado para ser ejecutado por un agente de IA (ej. Claud
 
 **Criterio de aceptación:** La pareja puede personalizar y elegir entre 3 modelos 3D únicos en el modal de personalización, disfrutando de una experiencia 3D con inclinación táctil/cursor, iluminación interior cálida, sobres 3D emergentes y compilación de producción limpia con 0 errores.
 
+---
+
+## Fase 15 — Widgets Móviles & Animaciones 3D de Estado (v1.8)
+
+**Objetivo:** Desarrollar una suite de widgets interactivos optimizados para celulares y pantallas táctiles: un widget de buzón 3D con 3 animaciones de estado especiales en Three.js (llegada de carta, buzón vaciado y arbusto del desierto por inactividad) y un widget de calendario de citas, integrados en la aplicación móvil y con rutas independientes para webviews y widgets nativos.
+
+- [ ] **Widget Móvil de Buzón 3D (`MailboxMobileWidget.tsx`)**:
+  - Implementación de escena Three.js ligera con el modelo 3D del buzón seleccionado por la pareja.
+  - **Animación 1 (Llegada de Carta)**: Una carta sobrevuela la escena con estela de partículas brillantes, el banderín del buzón se alza y la carta se desliza dentro del buzón con micro-vibración y aviso.
+  - **Animación 2 (Buzón Vaciado)**: Cierre suave de la puerta, banderín en reposo, destellos dorados y estado de satisfacción "Todo leído / Al día".
+  - **Animación 3 (Inactividad / Arbusto del Desierto)**: Escena con tono crepuscular desértico y un arbusto 3D (estepicursor) procedural rodando y rebotando con física de viento y partículas de polvo frente al buzón solitario.
+  - Controles táctiles y selector de modos para probar y alternar los 3 estados en directo.
+- [ ] **Widget Móvil de Calendario (`CalendarMobileWidget.tsx`)**:
+  - Vista mensual compacta con formato de tarjeta de widget móvil.
+  - Insignias de citas programadas (`💌`) y recuerdos polaroid (`📷`).
+  - Tarjeta de acceso rápido a la próxima cita con cuenta regresiva en días.
+- [ ] **Rutas Dedicadas para Widgets Móviles**:
+  - `/widget/buzon`: Vista standalone sin barras de navegación lista para incrustar en webviews de Android o tarjetas de pantalla de inicio.
+  - `/widget/calendario`: Vista standalone del calendario lista para widgets móviles.
+- [ ] **Centro de Widgets en Dashboards**:
+  - Modal y botón de acceso rápido en los dashboards de Novio y Novia para abrir y probar ambos widgets en móvil y escritorio.
+- [ ] **Optimización y Rendimiento Móvil**:
+  - Control estricto de DPR (1.5 en celular), pausa automática fuera de pantalla (`visibilitychange`), `touch-action: none` y liberación estricta de geometrías/materiales.
+
+**Criterio de aceptación:** Los dos widgets funcionan de forma fluida tanto en celular como en web, el widget de buzón reproduce fielmente las 3 animaciones (llegada, vaciado y arbusto del desierto) con Three.js sin parpadeos, y la compilación de producción pasa con 0 errores.
+

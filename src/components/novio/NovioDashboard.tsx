@@ -13,6 +13,7 @@ import { CoupleAvatarHeader } from "@/components/dashboard/CoupleAvatarHeader";
 import { AdventureCalendar } from "@/components/dashboard/AdventureCalendar";
 import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGallery";
 import { QrPairingModal } from "@/components/pareja/QrPairingModal";
+import { WidgetsModal } from "@/components/widgets/WidgetsModal";
 import {
   Plus,
   Sparkles,
@@ -53,6 +54,7 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
     "letter" | "map" | "memory"
   >("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [widgetsModalOpen, setWidgetsModalOpen] = useState(false);
 
   // Estados de modal de eliminación y notificaciones
   const [citaToDelete, setCitaToDelete] = useState<ICitaResponse | null>(null);
@@ -373,7 +375,10 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
         {currentView === "list" && (
           <div className="space-y-6">
             {/* Visual de Perfil Entrelazado de Ambos con Corazón Superior */}
-            <CoupleAvatarHeader theme={theme} />
+            <CoupleAvatarHeader
+              theme={theme}
+              onOpenWidgets={() => setWidgetsModalOpen(true)}
+            />
 
             {/* Pestañas de Navegación Principal */}
             <div className="flex items-center gap-2 p-1.5 bg-white/80 backdrop-blur-md rounded-2xl max-w-fit mx-auto sm:mx-0 border border-slate-200/80 shadow-2xs">
@@ -665,6 +670,20 @@ export function NovioDashboard({ onViewDetail }: NovioDashboardProps) {
       )}
 
       <QrPairingModal isOpen={qrModalOpen} onClose={() => setQrModalOpen(false)} />
+      <WidgetsModal
+        isOpen={widgetsModalOpen}
+        onClose={() => setWidgetsModalOpen(false)}
+        pendingCitas={citas.filter((c) => c.estado === "pendiente")}
+        allCitas={citas}
+        onOpenMailbox={() => {
+          // Si el novio abre el buzón, cambia a pestaña cartas
+          setActiveTab("cartas");
+        }}
+        onSelectCita={(c) => {
+          setSelectedCita(c);
+          setCurrentView("detail");
+        }}
+      />
     </div>
   );
 }

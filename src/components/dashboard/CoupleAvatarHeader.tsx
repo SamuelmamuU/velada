@@ -4,15 +4,16 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeConfig } from "@/lib/theme";
-import { Heart, Sparkles, Settings, Palette } from "lucide-react";
+import { Heart, Sparkles, Settings, Palette, Smartphone } from "lucide-react";
 import { EditProfileModal } from "@/components/auth/EditProfileModal";
 import { ThemeSelectorModal } from "@/components/dashboard/ThemeSelectorModal";
 
 interface CoupleAvatarHeaderProps {
   theme: ThemeConfig;
+  onOpenWidgets?: () => void;
 }
 
-export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
+export function CoupleAvatarHeader({ theme, onOpenWidgets }: CoupleAvatarHeaderProps) {
   const { user, pareja } = useAuth();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
@@ -109,6 +110,18 @@ export function CoupleAvatarHeader({ theme }: CoupleAvatarHeaderProps) {
 
         {/* Lado derecho: Botones rápidos de personalización y perfil */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {onOpenWidgets && (
+            <button
+              type="button"
+              onClick={onOpenWidgets}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-ink hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+              title="Ver widgets para celulares"
+            >
+              <Smartphone size={14} className={theme.textAccent} />
+              <span>Widgets</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setThemeModalOpen(true)}

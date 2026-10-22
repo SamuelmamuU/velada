@@ -13,6 +13,7 @@ import { PolaroidMemoriesGallery } from "@/components/citas/PolaroidMemoriesGall
 import { CoupleAvatarHeader } from "@/components/dashboard/CoupleAvatarHeader";
 import { AdventureCalendar } from "@/components/dashboard/AdventureCalendar";
 import { NovioForm } from "@/components/novio/NovioForm";
+import { WidgetsModal } from "@/components/widgets/WidgetsModal";
 import {
   differenceInDays,
   differenceInHours,
@@ -52,6 +53,7 @@ export function NoviaDashboard() {
   const [selectedCita, setSelectedCita] = useState<ICitaResponse | null>(null);
   const [letterInitialSide, setLetterInitialSide] = useState<"letter" | "map" | "memory">("letter");
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [widgetsModalOpen, setWidgetsModalOpen] = useState(false);
   const [isWritingLetter, setIsWritingLetter] = useState(false);
   const [activeTab, setActiveTab] = useState<"calendario" | "buzon" | "polaroids">("calendario");
 
@@ -382,7 +384,10 @@ export function NoviaDashboard() {
           /* Vista Principal del Dashboard */
           <div className="space-y-6">
             {/* Visual de Perfil Entrelazado de Ambos con Corazón Superior */}
-            <CoupleAvatarHeader theme={theme} />
+            <CoupleAvatarHeader
+              theme={theme}
+              onOpenWidgets={() => setWidgetsModalOpen(true)}
+            />
 
             {/* Pestañas de Navegación Principal */}
             <div className="flex items-center gap-2 p-1.5 bg-white/80 backdrop-blur-md rounded-2xl max-w-fit mx-auto sm:mx-0 border border-slate-200/80 shadow-2xs">
@@ -646,6 +651,14 @@ export function NoviaDashboard() {
       </div>
 
       <QrPairingModal isOpen={qrModalOpen} onClose={() => setQrModalOpen(false)} />
+      <WidgetsModal
+        isOpen={widgetsModalOpen}
+        onClose={() => setWidgetsModalOpen(false)}
+        pendingCitas={citas.filter((c) => c.estado === "pendiente")}
+        allCitas={citas}
+        onOpenMailbox={handleOpenMailbox}
+        onSelectCita={(c) => setSelectedCita(c)}
+      />
     </div>
   );
 }

@@ -59,6 +59,14 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 - RF-30: **Sincronización privada de citas y buzón**: Al vincularse la pareja, todas las cartas, citas, propuestas de cambio y recuerdos compartidos quedan sincronizados de forma exclusiva e instantánea entre ambos miembros de la pareja vinculada.
 - RF-31: **Gestión del estado de conexión de la pareja**: La aplicación debe mostrar el estado actual de sincronización (pareja vinculada con su nombre, o esperando vinculación) y permitir desvincularse si se desea reiniciar la conexión.
 
+### 1.7 Widgets Móviles y Animaciones 3D de Estado (v1.8)
+
+- RF-32: **Widget Móvil de Buzón 3D**: La aplicación debe ofrecer un widget compacto optimizado para pantallas móviles que presente el buzón 3D y notifique la llegada de nuevas cartas.
+- RF-33: **Animación 3D de Llegada de Carta**: El widget debe incluir una animación en Three.js donde una carta vuela hacia el buzón, el banderín se alza y la carta se introduce en la cavidad/ranura con aviso visual de nueva correspondencia.
+- RF-34: **Animación 3D de Buzón Vaciado**: El widget debe incluir una animación en Three.js que represente el buzón en estado al día, con cierre ordenado de puerta, banderín en reposo y efecto de satisfacción "Todo leído".
+- RF-35: **Animación 3D de Inactividad Prolongada (Arbusto del Desierto)**: Cuando pase mucho tiempo sin cartas nuevas (o por prueba manual), el widget debe mostrar un arbusto rodante del desierto 3D (estepicursor) cruzando y rebotando frente al buzón con física de viento y partículas.
+- RF-36: **Widget Móvil de Calendario de Citas**: La aplicación debe disponer de un widget de calendario que muestre la vista mensual condensada, insignias de días con citas (`💌`) y recuerdos (`📷`), y acceso directo a la próxima cita programada con cuenta regresiva.
+
 ---
 
 ## 2. Requerimientos no funcionales
@@ -92,9 +100,10 @@ Cada cita debe contar obligatoriamente con los siguientes campos:
 - RNF-13: La solución debe operar eficientemente dentro de planes gratuitos, aislando las citas y correspondencia por cada pareja vinculada.
 - RNF-14: La arquitectura debe permitir agregar fácilmente nuevas funcionalidades futuras (ej. fotos de la cita, comentarios, calificación post-cita) sin rediseñar el sistema.
 
-### 2.6 Compatibilidad
+### 2.6 Compatibilidad y Rendimiento de Widgets Móviles
 
 - RNF-15: La aplicación debe funcionar correctamente en los navegadores modernos más comunes (Chrome, Safari, Firefox) tanto en escritorio como en móvil.
+- RNF-16: Los widgets móviles 3D en Three.js deben estar optimizados para GPUs móviles con limitación de DPR (máximo 1.5 en celulares), cancelación de bucle de animación en segundo plano (`visibilitychange`) y limpieza estricta de geometrías/materiales en desmonte.
 
 ---
 

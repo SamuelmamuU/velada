@@ -1,4 +1,4 @@
-# 💌 Nuestras Aventuras (Velada de Citas) — Estado Actual del Proyecto (v1.7)
+# 💌 Nuestras Aventuras (Velada de Citas) — Estado Actual del Proyecto (v1.8)
 
 > **Documento de Contexto y Continuidad**: Este archivo permite a cualquier agente de Antigravity o desarrollador retomar el trabajo inmediatamente con todo el contexto técnico y funcional del proyecto.
 
@@ -6,9 +6,8 @@
 
 ## 📌 Resumen General
 * **Nombre de la App**: Nuestras Aventuras
-* **Versión Actual**: `1.7.0` (Android VersionCode: `7`, VersionName: `"1.7"`)
-* **Archivo APK de Producción**: [`NuestrasAventuras-v1.7.apk`](./NuestrasAventuras-v1.7.apk) (4.33 MB en la raíz)
-* **Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Capacitor Android 8, MongoDB / Mongoose + Mappings en memoria offline, Leaflet + OpenStreetMap.
+* **Versión Actual**: `1.8.0` (Android VersionCode: `8`, VersionName: `"1.8"`)
+* **Stack**: Next.js 14 (App Router), Three.js, TypeScript, Tailwind CSS, Capacitor Android 8, MongoDB / Mongoose + Mappings en memoria offline, Leaflet + OpenStreetMap.
 
 ---
 
@@ -59,6 +58,16 @@
   - **Luz Cálida Cavidad Interior**: Encendido dinámico de un `PointLight` en el interior del buzón al abrirse.
   - **Emergencia de Sobres 3D**: Animación emergente de sobres 3D en WebGL saliendo físicamente del buzón hacia el usuario.
   - **Cero Bugs Visuales & Rendimiento**: Eliminación de *z-fighting* en la pintura de los nombres con `polygonOffset`, control de DPR para Android (Capacitor) y suspensión en segundo plano (`visibilitychange`).
+
+### 8. Widgets Móviles y Animaciones 3D de Estado (Three.js v1.8)
+* **Widget Móvil de Buzón 3D**: [`MailboxMobileWidget.tsx`](./src/components/widgets/MailboxMobileWidget.tsx) con escena especializada [`MailboxWidgetScene.ts`](./src/components/widgets/three/MailboxWidgetScene.ts).
+* **3 Animaciones de Estado en Three.js**:
+  1. **Llegada de Carta (`arriving`)**: Sobre 3D volando en arco Bézier con estela de partículas doradas, apertura suave de puerta, elevación de banderín e inserción en el buzón.
+  2. **Buzón Vaciado (`emptied`)**: Cierre ordenado de puerta, banderín en reposo y halo de partículas ascendentes doradas "Al día".
+  3. **Inactividad Prolongada / Desierto (`desert_tumbleweed`)**: Iluminación dorada de atardecer desértico y un arbusto rodante 3D ([`TumbleweedModel.ts`](./src/components/widgets/three/TumbleweedModel.ts)) rodando y rebotando frente al buzón con viento y partículas de polvo.
+* **Widget Móvil de Calendario**: [`CalendarMobileWidget.tsx`](./src/components/widgets/CalendarMobileWidget.tsx) con cuadrícula mensual, moneda 3D interactiva del día en Three.js y tarjeta de próxima cita.
+* **Rutas Standalone para Webviews / Widgets**: `/widget/buzon` y `/widget/calendario`.
+* **Centro de Widgets Móviles**: [`WidgetsModal.tsx`](./src/components/widgets/WidgetsModal.tsx) accesible desde ambos dashboards mediante el botón "Widgets" en la barra de avatares entrelazados.
 
 ---
 
